@@ -1,7 +1,7 @@
 #pragma once
 #include "Window.h"
 
-namespace engine
+namespace core
 {
     class TorchWindow : public Window
     {
@@ -13,6 +13,6 @@ namespace engine
         ~TorchWindow() override;
 
     private:
-        TorchWindow() = delete; // Prevent default construction
+        TorchWindow() = delete; 
     };
 }

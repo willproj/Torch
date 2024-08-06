@@ -1,6 +1,6 @@
 #include "TorchWindow.h"
 
-namespace engine
+namespace core
 {
     TorchWindow::TorchWindow(const WindowSpecification& specification)
         : Window(specification) 
@@ -23,7 +23,7 @@ namespace engine
 
     bool TorchWindow::WindowShouldClose()
     {
-        return glfwWindowShouldClose(m_Specification.glfwWindow) == true;
+        return glfwWindowShouldClose(m_Specification.glfwWindow);
     }
 
     void TorchWindow::PollEvents()

@@ -17,8 +17,10 @@ namespace engine
     Engine::Engine()
     {
         TORCH_LOG_INFO("Torch Engine Initialized: {0}", __FUNCTION__);
-        WindowSpecification spec{ 800, 600, "Torch Engine", nullptr };
-        m_TorchWindow = Window::GetWindow(spec);
+        std::unique_ptr<core::Window> window = core::Window::GetWindow(
+            core::WindowSpecification{ 800, 600, "My Window", nullptr }
+        );
+        core::ServiceLocator::RegisterWindow(std::move(window));
     }
 
     Engine::~Engine()
@@ -32,12 +34,11 @@ namespace engine
 
     void Engine::Run()
     {
-        TORCH_LOG_INFO("Engine is going to run: {}", !m_TorchWindow->WindowShouldClose());
-        while (!m_TorchWindow->WindowShouldClose())  
+        auto appWindow = core::ServiceLocator::GetWindow();
+        while (!appWindow->WindowShouldClose())
         {
-            m_TorchWindow->PollEvents();
-            m_TorchWindow->SwapBuffer();
+            appWindow->PollEvents();
+            appWindow->SwapBuffer();
         }
-        TORCH_LOG_INFO("Engine is stopped: {}", !m_TorchWindow->WindowShouldClose());
     }
 }

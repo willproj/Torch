@@ -1,7 +1,7 @@
 #include "Window.h"
 #include "TorchWindow.h"
 
-namespace engine
+namespace core
 {
     std::unique_ptr<Window> Window::GetWindow(const WindowSpecification& specification)
     {

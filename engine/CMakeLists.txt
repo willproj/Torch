@@ -19,4 +19,4 @@ target_precompile_headers(Engine PRIVATE ${CMAKE_SOURCE_DIR}/pch/pch.h)
 target_include_directories(Engine PRIVATE ${CMAKE_SOURCE_DIR} ${Vulkan_INCLUDE_DIRS})
 
 # Link the Logger library and Vulkan to the Engine library
-target_link_libraries(Engine PRIVATE Logger glfw glad Vulkan::Vulkan)
+target_link_libraries(Engine PRIVATE Logger glfw glad Vulkan::Vulkan Core)

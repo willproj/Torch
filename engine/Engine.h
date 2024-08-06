@@ -1,7 +1,9 @@
 //platform/engine.h
 #pragma once
 #include <pch/pch.h>
-#include "window/Window.h"
+#include <core/platform/Window.h>
+#include <core/platform/ServiceLocator.h>
+
 namespace engine
 {
     class Engine
@@ -15,7 +17,5 @@ namespace engine
         Engine();
         static std::unique_ptr<Engine> s_EngineInstance;
         void Run();
-
-        std::unique_ptr<Window> m_TorchWindow;
     };
 }

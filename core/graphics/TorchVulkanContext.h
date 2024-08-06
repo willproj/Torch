@@ -11,5 +11,7 @@ namespace core
 		~TorchVulkanContext();
 	private:
 
+		void CreateInstance();
+
 	};
 }

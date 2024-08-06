@@ -35,7 +35,7 @@
 #include <Logger.h>
 
 // Vulkan Headers
-#include <vulkan/vulkan.h> 
+#include <vulkan/vulkan.h>
 
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>

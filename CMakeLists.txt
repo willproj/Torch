@@ -41,7 +41,6 @@ endif()
 
 # Include directories
 include_directories(
-   
     ${CMAKE_SOURCE_DIR}/pch 
     ${CMAKE_SOURCE_DIR}/thirdParty/spdlog
     ${CMAKE_SOURCE_DIR}/thirdParty/glfw/include
@@ -51,6 +50,7 @@ include_directories(
 # Add subdirectories
 add_subdirectory(thirdParty)
 add_subdirectory(utils)
+add_subdirectory(Core)
 add_subdirectory(engine)
 add_subdirectory(Sandbox)
 
