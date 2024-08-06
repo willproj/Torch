@@ -11,7 +11,7 @@
 #error Unsupported platform
 #endif
 
-
+#define TORCH_ENGINE_API_VULKAN
 
 // Standard Library Headers
 #include <iostream>
@@ -39,3 +39,4 @@
 
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
+
