@@ -1,4 +1,3 @@
-// Engine.cpp
 #include "Engine.h"
 
 namespace engine
@@ -16,15 +15,28 @@ namespace engine
 
     Engine::Engine()
     {
-        TORCH_LOG_INFO("Torch Engine Initialized: {0}", __FUNCTION__);
-        std::unique_ptr<core::Window> window = core::Window::GetWindow(
-            core::WindowSpecification{ 800, 600, "My Window", nullptr }
-        );
-        core::ServiceLocator::RegisterWindow(std::move(window));
+        Initialization();
     }
 
     Engine::~Engine()
     {
+    }
+
+    void Engine::Initialization()
+    {
+        TORCH_LOG_INFO("Torch Engine Initialized");
+        std::unique_ptr<core::Window> window = core::Window::Create(
+            core::WindowSpecification{ 800, 600, "My Window", nullptr }
+        );
+        TORCH_LOG_INFO("Torch Window created.");
+        utils::ServiceLocator::RegisterWindow(std::move(window));
+        TORCH_LOG_INFO("Torch Window registered.");
+
+
+        //initialize graphics context
+        TORCH_LOG_INFO("Initialize graphics context.");
+        auto context = core::TorchGraphicsContext::GetGraphicsContext();
+
     }
 
     void Engine::operator()()
@@ -34,11 +46,11 @@ namespace engine
 
     void Engine::Run()
     {
-        auto appWindow = core::ServiceLocator::GetWindow();
-        while (!appWindow->WindowShouldClose())
+        auto appWindow = utils::ServiceLocator::GetWindow();
+        while (!appWindow->ShouldClose())
         {
             appWindow->PollEvents();
-            appWindow->SwapBuffer();
+            appWindow->SwapBuffers();
         }
     }
 }

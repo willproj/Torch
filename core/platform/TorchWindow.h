@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Window.h"
 
 namespace core
@@ -6,13 +7,20 @@ namespace core
     class TorchWindow : public Window
     {
     public:
-        bool WindowShouldClose() override;
-        void PollEvents() override;
-        void SwapBuffer() override;
-        explicit TorchWindow(const WindowSpecification& specification);
-        ~TorchWindow() override;
+        explicit TorchWindow(const WindowSpecification &specification);
+        ~TorchWindow() noexcept override;
+
+        bool ShouldClose() const noexcept override;
+        void PollEvents() noexcept override;
+        void SwapBuffers() noexcept override;
 
     private:
-        TorchWindow() = delete; 
+        TorchWindow() = delete;
+
+        TorchWindow(const TorchWindow &) = delete;
+        TorchWindow &operator=(const TorchWindow &) = delete;
+
+        TorchWindow(TorchWindow &&) noexcept = default;
+        TorchWindow &operator=(TorchWindow &&) noexcept = default;
     };
 }

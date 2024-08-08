@@ -1,6 +1,7 @@
 #pragma once
 #include <pch/pch.h>
 #include "TorchGraphicsContext.h"
+#include "core/vkcore/VulkanInstance.h"
 
 namespace core
 {
@@ -12,6 +13,7 @@ namespace core
 	private:
 
 		void CreateInstance();
+		VulkanInstance m_Instance;
 
 	};
 }

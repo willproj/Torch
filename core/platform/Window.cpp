@@ -3,7 +3,7 @@
 
 namespace core
 {
-    std::unique_ptr<Window> Window::GetWindow(const WindowSpecification& specification)
+    std::unique_ptr<Window> Window::Create(const WindowSpecification& specification)
     {
 #ifdef TORCH_ENGINE_PLATFORM_WIN32
         // Perform platform-specific initialization for Windows if needed
@@ -21,7 +21,5 @@ namespace core
 #endif
     }
 
-    Window::~Window()
-    {
-    }
+    Window::~Window() = default;  // Correctly defined pure virtual destructor
 }

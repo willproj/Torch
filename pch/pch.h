@@ -24,6 +24,8 @@
 #include <functional>
 #include <memory>
 #include <stdexcept>
+#include <optional>
+#include <mutex>
 
 // Third-Party Headers
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
@@ -39,4 +41,3 @@
 
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
-

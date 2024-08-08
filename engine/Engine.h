@@ -1,8 +1,7 @@
 //platform/engine.h
 #pragma once
 #include <pch/pch.h>
-#include <core/platform/Window.h>
-#include <core/platform/ServiceLocator.h>
+#include "Headers.h"
 
 namespace engine
 {
@@ -13,9 +12,16 @@ namespace engine
         ~Engine();
         void operator()();
 
+        Engine(const Engine&) = delete;
+        Engine& operator=(const Engine&) = delete;
+
+        Engine(Engine&&) = delete;
+        Engine& operator=(Engine&&) = delete;
+
     private:
         Engine();
-        static std::unique_ptr<Engine> s_EngineInstance;
         void Run();
+        void Initialization();
+        static std::unique_ptr<Engine> s_EngineInstance;
     };
 }

@@ -21,24 +21,25 @@ namespace core
         glfwMakeContextCurrent(m_Specification.glfwWindow);
     }
 
-    bool TorchWindow::WindowShouldClose()
+    bool TorchWindow::ShouldClose() const noexcept
     {
         return glfwWindowShouldClose(m_Specification.glfwWindow);
     }
 
-    void TorchWindow::PollEvents()
+    void TorchWindow::PollEvents() noexcept
     {
         glfwPollEvents();
     }
 
-    void TorchWindow::SwapBuffer()
+    void TorchWindow::SwapBuffers() noexcept
     {
         glfwSwapBuffers(m_Specification.glfwWindow);
     }
 
-    TorchWindow::~TorchWindow()
+    TorchWindow::~TorchWindow() noexcept
     {
-       
+       glfwDestroyWindow(m_Specification.glfwWindow);
+       glfwTerminate();
     }
 	
 }
