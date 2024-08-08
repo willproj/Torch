@@ -16,6 +16,5 @@ namespace core
 	
 	void TorchVulkanContext::CreateInstance()
 	{
-		m_Instance.Initialize();
 	}
 }

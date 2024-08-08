@@ -3,15 +3,16 @@
 namespace core
 {
     VulkanInstance::VulkanInstance()
+        :m_Instance(VK_NULL_HANDLE)
     {
     }
 
     VulkanInstance::~VulkanInstance()
     {
-        vkDestroyInstance(m_Instance, nullptr);
+        Destroy(VK_NULL_HANDLE);
     }
 
-    void VulkanInstance::Initialize()
+    void VulkanInstance::Create(VkDevice device)
     {
         TORCH_LOG_INFO("Create vulkan instance.");
         TORCH_LOG_INFO("Create vk application info.");
@@ -28,7 +29,7 @@ namespace core
         createInfo.pApplicationInfo = &appInfo;
 
         uint32_t glfwExtensionCount = 0;
-        const char **glfwExtensions;
+        const char** glfwExtensions;
         glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
         createInfo.enabledExtensionCount = glfwExtensionCount;
@@ -42,5 +43,15 @@ namespace core
             throw std::runtime_error("Failed to create instance");
         }
     }
+    
+    void VulkanInstance::Destroy(VkDevice device)
+    {
+        if (m_Instance != VK_NULL_HANDLE)
+        {
+            vkDestroyInstance(m_Instance, nullptr);
+            m_Instance = VK_NULL_HANDLE;
+        }
+    }
+    
 
 }
