@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Window.h"
+#include "core/events/WindowEvent.h"
 
 namespace core
 {
@@ -13,6 +14,8 @@ namespace core
         bool ShouldClose() const noexcept override;
         void PollEvents() noexcept override;
         void SwapBuffers() noexcept override;
+        void SetWindowSize(uint32_t width, uint32_t height) noexcept override;
+        void OnEvent(Event& event);
 
     private:
         TorchWindow() = delete;
@@ -22,5 +25,6 @@ namespace core
 
         TorchWindow(TorchWindow &&) noexcept = default;
         TorchWindow &operator=(TorchWindow &&) noexcept = default;
+
     };
 }

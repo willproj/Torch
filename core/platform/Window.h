@@ -21,7 +21,7 @@ namespace core
         virtual void PollEvents() noexcept = 0;
         virtual void SwapBuffers() noexcept = 0;
         virtual ~Window() noexcept = 0;
-
+        virtual void SetWindowSize(uint32_t width, uint32_t height) noexcept = 0;
     protected:
         Window() = default;
         explicit Window(const WindowSpecification &specification) : m_Specification(specification) {}

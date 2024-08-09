@@ -1,4 +1,5 @@
 #include "TorchWindow.h"
+#include "core/events/EventDispatcher.h"
 
 namespace core
 {
@@ -19,6 +20,32 @@ namespace core
             return;
         }
         glfwMakeContextCurrent(m_Specification.glfwWindow);
+
+        glfwSetWindowUserPointer(m_Specification.glfwWindow, this);
+
+        //set window size call back function
+        glfwSetWindowSizeCallback(m_Specification.glfwWindow, [](GLFWwindow* window, int width, int height)
+        {
+            auto* torchWindow = static_cast<TorchWindow*>(glfwGetWindowUserPointer(window));
+            torchWindow->SetWindowSize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+
+            WindowResizeEvent event(width, height);
+            torchWindow->OnEvent(event);
+        });
+
+
+        //set window close callback
+        glfwSetWindowCloseCallback(m_Specification.glfwWindow, [](GLFWwindow* window)
+        {
+            auto* torchWindow = static_cast<TorchWindow*>(glfwGetWindowUserPointer(window));
+            TORCH_LOG_DEBUG("[{}:{}] window closed.", __FILE__, __LINE__);
+
+            bool flag = true;
+            if (!flag)
+            {
+                glfwSetWindowShouldClose(window, GLFW_FALSE);
+            }
+        });
     }
 
     bool TorchWindow::ShouldClose() const noexcept
@@ -34,6 +61,24 @@ namespace core
     void TorchWindow::SwapBuffers() noexcept
     {
         glfwSwapBuffers(m_Specification.glfwWindow);
+    }
+
+    void TorchWindow::SetWindowSize(uint32_t width, uint32_t height) noexcept
+    {
+        m_Specification.width = width;
+        m_Specification.height = height;
+    }
+
+    void TorchWindow::OnEvent(Event& event)
+    {
+        EventDispatcher dispatcher(event);
+
+        dispatcher.Dispatch<WindowResizeEvent>([](WindowResizeEvent& e)
+        {
+            TORCH_LOG_DEBUG("[{}:{}] --window size: {}x{}", __FILE__, __LINE__, e.GetWidth(), e.GetHeight());
+            return true;
+        });
+
     }
 
     TorchWindow::~TorchWindow() noexcept
