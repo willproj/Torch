@@ -13,9 +13,6 @@ namespace core
 			:m_Width(width), m_Height(height)
 		{
 		}
-
-		static EventType GetStaticType() { return Type; }
-
 		uint32_t GetWidth() const { return m_Width; }
 		uint32_t GetHeight() const { return m_Height; }
 	private:

@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Window.h"
-#include "core/events/WindowEvent.h"
+#include "core/events/Event.h"
+#include "core/events/EventDispatcher.h"
 
 namespace core
 {
@@ -18,6 +19,12 @@ namespace core
         void OnEvent(Event& event);
 
     private:
+
+        using EventHandler = std::function<void(Event&)>;
+        std::unordered_map<EventType, EventHandler> m_EventHandlers;
+        
+        void RegisteEventHandlers();
+
         TorchWindow() = delete;
 
         TorchWindow(const TorchWindow &) = delete;

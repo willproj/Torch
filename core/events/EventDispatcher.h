@@ -20,6 +20,15 @@ namespace core
 			}
 			return false;
 		}
+
+		template<typename... EventTypes>
+		bool DispatchAll(const std::function<bool(Event&)>& handler)
+		{
+			bool handled = false;
+			// Iterate over all event types and dispatch
+			((handled |= Dispatch<EventTypes>(handler)), ...);
+			return handled;
+		}
 	protected:
 		Event& m_Event;
 	};
