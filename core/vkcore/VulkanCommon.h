@@ -26,5 +26,8 @@ namespace core
         static QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
         static SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
         static bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
+        static uint32_t FindMemoryType(const VkPhysicalDevice& device, uint32_t typeFilter, const VkMemoryPropertyFlags& properties);
+
+
 	};
 }

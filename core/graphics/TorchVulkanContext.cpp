@@ -17,12 +17,14 @@ namespace core
 		m_GraphicsPipeline.Initialize(m_LogicDevice, m_RenderPass);
 		m_Framebuffer.Initialize(m_LogicDevice, m_SwapChain, m_ImageViews, m_RenderPass);
 		m_CommandPool.Initialize(m_PhysicalDevice, m_Surface, m_LogicDevice);
+		m_VertexBuffer.Initialize(m_PhysicalDevice, m_LogicDevice);
 		m_CommandBuffer.Initialize(m_LogicDevice, m_RenderPass, m_Framebuffer, m_CommandPool);
 		m_SyncObjects.Initialize(m_LogicDevice);
 		TORCH_LOG_INFO("Finished initialization of Vulkan.");
 	}
 	void TorchVulkanContext::ReCreate()
 	{
+		
 		vkDeviceWaitIdle(m_LogicDevice.GetLogicDevice());
 
 		m_Framebuffer.Destroy(m_LogicDevice);
@@ -43,35 +45,35 @@ namespace core
 
 	void TorchVulkanContext::DrawFrame()
 	{
-		vkWaitForFences(m_LogicDevice.GetLogicDevice(), 1, &m_SyncObjects.GetInFlightFenceRef().get(), VK_TRUE, UINT64_MAX);
-		vkResetFences(m_LogicDevice.GetLogicDevice(), 1, &m_SyncObjects.GetInFlightFenceRef().get());
+		vkWaitForFences(m_LogicDevice.GetLogicDevice(), 1, &m_SyncObjects.GetInFlightFenceRef().get()[currentFrame], VK_TRUE, UINT64_MAX);
+		vkResetFences(m_LogicDevice.GetLogicDevice(), 1, &m_SyncObjects.GetInFlightFenceRef().get()[currentFrame]);
 
 		uint32_t imageIndex;
-		VkResult result = vkAcquireNextImageKHR(m_LogicDevice.GetLogicDevice(), m_SwapChain.GetSwapChain(), UINT64_MAX, m_SyncObjects.GetImageAvailableSemaphore(), VK_NULL_HANDLE, &imageIndex);
+		VkResult result = vkAcquireNextImageKHR(m_LogicDevice.GetLogicDevice(), m_SwapChain.GetSwapChain(), UINT64_MAX, m_SyncObjects.GetImageAvailableSemaphore()[currentFrame], VK_NULL_HANDLE, &imageIndex);
 		if (result != VK_SUCCESS) {
 			throw std::runtime_error("failed to acquire swap chain image!");
 		}
 
-		vkResetCommandBuffer(m_CommandBuffer.GetVulkanCommandBuffer(), VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
-		m_CommandBuffer.RecordCommandBuffer(m_RenderPass, m_SwapChain, m_Framebuffer, m_GraphicsPipeline, imageIndex);
+		vkResetCommandBuffer(m_CommandBuffer.GetVulkanCommandBuffer()[currentFrame], VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
+		m_CommandBuffer.RecordCommandBuffer(m_VertexBuffer, m_CommandBuffer.GetVulkanCommandBuffer()[currentFrame], m_RenderPass, m_SwapChain, m_Framebuffer, m_GraphicsPipeline, imageIndex);
 
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-		VkSemaphore waitSemaphores[] = { m_SyncObjects.GetImageAvailableSemaphore() };
+		VkSemaphore waitSemaphores[] = { m_SyncObjects.GetImageAvailableSemaphore()[currentFrame] };
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
 
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &m_CommandBuffer.GetVulkanCommandBufferRef().get();
+		submitInfo.pCommandBuffers = &m_CommandBuffer.GetVulkanCommandBufferRef().get()[currentFrame];
 
-		VkSemaphore signalSemaphores[] = { m_SyncObjects.GetRenderFinishedSemaphore() };
+		VkSemaphore signalSemaphores[] = { m_SyncObjects.GetRenderFinishedSemaphore()[currentFrame] };
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
-		if (vkQueueSubmit(m_LogicDevice.GetGraphicsQueue(), 1, &submitInfo, m_SyncObjects.GetInFlightFence()) != VK_SUCCESS) {
+		if (vkQueueSubmit(m_LogicDevice.GetGraphicsQueue(), 1, &submitInfo, m_SyncObjects.GetInFlightFence()[currentFrame]) != VK_SUCCESS) {
 			throw std::runtime_error("failed to submit draw command buffer!");
 		}
 
@@ -91,6 +93,8 @@ namespace core
 		if (result != VK_SUCCESS) {
 			throw std::runtime_error("failed to present swap chain image!");
 		}
+
+		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
 
 

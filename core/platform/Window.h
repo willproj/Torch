@@ -25,6 +25,7 @@ namespace core
 		WindowSpecification GetWinSpecification() const { return m_Specification; }
 		virtual void ResetIsResize() noexcept {};
 		virtual bool IsResize() noexcept { return false; };
+		virtual void HandleMinimization() noexcept {};
 	protected:
 		Window() = default;
 		explicit Window(const WindowSpecification& specification) : m_Specification(specification) {}

@@ -33,6 +33,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <filesystem>
+#include <array>
 
 
 // Third-Party Headers
@@ -41,6 +42,8 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/async.h>
 #include <spdlog/async_logger.h>
+
+#include <glm/glm.hpp>
 
 #include <Logger.h>
 #include <Ref.h>
@@ -51,3 +54,7 @@
 #include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
+
+constexpr int MAX_FRAMES_IN_FLIGHT = 2;
+
+

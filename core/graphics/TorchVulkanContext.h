@@ -14,6 +14,7 @@
 #include "core/vkcore/command/VulkanCommandBuffer.h"
 #include "core/vkcore/command/VulkanCommandPool.h"
 #include "core/vkcore/syncobjects/VulkanSyncObjects.h"
+#include "core/renderer/VertexBuffer.h"
 
 namespace core
 {
@@ -53,5 +54,8 @@ namespace core
 		VulkanCommandBuffer m_CommandBuffer;
 		VulkanCommandPool m_CommandPool;
 		VulkanSyncObjects m_SyncObjects;
+		VertexBuffer m_VertexBuffer;
+
+		uint32_t currentFrame = 0;
 	};
 }

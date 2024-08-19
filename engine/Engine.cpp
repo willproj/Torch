@@ -54,6 +54,7 @@ namespace engine
 
             if (appWindow->IsResize())
             {
+                appWindow->HandleMinimization();
                 context->ReCreate();
                 appWindow->ResetIsResize();
             }

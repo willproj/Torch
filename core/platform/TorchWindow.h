@@ -19,6 +19,7 @@ namespace core
         void OnEvent(Event& event);
         void ResetIsResize() noexcept override;
         bool IsResize() noexcept override { return m_IsResized; }
+        void HandleMinimization() noexcept override;
     private:
 
         using EventHandler = std::function<void(Event&)>;

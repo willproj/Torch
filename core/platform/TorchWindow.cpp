@@ -168,6 +168,16 @@ namespace core
         m_IsResized = false;
     }
 
+    void TorchWindow::HandleMinimization() noexcept
+    {
+        int width = 0, height = 0;
+        glfwGetFramebufferSize(m_Specification.glfwWindow, &width, &height);
+        while (width == 0 || height == 0) {
+            glfwGetFramebufferSize(m_Specification.glfwWindow, &width, &height);
+            glfwWaitEvents();
+        }
+    }
+
     void TorchWindow::RegisteEventHandlers()
     {
         m_EventHandlers[EventType::MOUSE_PRESS] = [this](Event& e) 

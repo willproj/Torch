@@ -9,6 +9,7 @@ namespace core
 	class VulkanSwapChain;
 	class VulkanGraphicsPipeline;
 	class VulkanLogicDevice;
+	class VertexBuffer;
 	class VulkanCommandBuffer
 	{
 	public:
@@ -18,11 +19,11 @@ namespace core
 		void Initialize(VulkanLogicDevice vkLogicDevice,VulkanRenderPass vkRenderPass, VulkanFramebuffer vkFramebuffer, VulkanCommandPool vkCommandPool);
 		void Destroy();
 
-		void RecordCommandBuffer(VulkanRenderPass vkRenderPass, VulkanSwapChain vkSwapChain,  VulkanFramebuffer vkFramebuffer, VulkanGraphicsPipeline vkGraphicsPipeline, uint32_t imageIndex);
-		VkCommandBuffer GetVulkanCommandBuffer() const { return m_CommandBuffer; }
-		utils::Ref<VkCommandBuffer> GetVulkanCommandBufferRef() { return utils::Ref<VkCommandBuffer>(m_CommandBuffer); }
+		void RecordCommandBuffer(VertexBuffer vertexBuffer, VkCommandBuffer commandBuffer, VulkanRenderPass vkRenderPass, VulkanSwapChain vkSwapChain,  VulkanFramebuffer vkFramebuffer, VulkanGraphicsPipeline vkGraphicsPipeline, uint32_t imageIndex);
+		std::vector<VkCommandBuffer> GetVulkanCommandBuffer() const { return m_CommandBuffers; }
+		utils::Ref<std::vector<VkCommandBuffer>> GetVulkanCommandBufferRef() { return utils::Ref<std::vector<VkCommandBuffer>>(m_CommandBuffers); }
 
 	private:
-		VkCommandBuffer m_CommandBuffer;
+		std::vector<VkCommandBuffer> m_CommandBuffers;
 	};
 }

@@ -13,17 +13,18 @@ namespace core
 
 		void Initialize(VulkanLogicDevice vkLogicDevice);
 
-		VkSemaphore GetImageAvailableSemaphore() const { return m_ImageAvailableSemaphore; }
-		VkSemaphore GetRenderFinishedSemaphore() const { return m_RenderFinishedSemaphore; }
-		VkFence GetInFlightFence() const { return m_InFlightFence; }
+		std::vector<VkSemaphore> GetImageAvailableSemaphore() const { return m_ImageAvailableSemaphore; }
+		std::vector<VkSemaphore> GetRenderFinishedSemaphore() const { return m_RenderFinishedSemaphore; }
+		std::vector<VkFence> GetInFlightFence() const { return m_InFlightFence; }
 
-		utils::Ref<VkSemaphore> GetImageAvailableSemaphoreRef() { return utils::Ref<VkSemaphore>(m_ImageAvailableSemaphore); }
-		utils::Ref<VkSemaphore> GetRenderFinishedSemaphoreRef() { return utils::Ref<VkSemaphore>(m_RenderFinishedSemaphore); }
-		utils::Ref<VkFence> GetInFlightFenceRef() { return utils::Ref<VkFence>(m_InFlightFence); }
+		utils::Ref<std::vector<VkSemaphore>> GetImageAvailableSemaphoreRef() { return utils::Ref<std::vector<VkSemaphore>>(m_ImageAvailableSemaphore); }
+		utils::Ref<std::vector<VkSemaphore>> GetRenderFinishedSemaphoreRef() { return utils::Ref<std::vector<VkSemaphore>>(m_RenderFinishedSemaphore); }
+		utils::Ref<std::vector<VkFence>> GetInFlightFenceRef() { return utils::Ref<std::vector<VkFence>>(m_InFlightFence); }
 
 	private:
-		VkSemaphore m_ImageAvailableSemaphore;
-		VkSemaphore m_RenderFinishedSemaphore;
-		VkFence m_InFlightFence;
+		std::vector<VkSemaphore> m_ImageAvailableSemaphore;
+		std::vector<VkSemaphore> m_RenderFinishedSemaphore;
+		std::vector<VkFence> m_InFlightFence;
+
 	};
 }
