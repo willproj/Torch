@@ -4,14 +4,20 @@
 
 namespace core
 {
-    std::unique_ptr<TorchGraphicsContext> TorchGraphicsContext::GetGraphicsContext()
-    {
+	std::unique_ptr<TorchGraphicsContext> TorchGraphicsContext::s_GraphicsContextInstance = nullptr;
+
+	std::unique_ptr<TorchGraphicsContext>& TorchGraphicsContext::GetGraphicsContext()
+	{
+		if (!s_GraphicsContextInstance)
+		{
 #if defined(TORCH_ENGINE_API_VULKAN) 
-        return std::make_unique<TorchVulkanContext>();
+			s_GraphicsContextInstance = std::make_unique<TorchVulkanContext>();
 #elif defined(TORCH_ENGINE_API_OPENGL)
-        return std::make_unique<TorchOpenGLContext>();
+			s_GraphicsContextInstance = std::make_unique<TorchOpenGLContext>();
 #else
-        return nullptr; 
+			return nullptr;
 #endif
-    }
+		}
+		return s_GraphicsContextInstance;
+	}
 }

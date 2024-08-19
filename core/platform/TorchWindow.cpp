@@ -4,6 +4,7 @@
 #include "core/events/Mouse.h"
 #include "core/events/KeyboardEvents.h"
 #include "core/events/Keyboard.h"
+#include <utils/ServiceLocator.h>
 
 namespace core
 {
@@ -143,6 +144,7 @@ namespace core
     {
         m_Specification.width = width;
         m_Specification.height = height;
+        m_IsResized = true;
     }
 
     void TorchWindow::OnEvent(Event& event)
@@ -151,11 +153,19 @@ namespace core
         if (it != m_EventHandlers.end())
         {
             it->second(event);
+            if (event.GetType() == EventType::WINDOW_RESIZE) {
+                m_IsResized = true;
+            }
         }
         else
         {
             TORCH_LOG_DEBUG("No handler found for event type: {}", static_cast<uint32_t>(event.GetType()));
         }
+    }
+
+    void TorchWindow::ResetIsResize() noexcept
+    {
+        m_IsResized = false;
     }
 
     void TorchWindow::RegisteEventHandlers()

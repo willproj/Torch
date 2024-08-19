@@ -9,6 +9,8 @@ namespace core
 	public:
 		TorchOpenGLContext();
 		~TorchOpenGLContext();
+
+		void DrawFrame() override;
 	private:
 
 	};

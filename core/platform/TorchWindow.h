@@ -17,12 +17,14 @@ namespace core
         void SwapBuffers() noexcept override;
         void SetWindowSize(uint32_t width, uint32_t height) noexcept override;
         void OnEvent(Event& event);
-
+        void ResetIsResize() noexcept override;
+        bool IsResize() noexcept override { return m_IsResized; }
     private:
 
         using EventHandler = std::function<void(Event&)>;
         std::unordered_map<EventType, EventHandler> m_EventHandlers;
-        
+        bool m_IsResized = false;
+
         void RegisteEventHandlers();
 
         TorchWindow() = delete;

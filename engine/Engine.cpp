@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "editor/Editor.h"
 
 namespace engine
 {
@@ -22,21 +23,19 @@ namespace engine
     {
     }
 
+    void Engine::Render()
+    {
+        
+    }
+
     void Engine::Initialization()
     {
-        TORCH_LOG_INFO("Torch Engine Initialized");
         std::unique_ptr<core::Window> window = core::Window::Create(
-            core::WindowSpecification{ 800, 600, "My Window", nullptr }
+            core::WindowSpecification{ 1280, 720, "My Window", nullptr }
         );
-        TORCH_LOG_INFO("Torch Window created.");
         utils::ServiceLocator::RegisterWindow(std::move(window));
-        TORCH_LOG_INFO("Torch Window registered.");
-
-
-        //initialize graphics context
-        TORCH_LOG_INFO("Initialize graphics context.");
-        auto context = core::TorchGraphicsContext::GetGraphicsContext();
-
+        utils::ServiceLocator::RegisterGraphicsContext(std::move(core::TorchGraphicsContext::GetGraphicsContext()));
+        TORCH_LOG_INFO("Torch Engine Initialized");
     }
 
     void Engine::operator()()
@@ -47,9 +46,19 @@ namespace engine
     void Engine::Run()
     {
         auto appWindow = utils::ServiceLocator::GetWindow();
+        auto context = utils::ServiceLocator::GetGraphicsContext();
         while (!appWindow->ShouldClose())
         {
             appWindow->PollEvents();
+
+
+            if (appWindow->IsResize())
+            {
+                context->ReCreate();
+                appWindow->ResetIsResize();
+            }
+
+            context->DrawFrame();
             appWindow->SwapBuffers();
         }
     }

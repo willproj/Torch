@@ -5,6 +5,7 @@
 
 namespace engine
 {
+    class TorchGraphicsContext;
     class Engine
     {
     public:
@@ -21,7 +22,9 @@ namespace engine
     private:
         Engine();
         void Run();
+        void Render();
         void Initialization();
         static std::unique_ptr<Engine> s_EngineInstance;
+        
     };
 }

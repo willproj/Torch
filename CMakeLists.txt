@@ -45,11 +45,14 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/thirdParty/spdlog
     ${CMAKE_SOURCE_DIR}/thirdParty/glfw/include
     ${CMAKE_SOURCE_DIR}/thirdParty/glad/include
+    ${CMAKE_SOURCE_DIR}/thirdParty/imgui
+    ${CMAKE_SOURCE_DIR}/thirdParty/glm
 )
 
 # Add subdirectories
 add_subdirectory(thirdParty)
 add_subdirectory(utils)
+add_subdirectory(editor)
 add_subdirectory(Core)
 add_subdirectory(engine)
 add_subdirectory(Sandbox)

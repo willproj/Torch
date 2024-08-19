@@ -26,6 +26,14 @@
 #include <stdexcept>
 #include <optional>
 #include <mutex>
+#include <set>
+#include <limits>
+#include <algorithm>
+#include <cstdlib>
+#include <fstream>
+#include <stdexcept>
+#include <filesystem>
+
 
 // Third-Party Headers
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
@@ -35,9 +43,11 @@
 #include <spdlog/async_logger.h>
 
 #include <Logger.h>
+#include <Ref.h>
 
 // Vulkan Headers
 #include <vulkan/vulkan.h>
-
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>

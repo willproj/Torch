@@ -1,5 +1,5 @@
 # Define Utils as a library with source files
-add_library(Utils STATIC Logger.cpp ServiceLocator.cpp)
+add_library(Utils STATIC Logger.cpp ServiceLocator.cpp "FileUtils.h" "FileUtils.cpp" "Ref.h")
 
 # Specify the precompiled header
 target_precompile_headers(Utils PRIVATE ${CMAKE_SOURCE_DIR}/pch/pch.h)
