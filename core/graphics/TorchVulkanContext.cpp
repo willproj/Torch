@@ -1,5 +1,9 @@
 #include "TorchVulkanContext.h"
 #include "core/platform/Window.h"
+#include <imgui.h>
+#include <backends/imgui_impl_vulkan.h>
+#include <backends/imgui_impl_glfw.h>
+#include <utils/ServiceLocator.h>
 
 namespace core
 {
@@ -24,7 +28,7 @@ namespace core
 	}
 	void TorchVulkanContext::ReCreate()
 	{
-		
+
 		vkDeviceWaitIdle(m_LogicDevice.GetLogicDevice());
 
 		m_Framebuffer.Destroy(m_LogicDevice);
@@ -50,7 +54,8 @@ namespace core
 
 		uint32_t imageIndex;
 		VkResult result = vkAcquireNextImageKHR(m_LogicDevice.GetLogicDevice(), m_SwapChain.GetSwapChain(), UINT64_MAX, m_SyncObjects.GetImageAvailableSemaphore()[currentFrame], VK_NULL_HANDLE, &imageIndex);
-		if (result != VK_SUCCESS) {
+		if (result != VK_SUCCESS)
+		{
 			throw std::runtime_error("failed to acquire swap chain image!");
 		}
 
@@ -60,8 +65,8 @@ namespace core
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-		VkSemaphore waitSemaphores[] = { m_SyncObjects.GetImageAvailableSemaphore()[currentFrame] };
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		VkSemaphore waitSemaphores[] = {m_SyncObjects.GetImageAvailableSemaphore()[currentFrame]};
+		VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
@@ -69,11 +74,12 @@ namespace core
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &m_CommandBuffer.GetVulkanCommandBufferRef().get()[currentFrame];
 
-		VkSemaphore signalSemaphores[] = { m_SyncObjects.GetRenderFinishedSemaphore()[currentFrame] };
+		VkSemaphore signalSemaphores[] = {m_SyncObjects.GetRenderFinishedSemaphore()[currentFrame]};
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
-		if (vkQueueSubmit(m_LogicDevice.GetGraphicsQueue(), 1, &submitInfo, m_SyncObjects.GetInFlightFence()[currentFrame]) != VK_SUCCESS) {
+		if (vkQueueSubmit(m_LogicDevice.GetGraphicsQueue(), 1, &submitInfo, m_SyncObjects.GetInFlightFence()[currentFrame]) != VK_SUCCESS)
+		{
 			throw std::runtime_error("failed to submit draw command buffer!");
 		}
 
@@ -83,20 +89,18 @@ namespace core
 		presentInfo.waitSemaphoreCount = 1;
 		presentInfo.pWaitSemaphores = signalSemaphores;
 
-		VkSwapchainKHR swapChains[] = { m_SwapChain.GetSwapChain() };
+		VkSwapchainKHR swapChains[] = {m_SwapChain.GetSwapChain()};
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = swapChains;
 
 		presentInfo.pImageIndices = &imageIndex;
 
 		result = vkQueuePresentKHR(m_LogicDevice.GetPresentQueue(), &presentInfo);
-		if (result != VK_SUCCESS) {
+		if (result != VK_SUCCESS)
+		{
 			throw std::runtime_error("failed to present swap chain image!");
 		}
-
-		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
-
 
 	TorchVulkanContext::~TorchVulkanContext()
 	{

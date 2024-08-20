@@ -5,6 +5,7 @@
 #include <pch/pch.h>
 #include "EditorModule.h"
 #include <core/graphics/TorchVulkanContext.h>
+#include <core/platform/TorchWindow.h>
 
 namespace editor
 {
@@ -27,5 +28,6 @@ namespace editor
         static void FramePresent(ImGui_ImplVulkanH_Window* wd);
 
         static core::TorchVulkanContext* m_GraphicsContextPtr;
+        static core::Window* m_WindowPtr;
     };
 }

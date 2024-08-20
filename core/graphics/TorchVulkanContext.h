@@ -27,18 +27,18 @@ namespace core
 		void ReCreate() override;
 
 		// Getter methods
-		const VulkanInstance& GetInstance() const { return m_Instance; }
-		const VulkanPhysicalDevice& GetPhysicalDevice() const { return m_PhysicalDevice; }
-		const VulkanLogicDevice& GetLogicalDevice() const { return m_LogicDevice; }
-		const VulkanWindowSurface& GetSurface() const { return m_Surface; }
-		const VulkanSwapChain& GetSwapChain() const { return m_SwapChain; }
-		const VulkanImageViews& GetImageViews() const { return m_ImageViews; }
-		const VulkanGraphicsPipeline& GetGraphicsPipeline() const { return m_GraphicsPipeline; }
-		const VulkanRenderPass& GetRenderPass() const { return m_RenderPass; }
-		const VulkanFramebuffer& GetFramebuffer() const { return m_Framebuffer; }
-		const VulkanCommandBuffer& GetCommandBuffer() const { return m_CommandBuffer; }
-		const VulkanCommandPool& GetCommandPool() const { return m_CommandPool; }
-		const VulkanSyncObjects& GetSyncObjects() const { return m_SyncObjects; }
+		const VulkanInstance &GetInstance() const { return m_Instance; }
+		const VulkanPhysicalDevice &GetPhysicalDevice() const { return m_PhysicalDevice; }
+		const VulkanLogicDevice &GetLogicalDevice() const { return m_LogicDevice; }
+		const VulkanWindowSurface &GetSurface() const { return m_Surface; }
+		const VulkanSwapChain &GetSwapChain() const { return m_SwapChain; }
+		const VulkanImageViews &GetImageViews() const { return m_ImageViews; }
+		const VulkanGraphicsPipeline &GetGraphicsPipeline() const { return m_GraphicsPipeline; }
+		const VulkanRenderPass &GetRenderPass() const { return m_RenderPass; }
+		const VulkanFramebuffer &GetFramebuffer() const { return m_Framebuffer; }
+		const VulkanCommandBuffer &GetCommandBuffer() const { return m_CommandBuffer; }
+		const VulkanCommandPool &GetCommandPool() const { return m_CommandPool; }
+		const VulkanSyncObjects &GetSyncObjects() const { return m_SyncObjects; }
 
 	private:
 		void CreateInstance();

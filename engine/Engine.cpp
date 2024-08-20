@@ -5,7 +5,7 @@ namespace engine
 {
     std::unique_ptr<Engine> Engine::s_EngineInstance = nullptr;
 
-    Engine& Engine::GetEngine()
+    Engine &Engine::GetEngine()
     {
         if (!s_EngineInstance)
         {
@@ -25,16 +25,15 @@ namespace engine
 
     void Engine::Render()
     {
-        
     }
 
     void Engine::Initialization()
     {
         std::unique_ptr<core::Window> window = core::Window::Create(
-            core::WindowSpecification{ 1280, 720, "My Window", nullptr }
-        );
+            core::WindowSpecification{1280, 720, "My Window", nullptr});
         utils::ServiceLocator::RegisterWindow(std::move(window));
         utils::ServiceLocator::RegisterGraphicsContext(std::move(core::TorchGraphicsContext::GetGraphicsContext()));
+        editor::Editor::SetUpImGui();
         TORCH_LOG_INFO("Torch Engine Initialized");
     }
 
@@ -51,15 +50,15 @@ namespace engine
         {
             appWindow->PollEvents();
 
-
             if (appWindow->IsResize())
             {
                 appWindow->HandleMinimization();
                 context->ReCreate();
                 appWindow->ResetIsResize();
             }
-
+            editor::Editor::ImGuiBegin();
             context->DrawFrame();
+
             appWindow->SwapBuffers();
         }
     }
