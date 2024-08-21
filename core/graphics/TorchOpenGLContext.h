@@ -10,6 +10,8 @@ namespace core
 		TorchOpenGLContext();
 		~TorchOpenGLContext();
 
+		void DrawFrame();
+		APIType GetAPIType() const override { return APIType::OpenGL; }
 	private:
 
 	};

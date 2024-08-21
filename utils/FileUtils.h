@@ -7,5 +7,6 @@ namespace utils
 	{
 	public:
 		static std::vector<char> ReadFile(const std::string& filename);
+		static std::string ReadShaderFile(const std::string& filePath);
 	};
 }

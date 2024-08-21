@@ -3,6 +3,13 @@
 
 namespace core
 {
+	enum class APIType
+	{
+		None = 0, // Undefined
+		OpenGL,
+		Vulkan
+	};
+
 	class TorchGraphicsContext
 	{
 	public:
@@ -15,8 +22,10 @@ namespace core
         TorchGraphicsContext& operator=(TorchGraphicsContext&&) noexcept = default;
 
         virtual ~TorchGraphicsContext() = default;
-		virtual void DrawFrame() = 0;
-		virtual void ReCreate() = 0;
+		virtual void DrawFrame() {};
+		virtual void ReCreate() {};
+
+		virtual APIType GetAPIType() const = 0;
 
 	protected:
 		TorchGraphicsContext() noexcept = default;

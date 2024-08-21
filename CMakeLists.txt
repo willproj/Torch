@@ -8,6 +8,12 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+# Get the project root path
+set(PROJECT_ROOT_DIR "${CMAKE_SOURCE_DIR}")
+
+# Define a macro PROJECT_ROOT to be used in the code
+add_compile_definitions(PROJECT_ROOT="${PROJECT_ROOT_DIR}")
+
 # Assets
 add_definitions(-DAD_DEFINE_RES_ROOT_DIR=\"${CMAKE_SOURCE_DIR}/assets/\")
 
@@ -47,6 +53,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/thirdParty/glad/include
     ${CMAKE_SOURCE_DIR}/thirdParty/imgui
     ${CMAKE_SOURCE_DIR}/thirdParty/glm
+    ${CMAKE_SOURCE_DIR}/thirdParty/tinygltf
 )
 
 # Add subdirectories

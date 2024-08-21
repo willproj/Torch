@@ -11,3 +11,6 @@
 [submodule "thirdParty/glm"]
 	path = thirdParty/glm
 	url = https://github.com/icaven/glm
+[submodule "thirdParty/tinygltf"]
+	path = thirdParty/tinygltf
+	url = https://github.com/syoyo/tinygltf

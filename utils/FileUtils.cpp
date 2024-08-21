@@ -20,4 +20,24 @@ namespace utils
 
 		return buffer;
 	}
+
+
+	std::string FileUtils::ReadShaderFile(const std::string& filePath)
+	{
+		std::ifstream shaderFile;
+		std::stringstream shaderStream;
+
+		shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+		try
+		{
+			shaderFile.open(filePath.c_str());
+			shaderStream << shaderFile.rdbuf();
+			shaderFile.close();
+		}
+		catch (std::ifstream::failure& e)
+		{
+			TORCH_LOG_ERROR("[{}:{}] ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: {}", __FILE__, __LINE__, e.what());
+		}
+		return shaderStream.str();
+	}
 }

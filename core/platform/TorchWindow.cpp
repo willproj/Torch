@@ -16,16 +16,24 @@ namespace core
             TORCH_LOG_ERROR("Failed to initialzie GLFW.");
             return;
         }
-
+#ifdef TORCH_ENGINE_API_OPENGL
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#else
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+#endif
         m_Specification.glfwWindow = glfwCreateWindow(m_Specification.width, m_Specification.height, m_Specification.title.c_str(), nullptr, nullptr);
         if (!m_Specification.glfwWindow)
         {
             TORCH_LOG_ERROR("Failed to create GLFW window.");
             return;
         }
+#ifdef TORCH_ENGINE_API_OPENGL
+        gladLoadGL(glfwGetProcAddress);
+#else
+#endif
         glfwMakeContextCurrent(m_Specification.glfwWindow);
-
         glfwSetWindowUserPointer(m_Specification.glfwWindow, this);
 
         //set window size call back function

@@ -26,6 +26,8 @@ namespace core
 		void DrawFrame() override;
 		void ReCreate() override;
 
+		APIType GetAPIType() const override { return APIType::Vulkan; }
+
 		// Getter methods
 		const VulkanInstance &GetInstance() const { return m_Instance; }
 		const VulkanPhysicalDevice &GetPhysicalDevice() const { return m_PhysicalDevice; }
