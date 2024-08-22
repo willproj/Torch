@@ -45,15 +45,22 @@
 #include <spdlog/async_logger.h>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>  
+#include <glm/gtc/type_ptr.hpp>         
 
 #include <Logger.h>
 #include <Ref.h>
 #include <FileUtils.h>
 
+
 // Vulkan Headers
 #include <vulkan/vulkan.h>
-#include <glad/gl.h>
+
+
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <glad/gl.h>
+
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 

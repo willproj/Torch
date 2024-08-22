@@ -20,6 +20,7 @@ namespace core
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
 #else
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 #endif
@@ -29,11 +30,19 @@ namespace core
             TORCH_LOG_ERROR("Failed to create GLFW window.");
             return;
         }
-#ifdef TORCH_ENGINE_API_OPENGL
-        gladLoadGL(glfwGetProcAddress);
-#else
-#endif
+
         glfwMakeContextCurrent(m_Specification.glfwWindow);
+
+
+#ifdef TORCH_ENGINE_API_OPENGL
+        if (!gladLoadGL(glfwGetProcAddress))
+        {
+            TORCH_LOG_ERROR("Failed to initialize GLAD.");
+            return;
+        }
+#endif
+
+
         glfwSetWindowUserPointer(m_Specification.glfwWindow, this);
 
         //set window size call back function

@@ -27,13 +27,14 @@ namespace core
     }
 
 
-    Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath, const std::string& geometryPath = nullptr)
+    Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath, const std::string& geometryPath)
     {
         // Load and compile shaders
         std::string vertexCode = utils::FileUtils::ReadShaderFile(vertexPath);
         std::string fragmentCode = utils::FileUtils::ReadShaderFile(fragmentPath);
         std::string geometryCode;
-        if (geometryPath)
+
+        if (!geometryPath.empty())  // Check if the geometry path is non-empty
             geometryCode = utils::FileUtils::ReadShaderFile(geometryPath);
 
         // Create shader objects
@@ -41,7 +42,7 @@ namespace core
         uint32_t fragment = CreateShader(fragmentCode, GL_FRAGMENT_SHADER);
         uint32_t geometry = 0;
 
-        if (geometryPath)
+        if (!geometryPath.empty())  // Check again before creating the geometry shader
             geometry = CreateShader(geometryCode, GL_GEOMETRY_SHADER);
 
         // Link shaders into a program
@@ -50,20 +51,22 @@ namespace core
         // Cleanup shaders
         glDeleteShader(vertex);
         glDeleteShader(fragment);
-        if (geometry)
+        if (geometry)  // Only delete geometry shader if it was created
             glDeleteShader(geometry);
     }
+
 
     uint32_t Shader::CreateShader(const std::string& source, GLenum shaderType)
     {
         uint32_t shader = glCreateShader(shaderType);
-        glShaderSource(shader, 1, &source.c_str(), NULL);
+        const char* sourceStrPtr = source.c_str();
+        glShaderSource(shader, 1, &sourceStrPtr, NULL);
         glCompileShader(shader);
         CheckCompileErrors(shader, shaderType == GL_VERTEX_SHADER ? "VERTEX" : shaderType == GL_FRAGMENT_SHADER ? "FRAGMENT" : "GEOMETRY");
         return shader;
     }
 
-    uint32_t Shader::CreateShaderProgram(uint32_t vertex, uint32_t fragment, uint32_t geometry = 0)
+    uint32_t Shader::CreateShaderProgram(uint32_t vertex, uint32_t fragment, uint32_t geometry)
     {
         uint32_t program = glCreateProgram();
         glAttachShader(program, vertex);
