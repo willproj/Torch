@@ -33,7 +33,7 @@ namespace engine
             core::WindowSpecification{1280, 720, "My Window", nullptr});
         utils::ServiceLocator::RegisterWindow(std::move(window));
         utils::ServiceLocator::RegisterGraphicsContext(std::move(core::TorchGraphicsContext::GetGraphicsContext()));
-        //editor::Editor::SetUpImGui();
+        editor::Editor::SetUpImGui();
         TORCH_LOG_INFO("Torch Engine Initialized");
     }
 
@@ -55,7 +55,11 @@ namespace engine
                 appWindow->HandleMinimization();
                 appWindow->ResetIsResize();
             }
+
             context->DrawFrame();
+            editor::Editor::ImGuiBegin();
+            editor::Editor::ImGuiEnd();
+
 
             appWindow->SwapBuffers();
         }
