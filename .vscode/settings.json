@@ -84,6 +84,11 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "xstddef": "cpp",
-        "expected": "cpp"
+        "expected": "cpp",
+        "deque": "cpp",
+        "numeric": "cpp",
+        "queue": "cpp",
+        "ranges": "cpp",
+        "valarray": "cpp"
     }
 }

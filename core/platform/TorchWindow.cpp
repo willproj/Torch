@@ -8,8 +8,8 @@
 
 namespace core
 {
-    TorchWindow::TorchWindow(const WindowSpecification& specification)
-        : Window(specification) 
+    TorchWindow::TorchWindow(const WindowSpecification &specification)
+        : Window(specification)
     {
         if (!glfwInit())
         {
@@ -33,7 +33,6 @@ namespace core
 
         glfwMakeContextCurrent(m_Specification.glfwWindow);
 
-
 #ifdef TORCH_ENGINE_API_OPENGL
         if (!gladLoadGL(glfwGetProcAddress))
         {
@@ -42,23 +41,21 @@ namespace core
         }
 #endif
 
-
         glfwSetWindowUserPointer(m_Specification.glfwWindow, this);
+        glEnable(GL_DEPTH_TEST);
 
-        //set window size call back function
-        glfwSetWindowSizeCallback(m_Specification.glfwWindow, [](GLFWwindow* window, int width, int height)
-        {
+        // set window size call back function
+        glfwSetWindowSizeCallback(m_Specification.glfwWindow, [](GLFWwindow *window, int width, int height)
+                                  {
             auto* torchWindow = static_cast<TorchWindow*>(glfwGetWindowUserPointer(window));
             torchWindow->SetWindowSize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
 
             WindowResizeEvent event(width, height);
-            torchWindow->OnEvent(event);
-        });
+            torchWindow->OnEvent(event); });
 
-
-        //set window close callback
-        glfwSetWindowCloseCallback(m_Specification.glfwWindow, [](GLFWwindow* window)
-        {
+        // set window close callback
+        glfwSetWindowCloseCallback(m_Specification.glfwWindow, [](GLFWwindow *window)
+                                   {
             auto* torchWindow = static_cast<TorchWindow*>(glfwGetWindowUserPointer(window));
             TORCH_LOG_DEBUG("[{}:{}] window closed.", __FILE__, __LINE__);
 
@@ -66,20 +63,18 @@ namespace core
             if (!flag)
             {
                 glfwSetWindowShouldClose(window, GLFW_FALSE);
-            }
-        });
-        
-        //get mouse position
-        glfwSetCursorPosCallback(m_Specification.glfwWindow, [](GLFWwindow* window, double xpos, double ypos)
-        {
+            } });
+
+        // get mouse position
+        glfwSetCursorPosCallback(m_Specification.glfwWindow, [](GLFWwindow *window, double xpos, double ypos)
+                                 {
             auto* torchWindow = static_cast<TorchWindow*>(glfwGetWindowUserPointer(window));
 
             MouseMoveEvent event(xpos, ypos);
-            torchWindow->OnEvent(event);
-        });
+            torchWindow->OnEvent(event); });
 
-        glfwSetMouseButtonCallback(m_Specification.glfwWindow, [](GLFWwindow* window, int button, int action, int mode) 
-        {
+        glfwSetMouseButtonCallback(m_Specification.glfwWindow, [](GLFWwindow *window, int button, int action, int mode)
+                                   {
             auto* torchWindow = static_cast<TorchWindow*>(glfwGetWindowUserPointer(window));
 
             MouseButtonType mouseButton;
@@ -104,18 +99,16 @@ namespace core
             {
                 MouseReleaseEvent event(static_cast<uint32_t>(mouseButton));
                 torchWindow->OnEvent(event);
-            }
-        });
+            } });
 
-        glfwSetScrollCallback(m_Specification.glfwWindow, [](GLFWwindow* window, double xoffset, double yoffset)
-        {
+        glfwSetScrollCallback(m_Specification.glfwWindow, [](GLFWwindow *window, double xoffset, double yoffset)
+                              {
             auto* torchWindow = static_cast<TorchWindow*>(glfwGetWindowUserPointer(window));
             MouseScrollEvent event(xoffset, yoffset);
-            torchWindow->OnEvent(event);
-        });
+            torchWindow->OnEvent(event); });
 
-        glfwSetKeyCallback(m_Specification.glfwWindow, [](GLFWwindow* window, int key, int scancode, int action, int mods) 
-            {
+        glfwSetKeyCallback(m_Specification.glfwWindow, [](GLFWwindow *window, int key, int scancode, int action, int mods)
+                           {
                 auto* torchWindow = static_cast<TorchWindow*>(glfwGetWindowUserPointer(window));
                 if (action == GLFW_PRESS)
                 {
@@ -134,12 +127,9 @@ namespace core
                     // Handle key repeat event
                     KeyRepeatEvent event(key, scancode, mods);
                     torchWindow->OnEvent(event);
-                }
-            });
-
+                } });
 
         RegisteEventHandlers();
-
     }
 
     bool TorchWindow::ShouldClose() const noexcept
@@ -164,13 +154,14 @@ namespace core
         m_IsResized = true;
     }
 
-    void TorchWindow::OnEvent(Event& event)
+    void TorchWindow::OnEvent(Event &event)
     {
         auto it = m_EventHandlers.find(event.GetType());
         if (it != m_EventHandlers.end())
         {
             it->second(event);
-            if (event.GetType() == EventType::WINDOW_RESIZE) {
+            if (event.GetType() == EventType::WINDOW_RESIZE)
+            {
                 m_IsResized = true;
             }
         }
@@ -189,7 +180,8 @@ namespace core
     {
         int width = 0, height = 0;
         glfwGetFramebufferSize(m_Specification.glfwWindow, &width, &height);
-        while (width == 0 || height == 0) {
+        while (width == 0 || height == 0)
+        {
             glfwGetFramebufferSize(m_Specification.glfwWindow, &width, &height);
             glfwWaitEvents();
         }
@@ -197,66 +189,66 @@ namespace core
 
     void TorchWindow::RegisteEventHandlers()
     {
-        m_EventHandlers[EventType::MOUSE_PRESS] = [this](Event& e) 
+        m_EventHandlers[EventType::MOUSE_PRESS] = [this](Event &e)
         {
-            auto& event = static_cast<MousePressEvent&>(e);
+            auto &event = static_cast<MousePressEvent &>(e);
             Mouse::GetInstance().OnEvent(event);
             TORCH_LOG_DEBUG("Mouse Pressed: button {}", event.GetButton());
         };
 
-        m_EventHandlers[EventType::MOUSE_RELEASE] = [this](Event& e)
+        m_EventHandlers[EventType::MOUSE_RELEASE] = [this](Event &e)
         {
-            auto& event = static_cast<MouseReleaseEvent&>(e);
+            auto &event = static_cast<MouseReleaseEvent &>(e);
             Mouse::GetInstance().OnEvent(event);
             TORCH_LOG_DEBUG("Mouse Released: button {}", event.GetButton());
         };
 
-        m_EventHandlers[EventType::MOUSE_MOVE] = [this](Event& e) 
+        m_EventHandlers[EventType::MOUSE_MOVE] = [this](Event &e)
         {
-            auto& event = static_cast<MouseMoveEvent&>(e);
+            auto &event = static_cast<MouseMoveEvent &>(e);
             Mouse::GetInstance().OnEvent(event);
             TORCH_LOG_DEBUG("Mouse Moved: x = {}, y = {}", event.GetCursorPosX(), event.GetCursorPosY());
         };
 
-        m_EventHandlers[EventType::MOUSE_SCROLL] = [this](Event& e)
+        m_EventHandlers[EventType::MOUSE_SCROLL] = [this](Event &e)
         {
-            auto& event = static_cast<MouseScrollEvent&>(e);
+            auto &event = static_cast<MouseScrollEvent &>(e);
             Mouse::GetInstance().OnEvent(event);
             TORCH_LOG_DEBUG("Mouse scroll: x = {}, y = {}", event.GetOffsetX(), event.GetOffsetY());
         };
 
-        m_EventHandlers[EventType::KEY_PRESS] = [this](Event& e)
+        m_EventHandlers[EventType::KEY_PRESS] = [this](Event &e)
         {
-            auto& event = static_cast<KeyPressEvent&>(e);
+            auto &event = static_cast<KeyPressEvent &>(e);
             Keyboard::GetInstance().OnEvent(event);
             TORCH_LOG_DEBUG("key presed: keycode = {}", event.GetKeyCode());
         };
 
-        m_EventHandlers[EventType::KEY_RELEASE] = [this](Event& e)
+        m_EventHandlers[EventType::KEY_RELEASE] = [this](Event &e)
         {
-            auto& event = static_cast<KeyReleaseEvent&>(e);
+            auto &event = static_cast<KeyReleaseEvent &>(e);
             Keyboard::GetInstance().OnEvent(event);
             TORCH_LOG_DEBUG("key released: keycode = {}", event.GetKeyCode());
         };
 
-        m_EventHandlers[EventType::KEY_REPEAT] = [this](Event& e)
+        m_EventHandlers[EventType::KEY_REPEAT] = [this](Event &e)
         {
-            auto& event = static_cast<KeyRepeatEvent&>(e);
+            auto &event = static_cast<KeyRepeatEvent &>(e);
             Keyboard::GetInstance().OnEvent(event);
             TORCH_LOG_DEBUG("key repeated: keycode = {}", event.GetKeyCode());
         };
 
-        m_EventHandlers[EventType::WINDOW_RESIZE] = [this](Event& e) 
+        m_EventHandlers[EventType::WINDOW_RESIZE] = [this](Event &e)
         {
-            auto& event = static_cast<WindowResizeEvent&>(e);
+            auto &event = static_cast<WindowResizeEvent &>(e);
             TORCH_LOG_DEBUG("Window Resized: width = {}, height = {}", event.GetWidth(), event.GetHeight());
         };
     }
 
     TorchWindow::~TorchWindow() noexcept
     {
-       glfwDestroyWindow(m_Specification.glfwWindow);
-       glfwTerminate();
+        glfwDestroyWindow(m_Specification.glfwWindow);
+        glfwTerminate();
     }
-	
+
 }
