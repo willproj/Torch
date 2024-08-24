@@ -51,48 +51,124 @@ namespace core
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		GLsizei stride = 8 * sizeof(float); 
+
+		// Position attribute
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
 		glEnableVertexAttribArray(0);
+
+		// Normal attribute
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+
+		// Texture coordinate attribute
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));
+		glEnableVertexAttribArray(2);
 
 		glBindVertexArray(0);
 	}
 
 	void TorchModel::RenderModel()
 	{
-		for (size_t i = 0; i < m_VertexBuffers.size(); ++i) {
-			glBindVertexArray(m_VertexBuffers[i]);
+		for (size_t i = 0; i < m_VertexArrays.size(); ++i) {
+			glBindVertexArray(m_VertexArrays[i]);
 			glDrawElements(GL_TRIANGLES, m_IndicesCounts[i], GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 		}
 	}
 
-	void TorchModel::ProcessMesh(const tinygltf::Model& model)
-	{
-		for (const auto& mesh : model.meshes)
-		{
-			for (const auto& primitive : mesh.primitives)
-			{
-				const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
-				const tinygltf::BufferView& indexBufferView = model.bufferViews[indexAccessor.bufferView];
-				const tinygltf::Buffer& indexBuffer = model.buffers[indexBufferView.buffer];
+    void TorchModel::ProcessMesh(const tinygltf::Model& model)
+    {
+        for (const auto& mesh : model.meshes)
+        {
+            for (const auto& primitive : mesh.primitives)
+            {
+                // Process indices
+                const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
+                const tinygltf::BufferView& indexBufferView = model.bufferViews[indexAccessor.bufferView];
+                const tinygltf::Buffer& indexBuffer = model.buffers[indexBufferView.buffer];
 
-				const unsigned char* indexDataPtr = &indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset];
-				std::vector<unsigned int> indices(reinterpret_cast<const unsigned int*>(indexDataPtr),
-					reinterpret_cast<const unsigned int*>(indexDataPtr + indexAccessor.count * sizeof(unsigned int)));
+                const unsigned char* indexDataPtr = &indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset];
+                std::vector<unsigned int> indices(reinterpret_cast<const unsigned int*>(indexDataPtr),
+                    reinterpret_cast<const unsigned int*>(indexDataPtr + indexAccessor.count * sizeof(unsigned int)));
 
-				const tinygltf::Accessor& posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
-				const tinygltf::BufferView& posBufferView = model.bufferViews[posAccessor.bufferView];
-				const tinygltf::Buffer& posBuffer = model.buffers[posBufferView.buffer];
+                // Process positions
+                const tinygltf::Accessor& posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
+                const tinygltf::BufferView& posBufferView = model.bufferViews[posAccessor.bufferView];
+                const tinygltf::Buffer& posBuffer = model.buffers[posBufferView.buffer];
+                const float* positions = reinterpret_cast<const float*>(&posBuffer.data[posBufferView.byteOffset + posAccessor.byteOffset]);
 
-				const float* positions = reinterpret_cast<const float*>(&posBuffer.data[posBufferView.byteOffset + posAccessor.byteOffset]);
-				std::vector<float> vertices(positions, positions + posAccessor.count * 3); 
+                // Process normals (optional)
+                std::vector<float> normals;
+                if (primitive.attributes.find("NORMAL") != primitive.attributes.end())
+                {
+                    const tinygltf::Accessor& normalAccessor = model.accessors[primitive.attributes.find("NORMAL")->second];
+                    const tinygltf::BufferView& normalBufferView = model.bufferViews[normalAccessor.bufferView];
+                    const tinygltf::Buffer& normalBuffer = model.buffers[normalBufferView.buffer];
 
-				GLuint vao = 0, vbo = 0, ebo = 0;
-				UploadMeshToOpenGL(vertices, indices, vao, vbo, ebo);
+                    const float* normalData = reinterpret_cast<const float*>(&normalBuffer.data[normalBufferView.byteOffset + normalAccessor.byteOffset]);
+                    normals.assign(normalData, normalData + normalAccessor.count * 3);
+                }
 
-				m_VertexBuffers.push_back(vao);
-				m_IndicesCounts.push_back(static_cast<GLuint>(indices.size()));
-			}
-		}
-	}
+                // Process texture coordinates (optional)
+                std::vector<float> texCoords;
+                if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end())
+                {
+                    const tinygltf::Accessor& uvAccessor = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
+                    const tinygltf::BufferView& uvBufferView = model.bufferViews[uvAccessor.bufferView];
+                    const tinygltf::Buffer& uvBuffer = model.buffers[uvBufferView.buffer];
+
+                    const float* uvData = reinterpret_cast<const float*>(&uvBuffer.data[uvBufferView.byteOffset + uvAccessor.byteOffset]);
+                    texCoords.assign(uvData, uvData + uvAccessor.count * 2); // 2 components for UV
+                }
+
+                // Interleave vertices, normals, and texcoords into a single buffer
+                std::vector<float> interleavedData;
+                for (size_t i = 0; i < posAccessor.count; ++i)
+                {
+                    // Add position (3 components)
+                    interleavedData.push_back(positions[i * 3 + 0]);
+                    interleavedData.push_back(positions[i * 3 + 1]);
+                    interleavedData.push_back(positions[i * 3 + 2]);
+
+                    // Add normal (3 components)
+                    if (!normals.empty())
+                    {
+                        interleavedData.push_back(normals[i * 3 + 0]);
+                        interleavedData.push_back(normals[i * 3 + 1]);
+                        interleavedData.push_back(normals[i * 3 + 2]);
+                    }
+                    else
+                    {
+                        // Add default normal if not present
+                        interleavedData.push_back(0.0f);
+                        interleavedData.push_back(0.0f);
+                        interleavedData.push_back(0.0f);
+                    }
+
+                    // Add texture coordinate (2 components)
+                    if (!texCoords.empty())
+                    {
+                        interleavedData.push_back(texCoords[i * 2 + 0]);
+                        interleavedData.push_back(texCoords[i * 2 + 1]);
+                    }
+                    else
+                    {
+                        // Add default UVs if not present
+                        interleavedData.push_back(0.0f);
+                        interleavedData.push_back(0.0f);
+                    }
+                }
+
+                // Upload data to OpenGL
+                GLuint vao = 0, vbo = 0, ebo = 0;
+                UploadMeshToOpenGL(interleavedData, indices, vao, vbo, ebo);
+
+                m_VertexBuffers.push_back(vbo);
+                m_VertexArrays.push_back(vao);
+                m_IndicesCounts.push_back(static_cast<GLuint>(indices.size()));
+            }
+        }
+    }
+
 }

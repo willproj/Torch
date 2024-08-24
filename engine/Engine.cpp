@@ -34,6 +34,9 @@ namespace engine
         utils::ServiceLocator::RegisterWindow(std::move(window));
         utils::ServiceLocator::RegisterGraphicsContext(std::move(core::TorchGraphicsContext::GetGraphicsContext()));
         editor::Editor::SetUpImGui();
+        editor::Editor::AddModule(std::make_unique<editor::Viewport>());
+
+
         TORCH_LOG_INFO("Torch Engine Initialized");
     }
 
@@ -58,6 +61,7 @@ namespace engine
 
             context->DrawFrame();
             editor::Editor::ImGuiBegin();
+            editor::Editor::Render();
             editor::Editor::ImGuiEnd();
 
 

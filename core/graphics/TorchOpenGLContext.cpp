@@ -19,6 +19,20 @@ namespace core
 		m_LightingShader.setInt("gPosition", 0);
 		m_LightingShader.setInt("gNormal", 1);
 		m_LightingShader.setInt("gColorSpec", 2);
+
+
+		glGenTextures(1, &m_ScreenTexture);
+		glBindTexture(GL_TEXTURE_2D, m_ScreenTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1280, 720, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+
+		glGenFramebuffers(1, &m_ScreenFramebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_ScreenFramebuffer);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ScreenTexture, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
 	TorchOpenGLContext::~TorchOpenGLContext()
@@ -42,13 +56,13 @@ namespace core
 		m_GBuffer.Unbind();
 
 		// lighting pass
+		glBindFramebuffer(GL_FRAMEBUFFER, m_ScreenFramebuffer);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		m_LightingShader.use();
 		m_GBuffer.BindColorTexture();
 		m_GBuffer.BindNormalTexture();
 		m_GBuffer.BindPositionTexture();
-		glm::vec3 viewpos = glm::vec3(0.0f, 0.0f, -10.0f);
-		m_LightingShader.setVec3("viewPos", viewpos);
 		m_Quad.renderQuad();
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 }

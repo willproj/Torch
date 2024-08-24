@@ -27,5 +27,7 @@ namespace core
 
 		GBuffer m_GBuffer;
 		RenderQuad m_Quad;
+
+		GLuint m_ScreenFramebuffer;
 	};
 }

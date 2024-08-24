@@ -22,6 +22,7 @@ namespace core
 	private:
 		void ProcessMesh(const tinygltf::Model& model);
 		std::vector<GLuint> m_VertexBuffers;
+		std::vector<GLuint> m_VertexArrays;
         std::vector<GLuint> m_IndicesCounts;
 	};
 }

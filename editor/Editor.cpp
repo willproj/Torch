@@ -4,6 +4,7 @@
 namespace editor
 {
 	core::Window *Editor::m_WindowPtr = nullptr;
+	std::vector<std::unique_ptr<editor::EditorModule>> editor::Editor::m_EditorModules;
 
 	void Editor::Render()
 	{

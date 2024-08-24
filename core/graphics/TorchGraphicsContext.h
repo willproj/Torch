@@ -26,11 +26,13 @@ namespace core
 		virtual void ReCreate() {};
 
 		virtual APIType GetAPIType() const = 0;
+		GLuint GetScreenTexture() const { return m_ScreenTexture; }
 
 	protected:
 		TorchGraphicsContext() noexcept = default;
 
 		static std::unique_ptr<TorchGraphicsContext> s_GraphicsContextInstance;
+		GLuint m_ScreenTexture;
 	};
 }
 

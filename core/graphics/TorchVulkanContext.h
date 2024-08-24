@@ -59,5 +59,6 @@ namespace core
 		//VertexBuffer m_VertexBuffer;
 
 		uint32_t currentFrame = 0;
+
 	};
 }
