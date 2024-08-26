@@ -1,6 +1,7 @@
 #include "Scene.h"
 #include "Component.h"
 #include "Entity.h"
+#include "ModelManager.h"
 
 namespace core
 {
@@ -25,11 +26,10 @@ namespace core
 		TORCH_LOG_DEBUG("[{},{}] Add model to Entity", __FILE__, __LINE__);
 		entity.AddComponent<ModelComponent>();
 		auto& modelComponent = entity.GetComponent<ModelComponent>();
+		auto& modelManager = ModelManager::GetInstance();
 		const std::string filepath = "/assets/models/sphere/sphere.gltf";
-		TorchModel tcModel;
-		tcModel.LoadModel(filepath);
-		modelComponent.model = tcModel;
-		
+		modelManager->LoadModel(filepath);
+		modelComponent.model = modelManager->GetModel(filepath);
 		return entity;
 	}
 

@@ -32,33 +32,31 @@ namespace core
 
 	void TorchOpenGLContext::CreateOffScreenTexture(int width, int height)
 	{
+		// Create the default color texture
 		glGenTextures(1, &m_ScreenTexture);
 		glBindTexture(GL_TEXTURE_2D, m_ScreenTexture);
-
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glBindTexture(GL_TEXTURE_2D, 0);
-
-		GLuint redtexture;
-		glGenTextures(1, &m_EntityIDTexture);
-		glBindTexture(GL_TEXTURE_2D, m_EntityIDTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, width, height, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
+		
+		// Create framebuffer
 		glGenFramebuffers(1, &m_ScreenFramebuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_ScreenFramebuffer);
+
+		// Attach the color texture to the framebuffer
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ScreenTexture, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_EntityIDTexture, 0);
-		GLenum buffers[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-		glDrawBuffers(2, buffers);
+
+		// Check if the framebuffer is complete
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			std::cout << "Framebuffer not complete!" << std::endl;
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
 	void TorchOpenGLContext::OnUpdate()
 	{
+
 		m_GBuffer.OnUpdate();
 
 		if (m_ScreenFramebuffer)
@@ -82,7 +80,7 @@ namespace core
 	{
 		m_EditorCamera.Update();
 
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// geometry pass
@@ -90,30 +88,26 @@ namespace core
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		m_TcShader.use();
 		// Pass matrices to the shader
-		auto& viewport = editor::Editor::GetEditorModule(editor::EditorType::Viewport);
+		auto &viewport = editor::Editor::GetEditorModule(editor::EditorType::Viewport);
 		glm::vec2 viewportSize = viewport->GetWindowContentSize();
-		glm::mat4 modelMatrix = glm::mat4(1.0f);
+		glm::mat4 modelMatrix = glm::mat4(2.0f);
 		m_EditorCamera.SetViewportSize(viewportSize.x, viewportSize.y);
 		m_TcShader.setMat4("model", modelMatrix);
 		m_TcShader.setMat4("view", m_EditorCamera.GetViewMatrix());
 		m_TcShader.setMat4("projection", m_EditorCamera.getProjection());
-		
+
 		SceneManager::GetSceneManager()->Render(m_TcShader);
-		//m_TcModel.RenderModel();
+		// m_TcModel.RenderModel();
 		m_GBuffer.Unbind();
 
 		// lighting pass
 		glBindFramebuffer(GL_FRAMEBUFFER, m_ScreenFramebuffer);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		m_LightingShader.use();
+		m_LightingShader.setVec3("viewPos", m_EditorCamera.GetPosition());
 		m_GBuffer.BindColorTexture();
 		m_GBuffer.BindNormalTexture();
 		m_GBuffer.BindPositionTexture();
-
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, m_EntityIDTexture);
-		m_LightingShader.setInt("gEntityID", 3);
-
 		m_Quad.renderQuad();
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}

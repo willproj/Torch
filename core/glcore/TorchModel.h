@@ -1,8 +1,9 @@
 #pragma once
 #include <pch/pch.h>
 
-namespace tinygltf {
-    class Model;
+namespace tinygltf
+{
+	class Model;
 }
 
 namespace core
@@ -14,18 +15,22 @@ namespace core
 		TorchModel();
 		~TorchModel();
 
-        void RenderModel();
+		void RenderModel();
 		std::string GetModelPath() const { return m_ModelPath; }
+		std::string GetModelName() const { return m_ModelName; }
+		void LoadModel(const std::string &modelPath);
 
-		void LoadModel(const std::string& modelPath);
-		void UploadMeshToOpenGL(const std::vector<float>& vertices, const std::vector<unsigned int>& indices, GLuint& vao, GLuint& vbo, GLuint& ebo);
-        
 	private:
-		void ProcessMesh(const tinygltf::Model& model);
+
+		void UploadMeshToOpenGL(const std::vector<float> &vertices, const std::vector<unsigned int> &indices, GLuint &vao, GLuint &vbo, GLuint &ebo);
+		std::string GetModelNameFromPath(const std::string &path);
+		void ProcessMesh(const tinygltf::Model &model);
 		std::vector<GLuint> m_VertexBuffers;
 		std::vector<GLuint> m_VertexArrays;
-        std::vector<GLuint> m_IndicesCounts;
+		std::vector<GLuint> m_IndicesCounts;
 
 		std::string m_ModelPath;
+		std::string m_ModelName;
+		
 	};
 }

@@ -30,6 +30,9 @@ namespace core
 		virtual GLuint GetScreenFramebuffer() const { return 0; }
 		virtual void CreateOffScreenTexture(int width, int height) {};
 
+		virtual void BindGBuffer() {}
+		virtual void UnbindGBuffer() {}
+
 		virtual APIType GetAPIType() const = 0;
 		GLuint GetScreenTexture() const { return m_ScreenTexture; }
 

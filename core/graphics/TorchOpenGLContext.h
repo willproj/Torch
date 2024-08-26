@@ -11,7 +11,7 @@
 
 namespace core
 {
-	class TorchOpenGLContext :public TorchGraphicsContext
+	class TorchOpenGLContext : public TorchGraphicsContext
 	{
 	public:
 		TorchOpenGLContext();
@@ -23,20 +23,26 @@ namespace core
 		GLuint GetScreenFramebuffer() const { return m_ScreenFramebuffer; }
 		APIType GetAPIType() const override { return APIType::OpenGL; }
 
-		GBuffer GetGbuffer() const { return m_GBuffer; }
+		GBuffer GetGbuffer() { return m_GBuffer; }
+
+		void BindGBuffer() { m_GBuffer.Bind(); }
+		void UnbindGBuffer() { m_GBuffer.Unbind(); }
+
 	private:
 		TorchModel m_TcModel;
 		Shader m_TcShader;
 		Shader m_LightingShader;
-		
+
 		GBuffer m_GBuffer;
 		RenderQuad m_Quad;
 
 		GLuint m_ScreenFramebuffer;
 		GLuint m_EntityIDTexture;
-		Window* m_WindowPtr;
+		Window *m_WindowPtr;
 
 		EditorCamera m_EditorCamera;
 		Entity m_Entity;
+
+		uint32_t m_ScreenIntTexture;
 	};
 }

@@ -10,7 +10,12 @@ namespace editor
 		ImGui::Begin("viewport");
 
 		m_ViewportSize = glm::vec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y); 
-		
+
+		ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(context->GetScreenTexture())),
+			ImVec2(m_ViewportSize.x, m_ViewportSize.y),
+			ImVec2(0, 1),
+			ImVec2(1, 0));
+
 
 		auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
 		auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
@@ -28,22 +33,17 @@ namespace editor
 
 		if (ImGui::IsWindowHovered())
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, context->GetScreenFramebuffer());
-			glReadBuffer(GL_COLOR_ATTACHMENT1);
-			
+			context->BindGBuffer();
+			glReadBuffer(GL_COLOR_ATTACHMENT3);
+
 			int pixel = -1;
 			glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixel);
 			std::cout << pixel << std::endl;
-			
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			context->UnbindGBuffer();
 		}
 
 
-		ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(context->GetScreenTexture())),
-			ImVec2(m_ViewportSize.x, m_ViewportSize.y),
-			ImVec2(0, 1),
-			ImVec2(1, 0));
-
+		
 
 		ImGui::End();
 		ImGui::PopStyleVar();  

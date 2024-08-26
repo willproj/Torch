@@ -2,6 +2,7 @@
 #include <yaml-cpp/yaml.h>
 #include <core/renderer/Entity.h>
 #include <core/renderer/Component.h>
+#include <core/renderer/ModelManager.h>
 
 namespace YAML {
 
@@ -148,7 +149,7 @@ namespace utils
 			out << YAML::Key << "Model Component";
 			out << YAML::BeginMap;
 			auto& modelComp = entity.GetComponent<core::ModelComponent>();
-			out << YAML::Key << "Mesh Path" << YAML::Value << modelComp.model.GetModelPath();
+			out << YAML::Key << "Mesh Path" << YAML::Value << modelComp.model->GetModelPath();
 
 			out << YAML::EndMap;
 		}
@@ -243,7 +244,7 @@ namespace utils
 					deserializedEntity.AddComponent<core::ModelComponent>();
 					auto& model = deserializedEntity.GetComponent<core::ModelComponent>();
 					std::string path = modelComp["Mesh Path"].as<std::string>();
-					model.model.LoadModel(path);
+					core::ModelManager::GetInstance()->LoadModel(path);
 				}
 			}
 		}

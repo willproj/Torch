@@ -70,7 +70,7 @@ namespace core
 
 	struct ModelComponent
 	{
-		TorchModel model;
+		std::shared_ptr<TorchModel> model;
 		ModelComponent() = default;
 		ModelComponent(const ModelComponent&) = default;
 		ModelComponent& operator=(const ModelComponent&) = default;

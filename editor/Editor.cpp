@@ -1,5 +1,7 @@
 #include "Editor.h"
 #include <utils/ServiceLocator.h>
+#include <utils/Serializer.h>
+#include <core/renderer/SceneManager.h>
 
 namespace editor
 {
@@ -8,18 +10,16 @@ namespace editor
 	bool Editor::fullscreen = true;
 	bool Editor::isOpen = true;
 
-
 	uint32_t Editor::m_NavbarHeight;
 	bool Editor::m_FullScreen = true;
-	
+
 	void Editor::Render()
 	{
 		DockSpace();
 
 		static bool demo = true;
 		ImGui::ShowDemoWindow(&demo);
-
-		for (auto& editor : m_EditorModules)
+		for (auto &editor : m_EditorModules)
 		{
 			editor.second->Render();
 		}
@@ -48,7 +48,7 @@ namespace editor
 #endif
 		ImGui_ImplOpenGL3_Init("#version 450");
 
-		ImGuiStyle& style = ImGui::GetStyle();
+		ImGuiStyle &style = ImGui::GetStyle();
 		style.Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 		style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
 		style.Colors[ImGuiCol_WindowBg] = ImVec4(0.13f, 0.14f, 0.15f, 1.00f);
@@ -100,7 +100,6 @@ namespace editor
 		style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 		style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 		style.GrabRounding = style.FrameRounding = style.TabRounding = 0.0f;
-
 	}
 
 	void Editor::ImGuiBegin()
@@ -108,8 +107,6 @@ namespace editor
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-
-		
 	}
 
 	void Editor::ImGuiEnd()
@@ -118,9 +115,9 @@ namespace editor
 		ImGuiIO &io = ImGui::GetIO();
 		(void)io;
 		ImGui::Render();
-		//int display_w, display_h;
-		//glfwGetFramebufferSize(m_WindowPtr->GetWinSpecification().glfwWindow, &display_w, &display_h);
-		//glViewport(0, 0, display_w, display_h);
+		// int display_w, display_h;
+		// glfwGetFramebufferSize(m_WindowPtr->GetWinSpecification().glfwWindow, &display_w, &display_h);
+		// glViewport(0, 0, display_w, display_h);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -135,7 +132,7 @@ namespace editor
 	void Editor::DockSpace()
 	{
 
-		//fullscreen = false;
+		// fullscreen = false;
 		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
 		// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
@@ -143,7 +140,7 @@ namespace editor
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
 		if (m_FullScreen)
 		{
-			const ImGuiViewport* viewport = ImGui::GetMainViewport();
+			const ImGuiViewport *viewport = ImGui::GetMainViewport();
 			ImGui::SetNextWindowPos(viewport->WorkPos);
 			ImGui::SetNextWindowSize(viewport->WorkSize);
 			ImGui::SetNextWindowViewport(viewport->ID);
@@ -177,18 +174,18 @@ namespace editor
 		ImGui::Begin("DockSpace Demo", &isOpen, window_flags);
 
 		ImGui::PopStyleVar();
-		//if (opt_fullscreen)
+		// if (opt_fullscreen)
 		ImGui::PopStyleVar(2);
 
 		// Submit the DockSpace
-		ImGuiIO& io = ImGui::GetIO();
+		ImGuiIO &io = ImGui::GetIO();
 		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 		{
 			ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
 			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 		}
 
-		//render navbar
+		// render navbar
 		RenderNavbar();
 
 		ImGui::End();
@@ -224,34 +221,31 @@ namespace editor
 		{
 			if (ImGui::MenuItem("Open File			Ctrl+O"))
 			{
-				std::string filepath = utils::FileUtils::OpenFile("renderx scene file (*.rx)\0*.rx\0");
+				std::string filepath = utils::FileUtils::OpenFile("Scene File (*.tc)\0*.tc\0");
 				if (!filepath.empty())
 				{
-						//utils::serializer serializer(s_renderdata->scene);
-						//serializer.deserialize(filepath);
+					utils::Serializer serializer(&core::SceneManager::GetSceneManager()->GetSceneRef().get());
+					serializer.DeSerialize(filepath);
 				}
-				
 			}
 
 			if (ImGui::MenuItem("Save File			Ctrl+S"))
 			{
-				std::string filePath = utils::FileUtils::SaveFile("RenderX Scene File (*.rx)\0*.rx\0");
+				std::string filePath = utils::FileUtils::SaveFile("Scene File (*.tc)\0*.tc\0");
 				if (!filePath.empty())
 				{
-					//utils::Serializer serializer(s_renderData->scene);
-					//serializer.serialize(filePath);
+					utils::Serializer serializer(&core::SceneManager::GetSceneManager()->GetSceneRef().get());
+					serializer.Serialize(filePath);
 				}
-				
 			}
 
 			if (ImGui::MenuItem("EXIT				Alt+F4"))
 			{
-				//std::string filePath = utils::FileSystem::openFolder();
+				// std::string filePath = utils::FileSystem::openFolder();
 			}
 			ImGui::MenuItem("EXIT				Alt+F4");
 			ImGui::EndMenu();
 		}
-
 
 		/*if (ImGui::BeginMenu("View"))
 		{
@@ -262,7 +256,6 @@ namespace editor
 
 			ImGui::EndMenu();
 		}*/
-
 
 		if (ImGui::BeginMenu("Settings"))
 		{
@@ -284,25 +277,24 @@ namespace editor
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 8));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
-		//if (ImGui::ImageButton("minimize", (ImTextureID)minimizeIcon, ImVec2(26, 26)))
+		// if (ImGui::ImageButton("minimize", (ImTextureID)minimizeIcon, ImVec2(26, 26)))
 		//{
 		//	glfwIconifyWindow(openglcore::Window::getInstance()->getGLFWwinPtr());
-		//}
+		// }
 
-		//auto tex = switchIcon == 1 ? maximizeIcon : restoreIcon;
-		//if (ImGui::ImageButton("maximize or restore", (ImTextureID)tex, ImVec2(26, 26)))
+		// auto tex = switchIcon == 1 ? maximizeIcon : restoreIcon;
+		// if (ImGui::ImageButton("maximize or restore", (ImTextureID)tex, ImVec2(26, 26)))
 		//{
 		//	resetWindowSizePos(switchIcon);
-		//}
+		// }
 
-		//if (ImGui::ImageButton("close", (ImTextureID)closeIcon, ImVec2(26, 26)))
+		// if (ImGui::ImageButton("close", (ImTextureID)closeIcon, ImVec2(26, 26)))
 		//{
 		//	//TO DO
-		//}
+		// }
 
 		ImGui::PopStyleColor(2);
 		ImGui::PopStyleVar(2);
-
 
 		ImGui::EndMenuBar();
 		ImGui::PopStyleVar();
@@ -310,6 +302,6 @@ namespace editor
 
 	void Editor::AddModule(EditorType type, std::unique_ptr<EditorModule> module)
 	{
-		m_EditorModules[type]= std::move(module);
+		m_EditorModules[type] = std::move(module);
 	}
 }

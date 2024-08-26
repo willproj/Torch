@@ -40,8 +40,16 @@ namespace core
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_GColorSpec, 0);
 
-        m_Attachments = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-        glDrawBuffers(3, m_Attachments.data());
+        // red int texture
+        glGenTextures(1, &m_RedInt);
+        glBindTexture(GL_TEXTURE_2D, m_RedInt);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, width, height, 0, GL_RED_INTEGER, GL_INT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, m_RedInt, 0);
+
+        m_Attachments = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
+        glDrawBuffers(4, m_Attachments.data());
 
         glGenRenderbuffers(1, &m_RboDepth);
         glBindRenderbuffer(GL_RENDERBUFFER, m_RboDepth);
@@ -83,31 +91,38 @@ namespace core
 
     void GBuffer::OnUpdate()
     {
-        if (m_BufferID || m_RboDepth)
+        if (m_BufferID)
         {
-            if (m_BufferID)
-            {
-                glDeleteFramebuffers(1, &m_BufferID);
-            }
-            if (m_GPosition)
-            {
-                glDeleteTextures(1, &m_GPosition);
-            }
-            if (m_GNormal)
-            {
-                glDeleteTextures(1, &m_GNormal);
-            }
-            if (m_GColorSpec)
-            {
-                glDeleteTextures(1, &m_GColorSpec);
-            }
-            if (m_RboDepth)
-            {
-                glDeleteRenderbuffers(1, &m_RboDepth);
-            }
-               
-            Create();
+            glDeleteFramebuffers(1, &m_BufferID);
+            m_BufferID = 0;
         }
+        if (m_GPosition)
+        {
+            glDeleteTextures(1, &m_GPosition);
+            m_GPosition = 0;
+        }
+        if (m_GNormal)
+        {
+            glDeleteTextures(1, &m_GNormal);
+            m_GNormal = 0;
+        }
+        if (m_GColorSpec)
+        {
+            glDeleteTextures(1, &m_GColorSpec);
+            m_GColorSpec = 0;
+        }
+        if (m_RedInt)
+        {
+            glDeleteTextures(1, &m_RedInt);
+            m_RedInt = 0;
+        }
+        if (m_RboDepth)
+        {
+            glDeleteRenderbuffers(1, &m_RboDepth);
+            m_RboDepth = 0;
+        }
+
+        Create();
     }
 
     GBuffer::~GBuffer()

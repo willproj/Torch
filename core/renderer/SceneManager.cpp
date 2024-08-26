@@ -36,7 +36,7 @@ namespace core
 			shader.setInt("entity", 2);
 			Entity entity = { entityID, &m_Scene };
 			//render model
-			entity.GetComponent<ModelComponent>().model.RenderModel();
+			entity.GetComponent<ModelComponent>().model->RenderModel();
 		}
 	}
 
