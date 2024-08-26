@@ -32,7 +32,7 @@ namespace core
             : KeyEventBase(keyCode, scancode, mods) {}
     };
 
-    class KeyReleaseEvent : public KeyEventBase<KeyPressEvent>
+    class KeyReleaseEvent : public KeyEventBase<KeyReleaseEvent>
     {
     public:
         static constexpr EventType Type = EventType::KEY_RELEASE;

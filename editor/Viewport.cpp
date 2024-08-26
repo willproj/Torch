@@ -6,14 +6,58 @@ namespace editor
 	void Viewport::Render()
 	{
 		auto context = utils::ServiceLocator::GetGraphicsContext();
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f)); 
 		ImGui::Begin("viewport");
-		ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(context->GetScreenTexture())), ImVec2(1280, 720));
+
+		m_ViewportSize = glm::vec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y); 
+		
+
+		auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+		auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+		auto viewportOffset = ImGui::GetWindowPos();
+		viewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+		viewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
+		
+		
+		auto [x, y] = ImGui::GetMousePos();
+		x -= viewportBounds[0].x;
+		y -= viewportBounds[0].y;
+		y = m_ViewportSize.y - y;
+		x *= utils::ServiceLocator::GetWindow()->GetWinSpecification().width * 1.0f / m_ViewportSize.x;
+		y *= utils::ServiceLocator::GetWindow()->GetWinSpecification().height * 1.0f / m_ViewportSize.y;
+
+		if (ImGui::IsWindowHovered())
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, context->GetScreenFramebuffer());
+			glReadBuffer(GL_COLOR_ATTACHMENT1);
+			
+			int pixel = -1;
+			glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixel);
+			std::cout << pixel << std::endl;
+			
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		}
+
+
+		ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(context->GetScreenTexture())),
+			ImVec2(m_ViewportSize.x, m_ViewportSize.y),
+			ImVec2(0, 1),
+			ImVec2(1, 0));
+
+
 		ImGui::End();
+		ImGui::PopStyleVar();  
 	}
+
 
 	void Viewport::OnUpdate()
 	{
 
+	}
+
+	glm::vec2 Viewport::GetWindowContentSize() const
+	{
+		return m_ViewportSize;
 	}
 
 }

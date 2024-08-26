@@ -1,5 +1,6 @@
 #pragma once
 #include <pch/pch.h>
+#include "core/glcore/GBuffer.h"
 
 namespace core
 {
@@ -10,6 +11,7 @@ namespace core
 		Vulkan
 	};
 
+	
 	class TorchGraphicsContext
 	{
 	public:
@@ -23,7 +25,10 @@ namespace core
 
         virtual ~TorchGraphicsContext() = default;
 		virtual void DrawFrame() {};
-		virtual void ReCreate() {};
+		virtual void OnUpdate() {};
+		virtual GBuffer GetGBuffer() const { return GBuffer(); }
+		virtual GLuint GetScreenFramebuffer() const { return 0; }
+		virtual void CreateOffScreenTexture(int width, int height) {};
 
 		virtual APIType GetAPIType() const = 0;
 		GLuint GetScreenTexture() const { return m_ScreenTexture; }

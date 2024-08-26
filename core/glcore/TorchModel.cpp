@@ -13,13 +13,14 @@ namespace core
 	TorchModel::~TorchModel()
 	{
 	}
-	void TorchModel::LoadModel(const std::string& filename)
+	void TorchModel::LoadModel(const std::string& modelPath)
 	{
+        m_ModelPath = modelPath;
 		tinygltf::Model model;
 		tinygltf::TinyGLTF loader;
 		std::string err, warn;
 
-		bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, filename);
+		bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, std::string(PROJECT_ROOT) + modelPath);
 		if (!warn.empty()) {
 			TORCH_LOG_WARN("[{}:{}] Warn: {}", __FILE__, __LINE__, warn);
 		}

@@ -144,7 +144,7 @@ namespace core
     class Keyboard
     {
     public:
-        static Keyboard& GetInstance();
+        static std::unique_ptr<Keyboard>& GetInstance();
 
         // Prevent copy and assignment
         Keyboard(const Keyboard&) = delete;
@@ -155,7 +155,7 @@ namespace core
         void OnEvent(KeyReleaseEvent& event);
         void OnEvent(KeyRepeatEvent& event);
 
-        bool IsKeyPressed(int keyCode) const;
+        bool IsKeyPressed(KeyCode keyCode) const;
 
     private:
         Keyboard() = default;

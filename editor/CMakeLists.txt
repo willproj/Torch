@@ -19,4 +19,4 @@ target_precompile_headers(Editor PRIVATE ${CMAKE_SOURCE_DIR}/pch/pch.h)
 target_include_directories(Editor PRIVATE ${CMAKE_SOURCE_DIR} ${Vulkan_INCLUDE_DIRS})
 
 # Link the Utils library and Vulkan to the Editor library
-target_link_libraries(Editor PRIVATE Utils glfw glad Vulkan::Vulkan imgui Core)
+target_link_libraries(Editor PRIVATE Utils glfw glad Vulkan::Vulkan imgui Core yaml-cpp::yaml-cpp EnTT::EnTT)

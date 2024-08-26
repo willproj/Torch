@@ -24,7 +24,7 @@ namespace core
 		TorchVulkanContext();
 		~TorchVulkanContext();
 		void DrawFrame() override;
-		void ReCreate() override;
+		void OnUpdate() override;
 
 		APIType GetAPIType() const override { return APIType::Vulkan; }
 

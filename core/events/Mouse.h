@@ -12,7 +12,7 @@ namespace core
     class Mouse
     {
     public:
-        static Mouse& GetInstance();
+        static std::unique_ptr<Mouse>& GetInstance();
 
         // Prevent copy and assignment
         Mouse(const Mouse&) = delete;
@@ -32,6 +32,20 @@ namespace core
         double GetCursorPosX() const { return m_CursorPosX; }
         double GetCursorPosY() const { return m_CursorPosY; }
 
+        // Get last mouse position
+        double GetLastCursorPosX() const { return m_LastCursorPosX; }
+        double GetLastCursorPosY() const { return m_LastCursorPosY; }
+
+        // Get scroll offset
+        double GetScrollOffsetY() const { return m_ScrollOffsetY; }
+
+        // Set scroll sensitivity
+        void SetScrollSensitivity(double sensitivity) { m_ScrollSensitivity = sensitivity; }
+
+        glm::vec2 GetPositionOffset() const;
+        void UpdateMouse();
+
+
     private:
         Mouse() = default;
 
@@ -41,7 +55,12 @@ namespace core
         double m_CursorPosX = 0.0;
         double m_CursorPosY = 0.0;
 
+        double m_LastCursorPosX = 0.0;
+        double m_LastCursorPosY = 0.0;
+
         double m_ScrollOffsetY = 0.0;
+        double m_ScrollSensitivity = 0.2; 
+
 
         static std::unique_ptr<Mouse> s_Instance;
     };

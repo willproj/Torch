@@ -12,7 +12,12 @@ namespace editor
 
         void Render() override;
         void OnUpdate() override;
-    private: 
+
+        glm::vec2 GetWindowContentSize() const override;
         
+    private: 
+        glm::vec2 m_ViewportSize;
+        glm::vec2 m_ScreenPixelPos;
+        glm::vec2 viewportBounds[2];
     };
 }

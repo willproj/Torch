@@ -5,7 +5,7 @@ namespace core
 {
     std::unique_ptr<Mouse> Mouse::s_Instance = nullptr;
 
-    Mouse& Mouse::GetInstance()
+    std::unique_ptr<Mouse>& Mouse::GetInstance()
     {
         static std::mutex mutex;
         if (!s_Instance)
@@ -16,7 +16,7 @@ namespace core
                 s_Instance = std::unique_ptr<Mouse>(new Mouse());
             }
         }
-        return *s_Instance;
+        return s_Instance;
     }
 
     void Mouse::OnEvent(MousePressEvent& event)
@@ -52,13 +52,30 @@ namespace core
     void Mouse::OnEvent(MouseMoveEvent& event)
     {
         // Handle mouse move event
+        m_LastCursorPosX = m_CursorPosX;
+        m_LastCursorPosY = m_CursorPosY;
+
         m_CursorPosX = event.GetCursorPosX();
         m_CursorPosY = event.GetCursorPosY();
     }
 
     void Mouse::OnEvent(MouseScrollEvent& event)
     {
-        m_ScrollOffsetY = event.GetOffsetY();
+        m_ScrollOffsetY = event.GetOffsetY() * m_ScrollSensitivity;
         TORCH_LOG_DEBUG("[{}:{}], mouse scrolled. Scroll Y: {}", __FILE__, __LINE__, event.GetOffsetY());
     }
+
+    glm::vec2 Mouse::GetPositionOffset() const
+    {
+        return glm::vec2(m_CursorPosX - m_LastCursorPosX, m_CursorPosY - m_LastCursorPosY);
+    }
+
+    void Mouse::UpdateMouse()
+    {
+        m_LastCursorPosX = m_CursorPosX;
+        m_LastCursorPosY = m_CursorPosY;
+        m_ScrollOffsetY = 0.0f;
+    }
+
+
 }

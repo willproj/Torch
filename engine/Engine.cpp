@@ -1,6 +1,5 @@
 #include "Engine.h"
 #include "editor/Editor.h"
-
 namespace engine
 {
     std::unique_ptr<Engine> Engine::s_EngineInstance = nullptr;
@@ -31,12 +30,18 @@ namespace engine
     {
         std::unique_ptr<core::Window> window = core::Window::Create(
             core::WindowSpecification{1280, 720, "My Window", nullptr});
+
+        utils::ServiceLocator::RegisterMouse(std::move(core::Mouse::GetInstance()));
+        utils::ServiceLocator::RegisterKeyboard(std::move(core::Keyboard::GetInstance()));
         utils::ServiceLocator::RegisterWindow(std::move(window));
-        utils::ServiceLocator::RegisterGraphicsContext(std::move(core::TorchGraphicsContext::GetGraphicsContext()));
         editor::Editor::SetUpImGui();
-        editor::Editor::AddModule(std::make_unique<editor::Viewport>());
 
+        //initialize UI
+        editor::Editor::AddModule(editor::EditorType::Viewport, std::make_unique<editor::Viewport>());
+        editor::Editor::AddModule(editor::EditorType::ScenePanel, std::make_unique<editor::SceneHierarchyPanel>());
+        editor::Editor::AddModule(editor::EditorType::EntityPanel, std::make_unique<editor::EntityPropertiesPanel>());
 
+        utils::ServiceLocator::RegisterGraphicsContext(std::move(core::TorchGraphicsContext::GetGraphicsContext()));
         TORCH_LOG_INFO("Torch Engine Initialized");
     }
 
@@ -57,13 +62,14 @@ namespace engine
             {
                 appWindow->HandleMinimization();
                 appWindow->ResetIsResize();
+                context->OnUpdate();
             }
 
             context->DrawFrame();
+            
             editor::Editor::ImGuiBegin();
             editor::Editor::Render();
             editor::Editor::ImGuiEnd();
-
 
             appWindow->SwapBuffers();
         }

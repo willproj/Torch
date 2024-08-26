@@ -1,5 +1,4 @@
 #pragma once
-
 #include <pch/pch.h>
 #include <core/platform/Window.h>
 #include <core/events/Keyboard.h>

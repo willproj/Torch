@@ -54,6 +54,8 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/thirdParty/imgui
     ${CMAKE_SOURCE_DIR}/thirdParty/glm
     ${CMAKE_SOURCE_DIR}/thirdParty/tinygltf
+    ${CMAKE_SOURCE_DIR}/thirdParty/entt/src
+    ${CMAKE_SOURCE_DIR}/thirdParty/yaml-cpp/include
 )
 
 # Add subdirectories

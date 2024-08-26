@@ -35,7 +35,14 @@
 #include <filesystem>
 #include <array>
 #include <sstream>
+#include <ppl.h>
+#include <shobjidl_core.h>
+#include <iomanip>
+#include <random>
+#include <chrono>
 
+#define NOMINMAX
+#include <Windows.h>
 
 // Third-Party Headers
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
@@ -51,7 +58,6 @@
 #include <Logger.h>
 #include <Ref.h>
 #include <FileUtils.h>
-
 
 // Vulkan Headers
 #include <vulkan/vulkan.h>

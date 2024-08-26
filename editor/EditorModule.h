@@ -1,7 +1,6 @@
 #pragma once
-#include <imgui.h>
-#include <backends/imgui_impl_vulkan.h>
-
+#include <pch/pch.h>
+#include <core/renderer/Entity.h>
 namespace editor
 {
     class EditorModule
@@ -12,5 +11,9 @@ namespace editor
 
         virtual void Render() = 0;
         virtual void OnUpdate() = 0;
+
+        virtual glm::vec2 GetWindowContentSize() const { return glm::vec2(0.0f); }
+
+    protected:
     };
 }

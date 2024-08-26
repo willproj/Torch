@@ -7,3 +7,7 @@
 #include <core/platform/Window.h>
 #include <utils/ServiceLocator.h>
 
+#include <editor/Viewport.h>
+#include <editor/SceneHierarchyPanel.h>
+#include <editor/EntityPropertiesPanel.h>
+
