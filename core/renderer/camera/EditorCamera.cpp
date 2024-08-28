@@ -8,6 +8,9 @@ namespace core
 {
     EditorCamera::EditorCamera()
     {
+        position = glm::vec3(0, 6360.0f-1, 0);
+        focalPoint = glm::vec3(0.0f, 6360.0f, 0); // Look at the origin
+        distance = glm::distance(position, focalPoint); // Calculate initial distance
         UpdateView();
     }
 
@@ -22,6 +25,13 @@ namespace core
     {
         if (m_Keyboard->IsKeyPressed(KeyCode::KEY_LEFT_CONTROL))
         {
+            if (m_Keyboard->IsKeyPressed(KeyCode::KEY_LEFT_SHIFT))
+            {
+                // Move the camera up along the Y-axis when both Ctrl and Shift are pressed
+                position += glm::vec3(0.0f, 100.0f, 0.0f) * ZoomSpeed();
+                focalPoint += glm::vec3(0.0f, 100.0f, 0.0f) * ZoomSpeed();
+            }
+
             if (isOnFocus)
             {
                 auto posX = m_Mouse->GetCursorPosX();

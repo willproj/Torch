@@ -48,8 +48,15 @@ namespace core
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, m_RedInt, 0);
 
-        m_Attachments = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
-        glDrawBuffers(4, m_Attachments.data());
+        glGenTextures(1, &m_GScattering);
+        glBindTexture(GL_TEXTURE_2D, m_GScattering);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, m_GScattering, 0);
+
+        m_Attachments = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4 };
+        glDrawBuffers(5, m_Attachments.data());
 
         glGenRenderbuffers(1, &m_RboDepth);
         glBindRenderbuffer(GL_RENDERBUFFER, m_RboDepth);
@@ -89,6 +96,12 @@ namespace core
         glBindTexture(GL_TEXTURE_2D, m_GColorSpec);
     }
 
+    void GBuffer::BindScatteringTexture() const
+    {
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D, m_GScattering);
+    }
+
     void GBuffer::OnUpdate()
     {
         if (m_BufferID)
@@ -115,6 +128,11 @@ namespace core
         {
             glDeleteTextures(1, &m_RedInt);
             m_RedInt = 0;
+        }
+        if (m_GScattering)
+        {
+            glDeleteTextures(1, &m_GScattering);
+            m_GScattering = 0;
         }
         if (m_RboDepth)
         {

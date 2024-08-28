@@ -34,11 +34,11 @@ namespace editor
 		if (ImGui::IsWindowHovered())
 		{
 			context->BindGBuffer();
-			glReadBuffer(GL_COLOR_ATTACHMENT3);
 
+			//color attachment 3 = red int
+			glReadBuffer(GL_COLOR_ATTACHMENT3);
 			int pixel = -1;
 			glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixel);
-			std::cout << pixel << std::endl;
 			context->UnbindGBuffer();
 		}
 

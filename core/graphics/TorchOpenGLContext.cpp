@@ -9,7 +9,7 @@ namespace core
 	TorchOpenGLContext::TorchOpenGLContext()
 	{
 		m_WindowPtr = utils::ServiceLocator::GetWindow();
-		const std::string filepath = "/assets/models/cube/scene.gltf";
+		const std::string filepath = "/assets/models/sphere/scene.gltf";
 		m_TcModel.LoadModel(filepath);
 
 		m_TcShader = Shader(
@@ -19,6 +19,11 @@ namespace core
 		m_LightingShader = Shader(
 			std::string(PROJECT_ROOT) + "/assets/shader/lighting.vert",
 			std::string(PROJECT_ROOT) + "/assets/shader/lighting.frag");
+
+		m_Shader = Shader(
+			std::string(PROJECT_ROOT) + "/assets/shader/atmosphere.vert",
+			std::string(PROJECT_ROOT) + "/assets/shader/atmosphere.frag");
+
 
 		m_LightingShader.use();
 		m_LightingShader.setInt("gPosition", 0);
@@ -35,7 +40,7 @@ namespace core
 		// Create the default color texture
 		glGenTextures(1, &m_ScreenTexture);
 		glBindTexture(GL_TEXTURE_2D, m_ScreenTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -80,7 +85,7 @@ namespace core
 	{
 		m_EditorCamera.Update();
 
-		glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// geometry pass
@@ -90,25 +95,41 @@ namespace core
 		// Pass matrices to the shader
 		auto &viewport = editor::Editor::GetEditorModule(editor::EditorType::Viewport);
 		glm::vec2 viewportSize = viewport->GetWindowContentSize();
-		glm::mat4 modelMatrix = glm::mat4(2.0f);
 		m_EditorCamera.SetViewportSize(viewportSize.x, viewportSize.y);
+		glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 6360, 0.0f));
 		m_TcShader.setMat4("model", modelMatrix);
 		m_TcShader.setMat4("view", m_EditorCamera.GetViewMatrix());
 		m_TcShader.setMat4("projection", m_EditorCamera.getProjection());
-
-		SceneManager::GetSceneManager()->Render(m_TcShader);
-		// m_TcModel.RenderModel();
+		m_TcModel.RenderModel();
 		m_GBuffer.Unbind();
 
 		// lighting pass
 		glBindFramebuffer(GL_FRAMEBUFFER, m_ScreenFramebuffer);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(6420., 6420., 6420.));
+		
 		m_LightingShader.use();
 		m_LightingShader.setVec3("viewPos", m_EditorCamera.GetPosition());
 		m_GBuffer.BindColorTexture();
 		m_GBuffer.BindNormalTexture();
 		m_GBuffer.BindPositionTexture();
 		m_Quad.renderQuad();
+		
+		// Enable depth test
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL); 
+		m_Shader.use();
+		m_Shader.setMat4("model", model);
+		m_Shader.setMat4("view", m_EditorCamera.GetViewMatrix());
+		m_Shader.setMat4("projection", m_EditorCamera.getProjection());
+		m_Shader.setVec3("viewPos", m_EditorCamera.GetPosition());
+		atmosphere.draw(0.01, m_Shader);
+		m_TcModel.RenderModel();
+		glDepthFunc(GL_LESS);
+
+		
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	}
 }

@@ -41,6 +41,9 @@
 #include <random>
 #include <chrono>
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 #define NOMINMAX
 #include <Windows.h>
 

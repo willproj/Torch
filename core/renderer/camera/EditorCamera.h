@@ -13,6 +13,7 @@ namespace core
         void Update();
 
         void SetCameraAttributes(float fov, float aspectRatio, float nearClip, float farClip);
+        void SetCameraPosition(const glm::vec3& pos) { position = pos; }
 
         inline float GetDistance() const { return distance; }
         inline void SetDistance(float distance) { this->distance = distance; }
@@ -55,7 +56,7 @@ namespace core
 
         glm::vec2 initialMousePosition = { 0.0f, 0.0f };
 
-        float distance = 10.0f;
+        float distance = 0;
         float pitch = 0.0f, yaw = 0.0f;
 
         float viewportWidth = 1280, viewportHeight = 720;

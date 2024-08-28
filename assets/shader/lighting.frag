@@ -6,7 +6,8 @@ in vec2 TexCoords;
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gColorSpec;
-uniform vec3 viewPos; // Make sure this is provided from the vertex shader
+uniform sampler2D scatteringTexture; // Scattering texture from the atmosphere pass
+uniform vec3 viewPos; // Camera position in world space
 
 // Fixed light properties
 const vec3 lightPos = vec3(3.0f, 3.0f, 3.0f); // Position of the light source
@@ -17,28 +18,36 @@ const float shininess = 100.0f; // Shininess factor for specular highlight
 
 void main()
 {             
-    // Retrieve data from gbuffer
+    // Retrieve data from GBuffer
     vec3 FragPos = texture(gPosition, TexCoords).rgb;
     vec3 Normal = normalize(texture(gNormal, TexCoords).rgb);
     vec3 Diffuse = texture(gColorSpec, TexCoords).rgb;
     float Specular = texture(gColorSpec, TexCoords).a;
 
-    // Ambient
+    // Retrieve atmospheric scattering color from the scattering buffer
+    vec4 scattering = texture(scatteringTexture, TexCoords);
+
+    // Ambient lighting
     vec3 ambient = ambientStrength * lightColor;
 
-    // Diffuse
+    // Diffuse lighting
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(lightPos - FragPos);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * lightColor;
 
-    // Specular
+    // Specular lighting
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
     vec3 specular = specularStrength * spec * lightColor;
 
-    // Final color
-    vec3 finalColor = (ambient + diffuse + specular) * Diffuse;
-    FragColor = vec4(finalColor, 1.0);
+    // Final lighting color (ambient + diffuse + specular)
+    vec3 lightingColor = (ambient + diffuse + specular) * Diffuse;
+
+    // Mix scattering with the final lighting color
+    vec3 finalColor = mix(lightingColor, scattering.rgb, scattering.a);
+
+    // Output the final color
+    FragColor = vec4(lightingColor, 1.0);
 }

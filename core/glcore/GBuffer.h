@@ -17,6 +17,9 @@ namespace core
         void BindColorTexture() const;
 
 
+        void BindScatteringTexture() const;
+
+
         void OnUpdate();
         void Create();
 
@@ -29,6 +32,6 @@ namespace core
         uint32_t m_RboDepth;
 
         std::vector<uint32_t> m_Attachments;
-        uint32_t m_GPosition, m_GNormal, m_GColorSpec, m_RedInt;
+        uint32_t m_GPosition, m_GNormal, m_GColorSpec, m_RedInt, m_GScattering;
     };
 }
