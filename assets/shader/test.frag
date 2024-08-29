@@ -1,7 +1,7 @@
 #version 450 core
 out vec4 FragColor;
 
-in vec3 TexCoords;
+in vec2 TexCoords;
 
 void main()
 {    
