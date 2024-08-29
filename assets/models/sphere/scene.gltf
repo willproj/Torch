@@ -3,24 +3,24 @@
     {
       "bufferView": 2,
       "componentType": 5126,
-      "count": 2399,
+      "count": 16519,
       "max": [
-        1.0,
-        2.0,
-        1.0
+        1.4899040460586548,
+        1.4899049997329712,
+        1.4899040460586548
       ],
       "min": [
-        -1.0,
-        0.0,
-        -1.0
+        -1.4899049997329712,
+        -1.4899040460586548,
+        -1.4899040460586548
       ],
       "type": "VEC3"
     },
     {
       "bufferView": 2,
-      "byteOffset": 28788,
+      "byteOffset": 198228,
       "componentType": 5126,
-      "count": 2399,
+      "count": 16519,
       "max": [
         1.0,
         1.0,
@@ -36,7 +36,7 @@
     {
       "bufferView": 1,
       "componentType": 5126,
-      "count": 2399,
+      "count": 16519,
       "max": [
         1.0,
         1.0
@@ -50,39 +50,39 @@
     {
       "bufferView": 0,
       "componentType": 5125,
-      "count": 13536,
+      "count": 98304,
       "type": "SCALAR"
     }
   ],
   "asset": {
     "extras": {
-      "author": "rawwerks (https://sketchfab.com/rawwerks)",
+      "author": "Eloi Stree (https://sketchfab.com/JamsCenterStudio)",
       "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
-      "source": "https://sketchfab.com/3d-models/sphere-gltf-example-cd602a89287b4cf1a704c13e15cf48f8",
-      "title": "sphere-gltf-example"
+      "source": "https://sketchfab.com/3d-models/360-sphere-b9bbaac234ba4c4f8f29b3a98e4c5744",
+      "title": "360 Sphere"
     },
-    "generator": "Sketchfab-12.65.0",
+    "generator": "Sketchfab-12.68.0",
     "version": "2.0"
   },
   "bufferViews": [
     {
       "buffer": 0,
-      "byteLength": 54144,
+      "byteLength": 393216,
       "name": "floatBufferViews",
       "target": 34963
     },
     {
       "buffer": 0,
-      "byteLength": 19192,
-      "byteOffset": 54144,
+      "byteLength": 132152,
+      "byteOffset": 393216,
       "byteStride": 8,
       "name": "floatBufferViews",
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 57576,
-      "byteOffset": 73336,
+      "byteLength": 396456,
+      "byteOffset": 525368,
       "byteStride": 12,
       "name": "floatBufferViews",
       "target": 34962
@@ -90,36 +90,29 @@
   ],
   "buffers": [
     {
-      "byteLength": 130912,
+      "byteLength": 921824,
       "uri": "scene.bin"
     }
   ],
-  "extensionsUsed": [
-    "KHR_materials_transmission"
-  ],
   "materials": [
     {
-      "extensions": {
-        "KHR_materials_transmission": {
-          "transmissionFactor": 0.0
-        }
-      },
-      "name": "GLASS",
+      "doubleSided": true,
+      "name": "SphereMaterial",
       "pbrMetallicRoughness": {
         "baseColorFactor": [
-          0.99,
-          0.99,
-          0.99,
+          0.8,
+          0.8,
+          0.8,
           1.0
         ],
         "metallicFactor": 0.0,
-        "roughnessFactor": 0.0
+        "roughnessFactor": 0.8239417257461427
       }
     }
   ],
   "meshes": [
     {
-      "name": "Object_0",
+      "name": "Octahedron Sphere 6 R1_SphereMaterial_0",
       "primitives": [
         {
           "attributes": {
@@ -163,41 +156,59 @@
       "children": [
         2
       ],
-      "name": "root"
-    },
-    {
-      "children": [
-        3
-      ],
       "matrix": [
         1.0,
         0.0,
         0.0,
         0.0,
         0.0,
-        2.220446049250313e-16,
+        0.0,
         1.0,
         0.0,
         0.0,
         -1.0,
-        2.220446049250313e-16,
+        0.0,
         0.0,
         0.0,
         0.0,
         0.0,
         1.0
       ],
-      "name": "GLTF_SceneRootNode"
+      "name": "62fddd37178a4465a4fd25f289c43d97.fbx"
+    },
+    {
+      "children": [
+        3
+      ],
+      "name": "RootNode"
     },
     {
       "children": [
         4
       ],
-      "name": "Sphere_1"
+      "matrix": [
+        100.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        99.99999999999866,
+        1.6292067073209114e-05,
+        0.0,
+        0.0,
+        -1.6292067073209114e-05,
+        99.99999999999866,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Octahedron Sphere 6 R1"
     },
     {
       "mesh": 0,
-      "name": "Object_4"
+      "name": "Octahedron Sphere 6 R1_SphereMaterial_0"
     }
   ],
   "scene": 0,

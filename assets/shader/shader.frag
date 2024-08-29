@@ -23,7 +23,8 @@ void main()
     vec3 texColor = texture(texture_diffuse1, TexCoords).rgb;
     float texAlpha = texture(texture_diffuse1, TexCoords).a;
 
-    gColorSpec.rgb = mix(vec3(1.0f,1.0f, 0.0f), texColor, texAlpha); //texture(texture_diffuse1, TexCoords).rgb;
+    //gColorSpec.rgb = mix(vec3(1.0f,1.0f, 0.0f), texColor, texAlpha); //texture(texture_diffuse1, TexCoords).rgb;
+    gColorSpec.rgb = vec3(1.0f,1.0f, 0.0f); //texture(texture_diffuse1, TexCoords).rgb;
     // store specular intensity in gAlbedoSpec's alpha component
     gColorSpec.a = texture(texture_specular1, TexCoords).r;
 

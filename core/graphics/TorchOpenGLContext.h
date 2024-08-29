@@ -8,6 +8,7 @@
 #include "core/platform/TorchWindow.h"
 #include "core/renderer/camera/EditorCamera.h"
 #include "core/renderer/Entity.h"
+#include "core/renderer/skybox/Skybox.h"
 
 namespace core
 {
@@ -32,6 +33,7 @@ namespace core
 		TorchModel m_TcModel;
 		Shader m_TcShader;
 		Shader m_LightingShader;
+		Shader m_SkyboxShader;
 
 		GBuffer m_GBuffer;
 		RenderQuad m_Quad;
@@ -44,5 +46,10 @@ namespace core
 		Entity m_Entity;
 
 		uint32_t m_ScreenIntTexture;
+
+
+		Skybox m_Skybox;
+
+		Shader basic;
 	};
 }

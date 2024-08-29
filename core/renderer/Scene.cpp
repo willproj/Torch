@@ -27,7 +27,7 @@ namespace core
 		entity.AddComponent<ModelComponent>();
 		auto& modelComponent = entity.GetComponent<ModelComponent>();
 		auto& modelManager = ModelManager::GetInstance();
-		const std::string filepath = "/assets/models/sphere/sphere.gltf";
+		const std::string filepath = "/assets/models/sphere/scene.gltf";
 		modelManager->LoadModel(filepath);
 		modelComponent.model = modelManager->GetModel(filepath);
 		return entity;
