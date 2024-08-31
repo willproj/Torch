@@ -9,6 +9,8 @@
 #include "core/renderer/camera/EditorCamera.h"
 #include "core/renderer/Entity.h"
 #include "core/renderer/skybox/Skybox.h"
+#include "core/renderer/EnvironmentManager.h"
+#include "core/renderer/SceneManager.h"
 
 namespace core
 {
@@ -29,11 +31,10 @@ namespace core
 		void BindGBuffer() { m_GBuffer.Bind(); }
 		void UnbindGBuffer() { m_GBuffer.Unbind(); }
 
+		void UpdateCameraViewport();
+
 	private:
-		TorchModel m_TcModel;
-		Shader m_TcShader;
 		Shader m_LightingShader;
-		Shader m_SkyboxShader;
 
 		GBuffer m_GBuffer;
 		RenderQuad m_Quad;
@@ -42,14 +43,11 @@ namespace core
 		GLuint m_EntityIDTexture;
 		Window *m_WindowPtr;
 
-		EditorCamera m_EditorCamera;
-		Entity m_Entity;
+		std::shared_ptr<EditorCamera> m_EditorCamera;
 
 		uint32_t m_ScreenIntTexture;
 
-
-		Skybox m_Skybox;
-
-		Shader basic;
+		std::shared_ptr<EnvironmentManager> m_EnvirManager;
+		std::shared_ptr<SceneManager> m_SceneManager;
 	};
 }

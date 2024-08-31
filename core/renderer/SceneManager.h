@@ -1,6 +1,9 @@
 #pragma once
 #include <pch/pch.h>
 #include "Scene.h"
+#include "camera/EditorCamera.h"
+#include "core/glcore/Shader.h"
+#include "ModelManager.h"
 
 namespace core
 {
@@ -14,13 +17,16 @@ namespace core
 		void CreateEntity();
 		void RemoveEntity(Entity entity);
 
-		void Render(Shader& shader);
+		void Render();
 
 		utils::Ref<Scene> GetSceneRef() { return utils::Ref<Scene>(m_Scene); }
-
+		void SetCamera(std::shared_ptr<EditorCamera> camera);
 	private:
 		SceneManager();
 		Scene m_Scene;
 		static std::shared_ptr<SceneManager> m_SceneManager;
+		std::shared_ptr<EditorCamera> m_EditorCameraPtr;
+
+		Shader m_Shader;
 	};
 }

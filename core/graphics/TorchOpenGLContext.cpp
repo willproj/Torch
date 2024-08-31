@@ -3,44 +3,34 @@
 #include <editor/Editor.h>
 #include "core/renderer/Component.h"
 #include "core/renderer/SceneManager.h"
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 
 namespace core
 {
 	TorchOpenGLContext::TorchOpenGLContext()
 	{
 		m_WindowPtr = utils::ServiceLocator::GetWindow();
-		const std::string filepath = "/assets/models/sphere/scene.gltf";
-		m_TcModel.LoadModel(filepath);
-
-		m_TcShader = Shader(
-			std::string(PROJECT_ROOT) + "/assets/shader/shader.vert",
-			std::string(PROJECT_ROOT) + "/assets/shader/shader.frag");
+		m_EditorCamera = std::make_shared<EditorCamera>();
+		
+		ModelManager::GetInstance()->LoadModel(std::string(PROJECT_ROOT) + "/assets/models/sphere/scene.gltf");
+		m_SceneManager = SceneManager::GetSceneManager();
+		m_SceneManager->SetCamera(m_EditorCamera);
+		
+		m_EnvirManager = EnvironmentManager::GetInstance();
+		auto atmosphere = std::shared_ptr<EnvironmentEntity>(new AtmosphericScattering(m_EditorCamera));
+		m_EnvirManager->AddEntity(EnvironmentEntityType::Atmosphere, atmosphere);
+			
 
 		m_LightingShader = Shader(
 			std::string(PROJECT_ROOT) + "/assets/shader/lighting.vert",
 			std::string(PROJECT_ROOT) + "/assets/shader/lighting.frag");
 
-		m_SkyboxShader = Shader(
-			std::string(PROJECT_ROOT) + "/assets/shader/skybox.vert",
-			std::string(PROJECT_ROOT) + "/assets/shader/skybox.frag");
-
-		basic = Shader(
-			std::string(PROJECT_ROOT) + "/assets/shader/test.vert",
-			std::string(PROJECT_ROOT) + "/assets/shader/test.frag");
-
 		m_LightingShader.use();
 		m_LightingShader.setInt("gPosition", 0);
 		m_LightingShader.setInt("gNormal", 1);
 		m_LightingShader.setInt("gColorSpec", 2);
-
 		
-		m_Entity = SceneManager::GetSceneManager()->GetSceneRef()->CreateEntity();
-
+		SceneManager::GetSceneManager()->GetSceneRef()->CreateEntity();
 		CreateOffScreenTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
-
 	}
 
 	void TorchOpenGLContext::CreateOffScreenTexture(int width, int height)
@@ -67,9 +57,10 @@ namespace core
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
+	
+
 	void TorchOpenGLContext::OnUpdate()
 	{
-
 		m_GBuffer.OnUpdate();
 
 		if (m_ScreenFramebuffer)
@@ -89,28 +80,34 @@ namespace core
 	{
 	}
 
-	void TorchOpenGLContext::DrawFrame()
+	void TorchOpenGLContext::UpdateCameraViewport()
 	{
-		m_EditorCamera.Update();
+		m_EditorCamera->Update();
 		auto& viewport = editor::Editor::GetEditorModule(editor::EditorType::Viewport);
 		glm::vec2 viewportSize = viewport->GetWindowContentSize();
-		m_EditorCamera.SetViewportSize(viewportSize.x, viewportSize.y);
+		m_EditorCamera->SetViewportSize(viewportSize.x, viewportSize.y);
+	}
+
+	void TorchOpenGLContext::DrawFrame()
+	{
+		this->UpdateCameraViewport();
+		glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// 1. Geometry pass (render to GBuffer)
 		m_GBuffer.Bind();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		m_TcShader.use();
-		m_TcShader.setMat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f,-2.0f,-2.0f)));
-		m_TcShader.setMat4("view", m_EditorCamera.GetViewMatrix());
-		m_TcShader.setMat4("projection", m_EditorCamera.getProjection());
-		SceneManager::GetSceneManager()->Render(m_TcShader); // Render all scene objects to GBuffer
+		m_SceneManager->Render();
 		m_GBuffer.Unbind();
 
 		// 2. Lighting pass (render to default framebuffer)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // Clear default framebuffer for lighting
 		m_LightingShader.use();
-		m_LightingShader.setVec3("viewPos", m_EditorCamera.GetPosition());
+		m_LightingShader.setVec3("viewPos", m_EditorCamera->GetPosition());
+		auto speci = std::get<AtmosphericScatteringSpecification>(m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->GetSpecification().get());
+		m_LightingShader.setVec3("sunDir", speci.sunDir);
+		m_LightingShader.setVec3("sunColor", glm::vec3(1.0f));
 
 		// Bind GBuffer textures for lighting calculations
 		m_GBuffer.BindColorTexture();     // Color + Specular
@@ -126,40 +123,7 @@ namespace core
 
 		// 4. Render scene model and skybox (to default framebuffer)
 		// - Render scene model
-		basic.use();
-		basic.setMat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, -0.5f, -0.5f)));
-		basic.setMat4("view", m_EditorCamera.GetViewMatrix());
-		basic.setMat4("projection", m_EditorCamera.getProjection());
-		m_TcModel.RenderModel();
-
-		glDepthFunc(GL_LEQUAL);
-		float elapsedTime = static_cast<float>(glfwGetTime());
-
-		// Calculate the sun direction for a day-night cycle
-		float angle = fmod(elapsedTime / 60.0f * 2.0f * M_PI, 2.0f * M_PI); // Rotate full circle
-		glm::vec3 sunDirection = glm::vec3(
-			cos(angle),   // X component
-			sin(angle),   // Y component
-			-0.5f         // Z component
-		);
-
-		// Normalize the sun direction
-		sunDirection = glm::normalize(sunDirection);
-
-		// Use the shader program
-		m_SkyboxShader.use();
-
-		// Set view and projection matrices
-		m_SkyboxShader.setMat4("view", glm::mat4(glm::mat3(m_EditorCamera.GetViewMatrix())));
-		m_SkyboxShader.setMat4("projection", m_EditorCamera.getProjection());
-
-		// Set the sun direction uniform
-		m_SkyboxShader.setVec3("u_SunDirection", sunDirection);
-		m_TcModel.RenderModel();
-		//glBindVertexArray(m_Skybox.skyboxVAO);
-		//glDrawArrays(GL_TRIANGLES, 0, 36); // Render skybox
-		//glBindVertexArray(0);
-		glDepthFunc(GL_LESS);  // Reset depth function to default
+		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render();
 
 		// 5. Copy final rendered result from default framebuffer to texture for ImGui
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // Read from default framebuffer

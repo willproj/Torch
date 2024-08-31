@@ -2,12 +2,12 @@
 
 namespace core
 {
-    std::unique_ptr<ModelManager> ModelManager::s_ModelManager = nullptr;
-    std::unique_ptr<ModelManager> &ModelManager::GetInstance()
+    std::shared_ptr<ModelManager> ModelManager::s_ModelManager = nullptr;
+    std::shared_ptr<ModelManager> ModelManager::GetInstance()
     {
         if (s_ModelManager == nullptr)
         {
-            s_ModelManager = std::make_unique<ModelManager>();
+            s_ModelManager = std::make_shared<ModelManager>();
         }
         return s_ModelManager;
     }

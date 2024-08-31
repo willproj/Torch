@@ -1,8 +1,8 @@
 Scene: unknow
 Entities:
   - UUID Component:
-      Entity UUID: 356539b4-eb05-4a93-ac11-00008aff587c9f523d5
+      Entity UUID: da2c11b0-52d0-446c-a8bb-0000a57f3204a010212d
     Label Component:
       Label: entity
     Model Component:
-      Mesh Path: /assets/models/sphere/sphere.gltf
+      Mesh Path: D:\github\Torch\assets\models\sphere\scene.gltf

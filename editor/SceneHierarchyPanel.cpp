@@ -39,7 +39,7 @@ namespace editor
 
         if (ImGui::BeginPopup("my_select_popup"))
         {
-            ImGui::SeparatorText("Operations");
+            ImGui::SeparatorText("Creation Panel");
             for (int i = 0; i < IM_ARRAYSIZE(names); i++)
             {
                 if (ImGui::Selectable(names[i]))
@@ -69,6 +69,7 @@ namespace editor
 
             bool isActive = (core::SceneManager::GetSceneManager()->GetSceneRef()->GetSelectedEntityID() == entityID);
             ImVec4 buttonColor = isActive ? ImVec4(1.0f, 0.0f, 0.0f, 1.0f) : ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+            activeButtonId = isActive ? (int)entityID : -1;
 
             ImGui::PushStyleColor(ImGuiCol_Button, buttonColor);
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 0.0f, 0.0f, 0.4f));

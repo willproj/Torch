@@ -34,7 +34,7 @@ namespace core
         tinygltf::TinyGLTF loader;
         std::string err, warn;
 
-        bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, std::string(PROJECT_ROOT) + modelPath);
+        bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, modelPath);
         if (!warn.empty())
         {
             TORCH_LOG_WARN("[{}:{}] Warn: {}", __FILE__, __LINE__, warn);

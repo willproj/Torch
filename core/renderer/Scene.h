@@ -21,7 +21,7 @@ namespace core
         entt::entity GetSelectedEntityID() const { return m_SelectedEntityID; }
 
     private:
-        entt::entity m_SelectedEntityID;
+        entt::entity m_SelectedEntityID = entt::null;
         entt::registry m_EnttRegistry;  
         friend class Entity;
     };

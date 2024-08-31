@@ -7,7 +7,7 @@ namespace core
     class ModelManager
     {
     public:
-        static std::unique_ptr<ModelManager> &GetInstance();
+        static std::shared_ptr<ModelManager> GetInstance();
         std::shared_ptr<TorchModel> LoadModel(const std::string &modelPath);
         std::shared_ptr<TorchModel> GetModel(const std::string &modelPath);
         void RenderModel(const std::string &modelPath);
@@ -17,7 +17,7 @@ namespace core
         ~ModelManager() = default;
         ModelManager() = default;
     private:
-        static std::unique_ptr<ModelManager> s_ModelManager;
+        static std::shared_ptr<ModelManager> s_ModelManager;
         std::unordered_map<std::string, std::shared_ptr<TorchModel>> m_Models;
     };
 }

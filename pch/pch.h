@@ -40,6 +40,10 @@
 #include <iomanip>
 #include <random>
 #include <chrono>
+#include <variant>
+
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 #define NOMINMAX
 #include <Windows.h>

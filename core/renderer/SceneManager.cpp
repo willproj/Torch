@@ -27,24 +27,44 @@ namespace core
 		return m_SceneManager;
 	}
 
-	void SceneManager::Render(Shader& shader)
+	void SceneManager::Render()
 	{
 		auto& view = m_Scene.GetRegisterRef().view<entt::entity>();
 		for (auto& entityID : view)
 		{
+			//set up shader
+			m_Shader.use();
+			m_Shader.setInt("entity", static_cast<uint32_t>(entityID));
+			m_Shader.setMat4("model", glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, -2.0f, -2.0f)));
+			m_Shader.setMat4("view", m_EditorCameraPtr->GetViewMatrix());
+			m_Shader.setMat4("projection", m_EditorCameraPtr->getProjection());
 			//init entity
-			shader.setInt("entity", 2);
 			Entity entity = { entityID, &m_Scene };
 			//render model
-			entity.GetComponent<ModelComponent>().model->RenderModel();
+			if (entity.HasComponent<ModelComponent>())
+			{
+				auto model = entity.GetComponent<ModelComponent>().model;
+				if (model)
+				{
+					model->RenderModel();
+				}
+			}
 		}
 	}
 
 	SceneManager::SceneManager()
 	{
+		m_Shader = Shader(
+			std::string(PROJECT_ROOT) + "/assets/shader/shader.vert",
+			std::string(PROJECT_ROOT) + "/assets/shader/shader.frag");
 	}
 
 	SceneManager::~SceneManager()
 	{
+	}
+
+	void SceneManager::SetCamera(std::shared_ptr<EditorCamera> camera)
+	{
+		m_EditorCameraPtr = camera;
 	}
 }

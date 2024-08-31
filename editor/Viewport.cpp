@@ -1,5 +1,6 @@
 #include "Viewport.h"
 #include <utils/ServiceLocator.h>
+#include <core/renderer/SceneManager.h>
 
 namespace editor
 {
@@ -38,7 +39,24 @@ namespace editor
 
 			int pixel = -1;
 			glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixel);
-			std::cout << pixel << std::endl;
+
+			auto sceneRef = core::SceneManager::GetSceneManager()->GetSceneRef();
+			if (sceneRef->GetRegisterRef().valid(entt::entity(pixel)))
+			{
+				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+				{
+					sceneRef->SetSelectedEntityID(entt::entity(pixel));
+
+				}
+			}
+			else
+			{
+				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+				{
+					sceneRef->ResetSelectedEntityID();
+				}
+			}
+			
 			context->UnbindGBuffer();
 		}
 
