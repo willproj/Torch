@@ -4,7 +4,6 @@
 [submodule "thirdParty/glfw"]
 	path = thirdParty/glfw
 	url = https://github.com/glfw/glfw
-
 [submodule "thirdParty/imgui"]
 	path = thirdParty/imgui
 	url = https://github.com/willproj/imgui
@@ -20,3 +19,7 @@
 [submodule "thirdParty/yaml-cpp"]
 	path = thirdParty/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp
+
+[submodule "thirdParty/ImGuizmo"]
+	path = thirdParty/ImGuizmo
+	url = https://github.com/willproj/ImGuizmo

@@ -1,4 +1,10 @@
 #version 330 core
+#define RENDER_ALL 0
+#define RENDER_GCOLOR 1
+#define RENDER_GPOSITION 2
+#define RENDER_GNORMAL 3
+#define RENDER_GDEPTH 4
+
 out vec4 FragColor;
 
 in vec2 TexCoords;
@@ -6,14 +12,18 @@ in vec2 TexCoords;
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gColorSpec;
-uniform vec3 viewPos; // Provided from the vertex shader
-uniform vec3 sunDir; // Sun direction (provided from the application)
-uniform vec3 sunColor; // Sun color (optional, can be set dynamically if needed)
+uniform sampler2D gDepth;
 
-// Fixed properties
-const float ambientStrength = 0.2f; // Ambient light strength
-const float specularStrength = 0.3f; // Specular light strength
-const float shininess = 100.0f; // Shininess factor for specular highlight
+uniform vec3 viewPos; 
+uniform vec3 sunDir; 
+uniform vec3 sunColor; 
+
+const float ambientStrength = 0.2f;
+const float specularStrength = 0.3f;
+const float shininess = 100.0f;
+
+uniform int u_RenderType;
+
 
 void main()
 {             
@@ -28,7 +38,7 @@ void main()
 
     // Diffuse
     vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(-sunDir); // Sun direction is the light direction
+    vec3 lightDir = normalize(-sunDir); 
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * sunColor;
 
@@ -38,7 +48,28 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
     vec3 specular = specularStrength * spec * sunColor;
 
-    // Final color
+    // Final color calculation
     vec3 finalColor = (ambient + diffuse + specular) * Diffuse;
-    FragColor = vec4(finalColor, 1.0);
+    
+    // Output final color
+    if(u_RenderType == RENDER_ALL)
+    {
+        FragColor = vec4(finalColor, 1.0);
+    }
+    else if(u_RenderType == RENDER_GCOLOR)
+    {
+        FragColor = vec4(Diffuse, 1.0);
+    }
+    else if(u_RenderType == RENDER_GPOSITION)
+    {
+        FragColor = vec4(FragPos, 1.0);
+    }
+    else if(u_RenderType == RENDER_GNORMAL)
+    {
+        FragColor = vec4(Normal, 1.0);
+    }
+    else if(u_RenderType == RENDER_GDEPTH)
+    {
+        FragColor = vec4(texture(gDepth, TexCoords).rgb, 1.0);
+    }
 }

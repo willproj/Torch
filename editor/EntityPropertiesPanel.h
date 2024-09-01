@@ -18,8 +18,11 @@ namespace editor
 		void RenderUUIDHeader();
 		void RenderLabelHeader();
 		void RenderModelHeader();
+		void RenderTransformHeader();
 
 		void RenderPopupWindow();
+
+		static void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f);
 
 		core::Entity m_Entity;
 
@@ -28,5 +31,9 @@ namespace editor
 			"Add Model Component",
 			"Add Color Component"
 		};
+		
+		std::string m_ModelFilePath = "";
+
+
 	};
 }

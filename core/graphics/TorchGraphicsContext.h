@@ -11,6 +11,16 @@ namespace core
 		Vulkan
 	};
 
+	enum class GBufferRenderType
+	{
+		All,
+		GColor,
+		GPosition,
+		GNormal,
+		GDepth
+	};
+
+
 	
 	class TorchGraphicsContext
 	{
@@ -26,12 +36,15 @@ namespace core
         virtual ~TorchGraphicsContext() = default;
 		virtual void DrawFrame() {};
 		virtual void OnUpdate() {};
-		virtual GBuffer GetGBuffer() const { return GBuffer(); }
+		virtual GBuffer& GetGbuffer() { return GBuffer(); }
 		virtual GLuint GetScreenFramebuffer() const { return 0; }
 		virtual void CreateOffScreenTexture(int width, int height) {};
 
 		virtual void BindGBuffer() {}
 		virtual void UnbindGBuffer() {}
+
+		virtual void SetUpRenderType(const GBufferRenderType& type) {}
+		virtual GBufferRenderType GetRenderType() { return GBufferRenderType::All; }
 
 		virtual APIType GetAPIType() const = 0;
 		GLuint GetScreenTexture() const { return m_ScreenTexture; }

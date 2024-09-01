@@ -5,6 +5,10 @@ namespace core
 {
     GBuffer::GBuffer()
     {
+    }
+
+    void GBuffer::Initialize()
+    {
         Create();
     }
 
@@ -16,7 +20,7 @@ namespace core
         uint32_t width = utils::ServiceLocator::GetWindow()->GetWinSpecification().width;
         uint32_t height = utils::ServiceLocator::GetWindow()->GetWinSpecification().height;
 
-        // position color buffer
+        // Position color buffer
         glGenTextures(1, &m_GPosition);
         glBindTexture(GL_TEXTURE_2D, m_GPosition);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
@@ -24,7 +28,7 @@ namespace core
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_GPosition, 0);
 
-        // - normal color buffer
+        // Normal color buffer
         glGenTextures(1, &m_GNormal);
         glBindTexture(GL_TEXTURE_2D, m_GNormal);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
@@ -32,7 +36,7 @@ namespace core
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_GNormal, 0);
 
-        // - color + specular color buffer
+        // Color + specular color buffer
         glGenTextures(1, &m_GColorSpec);
         glBindTexture(GL_TEXTURE_2D, m_GColorSpec);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -40,7 +44,7 @@ namespace core
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_GColorSpec, 0);
 
-        // red int texture
+        // Red int texture
         glGenTextures(1, &m_RedInt);
         glBindTexture(GL_TEXTURE_2D, m_RedInt);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, width, height, 0, GL_RED_INTEGER, GL_INT, NULL);
@@ -48,18 +52,28 @@ namespace core
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, m_RedInt, 0);
 
-        m_Attachments = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
+        // Depth texture
+        glGenTextures(1, &m_GDepth);
+        glBindTexture(GL_TEXTURE_2D, m_GDepth);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_GDepth, 0);
+
+
+        // List of color attachments (no depth)
+        m_Attachments = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
         glDrawBuffers(4, m_Attachments.data());
 
-        glGenRenderbuffers(1, &m_RboDepth);
-        glBindRenderbuffer(GL_RENDERBUFFER, m_RboDepth);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_RboDepth);
-        // finally check if framebuffer is complete
+        // Check if framebuffer is complete
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
             std::cout << "Framebuffer not complete!" << std::endl;
+
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
+
 
     void GBuffer::Bind() const
     {
@@ -89,6 +103,12 @@ namespace core
         glBindTexture(GL_TEXTURE_2D, m_GColorSpec);
     }
 
+    void GBuffer::BindDepthTexture() const
+    {
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D, m_GDepth);
+    }
+
     void GBuffer::OnUpdate()
     {
         if (m_BufferID)
@@ -116,17 +136,21 @@ namespace core
             glDeleteTextures(1, &m_RedInt);
             m_RedInt = 0;
         }
-        if (m_RboDepth)
+        if (m_GDepth)
         {
-            glDeleteRenderbuffers(1, &m_RboDepth);
-            m_RboDepth = 0;
+            glDeleteTextures(1, &m_GDepth);
+            m_GDepth = 0;
         }
-
         Create();
     }
 
     GBuffer::~GBuffer()
     {
         glDeleteFramebuffers(1, &m_BufferID);
+        glDeleteTextures(1, &m_GPosition);
+        glDeleteTextures(1, &m_GNormal);
+        glDeleteTextures(1, &m_GColorSpec);
+        glDeleteTextures(1, &m_RedInt);
+        glDeleteTextures(1, &m_GDepth);
     }
 }

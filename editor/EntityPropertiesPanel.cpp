@@ -4,6 +4,7 @@
 #include <core/renderer/Component.h>
 #include <utils/FileUtils.h>
 #include <core/renderer/ModelManager.h>
+#include <imgui_internal.h>
 
 namespace editor
 {
@@ -30,9 +31,8 @@ namespace editor
 		ImGui::Separator();
 
 		RenderLabelHeader();
-		ImGui::NewLine();
-
 		RenderModelHeader();
+		RenderTransformHeader();
 
 		RenderPopupWindow();
 
@@ -76,21 +76,43 @@ namespace editor
 	}
 	void EntityPropertiesPanel::RenderModelHeader()
 	{
-		if (m_Entity.HasComponent<core::ModelComponent>())
+		auto& modelComponent = m_Entity.GetComponent<core::ModelComponent>();
+		ImGui::PushTextWrapPos(ImGui::GetContentRegionAvail().x);
+		ImGui::Text("Model: "); ImGui::SameLine();
+		if (modelComponent.model != nullptr)
 		{
-			auto& modelComponent = m_Entity.GetComponent<core::ModelComponent>();
-			if (ImGui::CollapsingHeader("Model Component"))
+			ImGui::Text(m_ModelFilePath.c_str());
+		}
+		ImGui::PopTextWrapPos();
+		
+		if (ImGui::Button("Load Model"))
+		{
+			m_ModelFilePath = utils::FileUtils::OpenFile("GLTF/GLB Files (*.gltf;*.glb)\0*.gltf;*.glb\0All Files (*.*)\0*.*\0");
+			core::ModelManager::GetInstance()->LoadModel(m_ModelFilePath);
+			if (m_Entity.HasComponent<core::ModelComponent>())
 			{
-				if (ImGui::Button("Load Model"))
-				{
-					const std::string filePath = utils::FileUtils::OpenFile("gltf File (*.gltf)\0*.gltf\0");
-					core::ModelManager::GetInstance()->LoadModel(filePath);
-					if (m_Entity.HasComponent<core::ModelComponent>())
-					{
-						auto& modelComponent = m_Entity.GetComponent<core::ModelComponent>();
-						modelComponent.model = core::ModelManager::GetInstance()->GetModel(filePath);
-					}
-				} 
+				auto& modelComponent = m_Entity.GetComponent<core::ModelComponent>();
+				modelComponent.model = core::ModelManager::GetInstance()->GetModel(m_ModelFilePath);
+			}
+		} 
+		ImGui::NewLine();
+	}
+	void EntityPropertiesPanel::RenderTransformHeader()
+	{
+		if (m_Entity.HasComponent<core::TransformComponent>())
+		{
+			auto& transform = m_Entity.GetComponent<core::TransformComponent>();
+			if (ImGui::CollapsingHeader("Transform Component", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
+				DrawVec3Control("Translation", transform.translation);
+				ImGui::Spacing();
+				glm::vec3 rotation = glm::degrees(transform.rotation);
+				DrawVec3Control("Rotation", rotation);
+				ImGui::Spacing();
+				transform.rotation = glm::radians(rotation);
+				DrawVec3Control("Scale", transform.scale, 1.0f);
+				ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
 			}
 		}
 	}
@@ -147,7 +169,71 @@ namespace editor
 			ImGui::EndPopup();
 		}
 	}
+	void EntityPropertiesPanel::DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue, float columnWidth)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		auto boldFont = io.Fonts->Fonts[0];
 
-	
+		ImGui::PushID(label.c_str());
 
+		ImGui::Columns(2);
+		ImGui::SetColumnWidth(0, columnWidth);
+		ImGui::Text(label.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+
+
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+		ImGui::PushFont(boldFont);
+		if (ImGui::Button("X", buttonSize))
+			values.x = resetValue;
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+		ImGui::PushFont(boldFont);
+		if (ImGui::Button("Y", buttonSize))
+			values.y = resetValue;
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+		ImGui::PushFont(boldFont);
+		if (ImGui::Button("Z", buttonSize))
+			values.z = resetValue;
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+
+		ImGui::PopStyleVar();
+
+		ImGui::Columns(1);
+
+		ImGui::PopID();
+	}
 }

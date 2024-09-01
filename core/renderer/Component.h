@@ -75,5 +75,4 @@ namespace core
 		ModelComponent(const ModelComponent&) = default;
 		ModelComponent& operator=(const ModelComponent&) = default;
 	};
-
 }

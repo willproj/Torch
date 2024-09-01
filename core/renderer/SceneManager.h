@@ -21,6 +21,9 @@ namespace core
 
 		utils::Ref<Scene> GetSceneRef() { return utils::Ref<Scene>(m_Scene); }
 		void SetCamera(std::shared_ptr<EditorCamera> camera);
+		std::shared_ptr<EditorCamera> GetEditorCameraPtr() const { return m_EditorCameraPtr; }
+
+		void StencilOutlinePass();
 	private:
 		SceneManager();
 		Scene m_Scene;
@@ -28,5 +31,6 @@ namespace core
 		std::shared_ptr<EditorCamera> m_EditorCameraPtr;
 
 		Shader m_Shader;
+		Shader m_StencilOutlineShader;
 	};
 }

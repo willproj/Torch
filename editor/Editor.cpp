@@ -263,8 +263,38 @@ namespace editor
 			ImGui::MenuItem("EXIT				Alt+F4");
 			ImGui::MenuItem("EXIT				Alt+F4");
 			ImGui::MenuItem("EXIT				Alt+F4");
+
+			auto context = utils::ServiceLocator::GetGraphicsContext();
+			auto currentRenderType = context->GetRenderType();
+
+			if (ImGui::MenuItem("Render All", nullptr, currentRenderType == core::GBufferRenderType::All))
+			{
+				context->SetUpRenderType(core::GBufferRenderType::All);
+			}
+
+			if (ImGui::MenuItem("Render GBuffer Color", nullptr, currentRenderType == core::GBufferRenderType::GColor))
+			{
+				context->SetUpRenderType(core::GBufferRenderType::GColor);
+			}
+
+			if (ImGui::MenuItem("Render GBuffer Position", nullptr, currentRenderType == core::GBufferRenderType::GPosition))
+			{
+				context->SetUpRenderType(core::GBufferRenderType::GPosition);
+			}
+
+			if (ImGui::MenuItem("Render GBuffer Normal", nullptr, currentRenderType == core::GBufferRenderType::GNormal))
+			{
+				context->SetUpRenderType(core::GBufferRenderType::GNormal);
+			}
+
+			if (ImGui::MenuItem("Render GBuffer Depth", nullptr, currentRenderType == core::GBufferRenderType::GDepth))
+			{
+				context->SetUpRenderType(core::GBufferRenderType::GDepth);
+			}
+
 			ImGui::EndMenu();
 		}
+
 
 		/* do offset for window control icons */
 		auto navBarWidth = ImGui::GetWindowSize().x;

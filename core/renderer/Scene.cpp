@@ -22,14 +22,9 @@ namespace core
 		auto& labelComponent = entity.GetComponent<LabelComponent>();
 		labelComponent.label = entityName;
 
-		//init model for entity
-		//TORCH_LOG_DEBUG("[{},{}] Add model to Entity", __FILE__, __LINE__);
-		//entity.AddComponent<ModelComponent>();
-		//auto& modelComponent = entity.GetComponent<ModelComponent>();
-		//auto& modelManager = ModelManager::GetInstance();
-		//const std::string filepath = "/assets/models/sphere/scene.gltf";
-		//modelManager->LoadModel(filepath);
-		//modelComponent.model = modelManager->GetModel(filepath);
+		entity.AddComponent<ModelComponent>();
+		entity.AddComponent<TransformComponent>();
+
 		return entity;
 	}
 

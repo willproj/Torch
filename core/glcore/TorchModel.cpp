@@ -33,8 +33,21 @@ namespace core
         tinygltf::Model model;
         tinygltf::TinyGLTF loader;
         std::string err, warn;
+        bool ret = false;
+        if (modelPath.substr(modelPath.find_last_of(".") + 1) == "gltf")
+        {
+            ret = loader.LoadASCIIFromFile(&model, &err, &warn, modelPath);  // ASCII-based glTF
+        }
+        else if (modelPath.substr(modelPath.find_last_of(".") + 1) == "glb")
+        {
+            ret = loader.LoadBinaryFromFile(&model, &err, &warn, modelPath);  // Binary glTF (glb)
+        }
+        else
+        {
+            TORCH_LOG_ERROR("[{}:{}] Error: Unsupported file format.", __FILE__, __LINE__);
+            return;
+        }
 
-        bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, modelPath);
         if (!warn.empty())
         {
             TORCH_LOG_WARN("[{}:{}] Warn: {}", __FILE__, __LINE__, warn);

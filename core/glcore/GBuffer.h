@@ -15,20 +15,24 @@ namespace core
         void BindPositionTexture() const;
         void BindNormalTexture() const;
         void BindColorTexture() const;
-
+        void BindDepthTexture() const;
 
         void OnUpdate();
         void Create();
+        void Initialize();
 
         uint32_t GetRedIntTexture() const {return m_RedInt;}
-
         uint32_t GetFramebufferID() const { return m_BufferID; }
+
+        uint32_t GetGPositionTexture() const { return m_GPosition; }
+        uint32_t GetGNormalTexture() const { return m_GNormal; }
+        uint32_t GetGColorTexture() const { return m_GColorSpec; }
+        uint32_t GetGDepthTexture() const { return m_GDepth; }
 
     private:
         uint32_t m_BufferID;
-        uint32_t m_RboDepth;
 
         std::vector<uint32_t> m_Attachments;
-        uint32_t m_GPosition, m_GNormal, m_GColorSpec, m_RedInt;
+        uint32_t m_GPosition, m_GNormal, m_GColorSpec, m_RedInt, m_GDepth;
     };
 }
