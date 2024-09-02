@@ -171,17 +171,18 @@ namespace editor
 
 		if (ImGui::IsWindowHovered() && !ImGuizmo::IsUsing())
 		{
+			auto sceneRef = core::SceneManager::GetSceneManager()->GetSceneRef();
+			int pixel = -1;
+			
 			context->BindGBuffer();
 			glReadBuffer(GL_COLOR_ATTACHMENT3);
-
-			int pixel = -1;
 			glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixel);
 
-			auto sceneRef = core::SceneManager::GetSceneManager()->GetSceneRef();
 			if (sceneRef->GetRegisterRef().valid(entt::entity(pixel)))
 			{
 				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !keyboard->IsKeyPressed(core::KeyCode::KEY_LEFT_CONTROL))
 				{
+					std::cout << "selected general: " << pixel << std::endl;
 					sceneRef->SetSelectedEntityID(entt::entity(pixel));
 				}
 			}
@@ -194,6 +195,23 @@ namespace editor
 			}
 
 			context->UnbindGBuffer();
+
+
+			context->BindLightIDBuffer();
+			glReadBuffer(GL_COLOR_ATTACHMENT0);
+			glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixel);
+
+			sceneRef = core::SceneManager::GetSceneManager()->GetSceneRef();
+			if (sceneRef->GetRegisterRef().valid(entt::entity(pixel)))
+			{
+				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !keyboard->IsKeyPressed(core::KeyCode::KEY_LEFT_CONTROL))
+				{
+					std::cout << "selected entity: " << pixel << std::endl;
+					sceneRef->SetSelectedEntityID(entt::entity(pixel));
+				}
+			}
+			
+			context->UnbindLightIDBuffer();
 		}
 
 		ImGui::End();

@@ -39,6 +39,9 @@ namespace core
 		void SetUpRenderType(const GBufferRenderType& type) override;
 		GBufferRenderType GetRenderType() override { return m_RenderType; }
 
+		virtual void BindLightIDBuffer() { glBindFramebuffer(GL_FRAMEBUFFER, m_LightFramebuffer); };
+		virtual void UnbindLightIDBuffer() { glBindFramebuffer(GL_FRAMEBUFFER, 0); };
+
 	private:
 		void RenderGBufferPositionTexture();
 		void RenderGBufferNormalTexture();
@@ -46,6 +49,7 @@ namespace core
 		void RenderGBufferColorTexture();
 		void RenderAllGBufferTextures();
 
+		void CreateLightIDTexture(int width, int height);
 
 		Shader m_LightingShader;
 
@@ -54,6 +58,11 @@ namespace core
 
 		GLuint m_ScreenFramebuffer;
 		GLuint m_EntityIDTexture;
+
+		GLuint m_LightFramebuffer;
+		GLuint m_LightIDTexture;
+
+
 		Window *m_WindowPtr;
 
 		std::shared_ptr<EditorCamera> m_EditorCamera;

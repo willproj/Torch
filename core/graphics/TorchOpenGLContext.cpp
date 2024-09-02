@@ -34,6 +34,7 @@ namespace core
 
 		SceneManager::GetSceneManager()->GetSceneRef()->CreateEntity();
 		CreateOffScreenTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
+		CreateLightIDTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
 	}
 
 	void TorchOpenGLContext::CreateOffScreenTexture(int width, int height)
@@ -60,6 +61,30 @@ namespace core
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
+	void TorchOpenGLContext::CreateLightIDTexture(int width, int height)
+	{
+		// Create the default color texture
+		glGenTextures(1, &m_LightIDTexture);
+		glBindTexture(GL_TEXTURE_2D, m_LightIDTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, width, height, 0, GL_RED_INTEGER, GL_INT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		// Create framebuffer
+		glGenFramebuffers(1, &m_LightFramebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_LightFramebuffer);
+
+		// Attach the color texture to the framebuffer
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_LightIDTexture, 0);
+
+		// Check if the framebuffer is complete
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			std::cout << "Framebuffer not complete!" << std::endl;
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
 	
 
 	void TorchOpenGLContext::OnUpdate()
@@ -76,7 +101,18 @@ namespace core
 			glDeleteTextures(1, &m_ScreenTexture);
 		}
 
+		if (m_LightFramebuffer)
+		{
+			glDeleteFramebuffers(1, &m_LightFramebuffer);
+		}
+
+		if (m_LightIDTexture)
+		{
+			glDeleteTextures(1, &m_LightIDTexture);
+		}
+
 		CreateOffScreenTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
+		CreateLightIDTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
 		m_HDR.OnUpdate();
 	}
 
@@ -152,10 +188,8 @@ namespace core
 		m_LightingShader.setVec3("sunDir", speci.sunDir);
 		m_LightingShader.setVec3("sunColor", glm::vec3(1.0f));
 
-		
 		// Bind GBuffer textures for lighting calculations
 		m_LightingShader.setInt("u_RenderType", static_cast<int>(m_RenderType));
-		std::cout << static_cast<int>(m_RenderType)<< std::endl;
 		if (m_RenderType == GBufferRenderType::All)
 		{
 			RenderAllGBufferTextures();
@@ -181,6 +215,13 @@ namespace core
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // Blit to default framebuffer
 		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind framebuffer
+
+		BindLightIDBuffer();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		m_SceneManager->RenderLightsToID();
+		UnbindLightIDBuffer();
+
+		m_SceneManager->RenderLights();
 
 		// 4. Render scene model and skybox (to default framebuffer)
 		// - Render scene model

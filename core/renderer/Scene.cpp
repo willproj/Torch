@@ -8,6 +8,7 @@ namespace core
 	Scene::Scene(Scene&& other) noexcept
 		: m_SelectedEntityID(other.m_SelectedEntityID), m_EnttRegistry(std::move(other.m_EnttRegistry))
 	{
+
 	}
 
 	Scene& Scene::operator=(Scene&& other) noexcept
@@ -15,10 +16,16 @@ namespace core
 		if (this != &other)
 		{
 			m_SelectedEntityID = other.m_SelectedEntityID;
+
 			m_EnttRegistry = std::move(other.m_EnttRegistry);
+			m_GeneralEntityIDs = std::move(other.m_GeneralEntityIDs);
+			m_LightEntityIDs = std::move(other.m_LightEntityIDs);
+
+			other.m_SelectedEntityID = entt::null;
 		}
 		return *this;
 	}
+
 
 	//create general entity
 	Entity Scene::CreateEntity(const std::string& entityName, EntityType type)
@@ -40,11 +47,20 @@ namespace core
 
 		entity.AddComponent<EntityTypeComponent>();
 		auto& typeComponent = entity.GetComponent<EntityTypeComponent>();
-		typeComponent.entityType= type;
+		typeComponent.entityType = type;
 
 		entity.AddComponent<ModelComponent>();
 		entity.AddComponent<TransformComponent>();
 
+		if (type == EntityType::General)
+		{
+			m_GeneralEntityIDs.emplace_back(entt::entity(entity));
+		}
+		else if (type == EntityType::Light)
+		{
+			m_LightEntityIDs.emplace_back(entt::entity(entity));
+		}
+		
 		return entity;
 	}
 

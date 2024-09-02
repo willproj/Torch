@@ -48,6 +48,8 @@ namespace core
 
 		virtual APIType GetAPIType() const = 0;
 		GLuint GetScreenTexture() const { return m_ScreenTexture; }
+		virtual void BindLightIDBuffer() {};
+		virtual void UnbindLightIDBuffer() {};
 
 	protected:
 		TorchGraphicsContext() noexcept = default;

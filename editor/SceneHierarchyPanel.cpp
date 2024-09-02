@@ -17,7 +17,7 @@ namespace editor
     {
         ImGui::Begin("Scene Panel");
         static int selected_fish = -1;
-        const char* names[] = { "Create New Entity", "Create", "Create", "Create", "Create" };
+        const char* names[] = { "Create New Entity", "Create Light Entity", "Create", "Create", "Create" };
         static bool toggles[] = { true, false, false, false, false };
 
         if (ImGui::IsAnyMouseDown() && ImGui::IsWindowHovered())
@@ -57,6 +57,13 @@ namespace editor
             core::SceneManager::GetSceneManager()->CreateEntity();
             selected_fish = -1;
         }
+
+        if (selected_fish >= 0 && strcmp(names[selected_fish], "Create Light Entity") == 0)
+        {
+            core::SceneManager::GetSceneManager()->CreateEntity(core::EntityType::Light);
+            selected_fish = -1;
+        }
+
 
         float buttonWidth = ImGui::GetContentRegionAvail().x;
 

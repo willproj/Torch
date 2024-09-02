@@ -14,10 +14,12 @@ namespace core
 		static std::shared_ptr<SceneManager> GetSceneManager();
 		~SceneManager();
 
-		void CreateEntity();
+		void CreateEntity(EntityType type = EntityType::General);
 		void RemoveEntity(Entity entity);
 
 		void Render();
+		void RenderLights();
+		void RenderLightsToID();
 
 		utils::Ref<Scene> GetSceneRef() { return utils::Ref<Scene>(m_Scene); }
 		void SetCamera(std::shared_ptr<EditorCamera> camera);
@@ -33,7 +35,9 @@ namespace core
 		static std::shared_ptr<SceneManager> m_SceneManager;
 		std::shared_ptr<EditorCamera> m_EditorCameraPtr;
 
-		Shader m_Shader;
+		Shader m_GeomotryPassShader;
+		Shader m_LightsShader;
+		Shader m_LightsIDShader;
 		Shader m_StencilOutlineShader;
 	};
 }

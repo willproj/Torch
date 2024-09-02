@@ -229,29 +229,28 @@ namespace utils
 					label = labelComp["Label"].as<std::string>();
 				}
 
-				core::Entity deserializedEntity = scene.CreateEntity(label);
+
+				auto typeComp = entity["Entity Type Component"];
+				core::EntityType type = core::EntityType::General;
+				if (typeComp)
+				{
+					type = core::GetEntityType(typeComp["Entity Type"].as<std::string>());
+				}
+
+				core::Entity deserializedEntity = scene.CreateEntity(label, type);
 
 				auto uuidComp = entity["UUID Component"];
 				if (uuidComp)
 				{
-					deserializedEntity.AddComponent<core::UUIDComponent>();
 					auto& uuid = deserializedEntity.GetComponent<core::UUIDComponent>();
 					uuid.uuid.SetUUIDStr(uuidComp["Entity UUID"].as<std::string>());
 				}
 
-				auto typeComp = entity["Entity Type Component"];
-				if (typeComp)
-				{
-					deserializedEntity.AddComponent<core::EntityTypeComponent>();
-					auto& type = deserializedEntity.GetComponent<core::EntityTypeComponent>();
-					type.entityType = core::GetEntityType(typeComp["Entity Type"].as<std::string>());
-				}
+				
 
 				auto transformComp = entity["Transform Component"];
 				if (transformComp)
 				{
-					// Entities always have transforms
-					deserializedEntity.AddComponent<core::TransformComponent>();
 					auto& tansform = deserializedEntity.GetComponent<core::TransformComponent>();
 					tansform.translation = transformComp["Translation"].as<glm::vec3>();
 					tansform.rotation = transformComp["Rotation"].as<glm::vec3>();
@@ -261,7 +260,6 @@ namespace utils
 				auto modelComp = entity["Model Component"];
 				if (modelComp)
 				{
-					deserializedEntity.AddComponent<core::ModelComponent>();
 					auto& model = deserializedEntity.GetComponent<core::ModelComponent>();
 					std::string path = modelComp["Mesh Path"].as<std::string>();
 					core::ModelManager::GetInstance()->LoadModel(path);
