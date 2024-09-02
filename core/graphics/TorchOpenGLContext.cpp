@@ -227,31 +227,12 @@ namespace core
 		// - Render scene model
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render();
 
-		// 1. HDR Blit
-		//glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // Read from default framebuffer
-		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_HDR.GetHDRFramebufferID()); // Draw to HDR framebuffer
-		//glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height,
-		//	0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height,
-		//	GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//
-		//// 2. Render HDR Result
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear HDR framebuffer
-		//m_HDR.GetShader().use();
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, m_HDR.GetHDRColorBuffer()); // HDR color texture
-		//m_HDR.GetShader().setInt("hdr", true);
-		//m_HDR.GetShader().setFloat("exposure", 1.5);
-		//m_Quad.renderQuad(); // Render the quad
-
 
 		// 5. Copy final rendered result from default framebuffer to texture for ImGui
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // Read from default framebuffer
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_ScreenFramebuffer); // Draw to texture
 		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind final framebuffer
-
-		
 		
 	}
 

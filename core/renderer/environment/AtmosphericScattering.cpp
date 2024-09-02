@@ -35,13 +35,25 @@ namespace core
 		specific.sunAngle = 2.0f * M_PI / 180.0f;
 	}
 
+	
+
 	AtmosphericScattering::AtmosphericScattering(std::shared_ptr<EditorCamera> camera)
 	{
 		m_CurrentCamera = camera;
 		Initialize();
 	}
 
+	void AtmosphericScattering::OnUpdate()
+	{
+
+	}
+
 	void AtmosphericScattering::Render()
+	{
+		RenderAtmosphere();
+	}
+
+	void AtmosphericScattering::RenderAtmosphere()
 	{
 		auto& specific = std::get<AtmosphericScatteringSpecification>(m_Specification);
 		glDepthFunc(GL_LEQUAL);
@@ -60,7 +72,6 @@ namespace core
 		m_Shader.setVec3("u_OzoneAbsorptionCoef", specific.ozoneAbsorptionCoef);
 		m_Shader.setVec3("u_SunColor", specific.sunColor);
 		m_Shader.setFloat("u_SunAngle", specific.sunAngle);
-
 		m_SkyboxSphere->RenderModel();
 		glDepthFunc(GL_LESS);
 	}

@@ -1,4 +1,4 @@
-#version 330 core
+#version 430 core
 #define RENDER_ALL 0
 #define RENDER_GCOLOR 1
 #define RENDER_GPOSITION 2

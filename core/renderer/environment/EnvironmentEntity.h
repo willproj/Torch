@@ -73,6 +73,7 @@ namespace core
 		virtual void Initialize() = 0;
 		virtual utils::Ref<SpecificationVariant> GetSpecification() = 0;
 		virtual EnvironmentEntityType GetType() const { return m_Type; }
+		virtual void OnUpdate() = 0;
 	protected:
 		EnvironmentEntityType m_Type = EnvironmentEntityType::None;
 		std::shared_ptr<EditorCamera> m_CurrentCamera= nullptr;
