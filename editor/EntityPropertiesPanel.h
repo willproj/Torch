@@ -14,7 +14,7 @@ namespace editor
 		void Render() override;
 		void OnUpdate() override;
 	private:
-
+		void RenderEntityType();
 		void RenderUUIDHeader();
 		void RenderLabelHeader();
 		void RenderModelHeader();
@@ -28,12 +28,10 @@ namespace editor
 
 		std::unordered_set<uint32_t> m_AddedComponents;
 		std::vector<std::string> m_ComponentsNames = {
-			"Add Model Component",
 			"Add Color Component"
 		};
 		
 		std::string m_ModelFilePath = "";
-
 
 	};
 }

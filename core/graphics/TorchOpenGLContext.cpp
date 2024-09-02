@@ -77,6 +77,7 @@ namespace core
 		}
 
 		CreateOffScreenTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
+		m_HDR.OnUpdate();
 	}
 
 	TorchOpenGLContext::~TorchOpenGLContext()
@@ -133,22 +134,24 @@ namespace core
 	{
 		this->UpdateCameraViewport();
 		glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// 1. Geometry pass (render to GBuffer)
 		m_GBuffer->Bind();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		m_SceneManager->Render();
 		m_GBuffer->Unbind();
 
 		// 2. Lighting pass (render to default framebuffer)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // Clear default framebuffer for lighting
+		
 		m_LightingShader.use();
 		m_LightingShader.setVec3("viewPos", m_EditorCamera->GetPosition());
 		auto speci = std::get<AtmosphericScatteringSpecification>(m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->GetSpecification().get());
 		m_LightingShader.setVec3("sunDir", speci.sunDir);
 		m_LightingShader.setVec3("sunColor", glm::vec3(1.0f));
+
 		
 		// Bind GBuffer textures for lighting calculations
 		m_LightingShader.setInt("u_RenderType", static_cast<int>(m_RenderType));
@@ -173,7 +176,6 @@ namespace core
 		{
 			RenderGBufferDepthTexture();
 		}
-
 		// 3. Blit depth buffer from GBuffer to default framebuffer
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_GBuffer->GetFramebufferID());
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // Blit to default framebuffer
@@ -184,11 +186,32 @@ namespace core
 		// - Render scene model
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render();
 
+		// 1. HDR Blit
+		//glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // Read from default framebuffer
+		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_HDR.GetHDRFramebufferID()); // Draw to HDR framebuffer
+		//glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height,
+		//	0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height,
+		//	GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//
+		//// 2. Render HDR Result
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear HDR framebuffer
+		//m_HDR.GetShader().use();
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, m_HDR.GetHDRColorBuffer()); // HDR color texture
+		//m_HDR.GetShader().setInt("hdr", true);
+		//m_HDR.GetShader().setFloat("exposure", 1.5);
+		//m_Quad.renderQuad(); // Render the quad
+
+
 		// 5. Copy final rendered result from default framebuffer to texture for ImGui
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // Read from default framebuffer
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_ScreenFramebuffer); // Draw to texture
 		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind final framebuffer
+
+		
+		
 	}
 
 }

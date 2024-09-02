@@ -1,8 +1,0 @@
-Scene: unknow
-Entities:
-  - UUID Component:
-      Entity UUID: 3a8d71bc-26f7-465c-8c1b-000005e590af80f161df
-    Label Component:
-      Label: entity
-    Model Component:
-      Mesh Path: /assets/models/sphere/sphere.gltf

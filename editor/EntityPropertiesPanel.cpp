@@ -28,6 +28,7 @@ namespace editor
 		m_Entity = { selectedEntityId, &core::SceneManager::GetSceneManager()->GetSceneRef().get() };
 
 		RenderUUIDHeader();
+		RenderEntityType();
 		ImGui::Separator();
 
 		RenderLabelHeader();
@@ -40,6 +41,15 @@ namespace editor
 	}
 	void EntityPropertiesPanel::OnUpdate()
 	{
+	}
+
+	void EntityPropertiesPanel::RenderEntityType()
+	{
+		if (m_Entity.HasComponent<core::EntityTypeComponent>())
+		{
+			auto& typeComponent = m_Entity.GetComponent<core::EntityTypeComponent>();
+			ImGui::Text("Entity Type: %s", typeComponent.entityType == core::EntityType::General ? "General" : "Light");
+		}
 	}
 
 	void EntityPropertiesPanel::RenderUUIDHeader()
@@ -81,7 +91,7 @@ namespace editor
 		ImGui::Text("Model: "); ImGui::SameLine();
 		if (modelComponent.model != nullptr)
 		{
-			ImGui::Text(m_ModelFilePath.c_str());
+			ImGui::Text(modelComponent.model->GetModelPath().c_str());
 		}
 		ImGui::PopTextWrapPos();
 		
@@ -145,11 +155,7 @@ namespace editor
 					// Only allow selection if it hasn't already been added
 					if (!alreadyAdded)
 					{
-						if (componentName == "Add Model Component")
-						{
-							m_Entity.AddComponent<core::ModelComponent>();
-						}
-						else if (componentName == "Add Color Component")
+						if (componentName == "Add Color Component")
 						{
 
 						}

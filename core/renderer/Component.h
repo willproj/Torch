@@ -8,6 +8,34 @@
 
 namespace core
 {
+	enum class EntityType
+	{
+		General,
+		Light
+	};
+
+	static std::string GetEntityTypeStr(EntityType type)
+	{
+		switch (type)
+		{
+		case EntityType::General:
+			return "General";
+		case EntityType::Light:
+			return "Light";
+		default:
+			return "Unknow";
+		}
+	}
+
+	static EntityType GetEntityType(const std::string& type)
+	{
+		if (type == "Light")
+		{
+			return EntityType::Light;
+		}
+		return EntityType::General;
+	}
+
 	struct UUIDComponent
 	{
 		utils::UUID uuid;
@@ -26,6 +54,20 @@ namespace core
 
 		LabelComponent(const std::string& label) :label(label) {}
 	};
+
+	struct EntityTypeComponent
+	{
+		EntityType entityType; // Changed the member name to avoid conflict
+
+		EntityTypeComponent() = default;
+		EntityTypeComponent(const EntityTypeComponent&) = default;
+		EntityTypeComponent& operator=(const EntityTypeComponent&) = default;
+
+		EntityTypeComponent(const EntityType& type)
+			: entityType(type) // Changed this to refer to the correct member
+		{}
+	};
+
 
 	struct TransformComponent
 	{

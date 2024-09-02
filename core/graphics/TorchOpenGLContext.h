@@ -11,6 +11,7 @@
 #include "core/renderer/skybox/Skybox.h"
 #include "core/renderer/EnvironmentManager.h"
 #include "core/renderer/SceneManager.h"
+#include "core/renderer/environment/HDR.h"
 
 namespace core
 {
@@ -63,5 +64,7 @@ namespace core
 		std::shared_ptr<SceneManager> m_SceneManager;
 
 		GBufferRenderType m_RenderType = GBufferRenderType::All;
+
+		HDR m_HDR;
 	};
 }

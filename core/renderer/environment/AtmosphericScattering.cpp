@@ -10,7 +10,7 @@ namespace core
 			std::string(PROJECT_ROOT) + "/assets/shader/skybox.vert",
 			std::string(PROJECT_ROOT) + "/assets/shader/skybox.frag");
 
-		const std::string filepath = std::string(PROJECT_ROOT) + "/assets/models/sphere/scene.gltf";
+		const std::string filepath = std::string(PROJECT_ROOT) + "/assets/models/essential/sphere/scene.gltf";
 		m_SkyboxSphere = ModelManager::GetInstance()->LoadModel(filepath);
 	}
 

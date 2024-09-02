@@ -26,6 +26,8 @@ namespace editor
         static void SetUpImGui();
         static void ImGuiBegin();
         static void ImGuiEnd();
+        static void OpenSceneFile();
+        static void SaveSceneFile();
         static std::unique_ptr<EditorModule>& GetEditorModule(EditorType type) { return m_EditorModules[type]; }
     private:
         static void DockSpace();
@@ -38,6 +40,6 @@ namespace editor
 
         static uint32_t m_NavbarHeight;
         static bool m_FullScreen;
-
+        static void KeyboardShortCut();
     };
 }

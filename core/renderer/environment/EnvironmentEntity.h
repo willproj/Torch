@@ -13,7 +13,7 @@ namespace core
 
 	struct AtmosphericScatteringSpecification
 	{
-		glm::vec3 sunDir = glm::vec3(1.0f);
+		glm::vec3 sunDir = glm::normalize(glm::vec3(-1.0f, 1.0f, -1.0f));
 	};
 
 	using SpecificationVariant = std::variant<AtmosphericScatteringSpecification>;

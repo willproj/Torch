@@ -23,10 +23,13 @@ namespace core
 		void SetCamera(std::shared_ptr<EditorCamera> camera);
 		std::shared_ptr<EditorCamera> GetEditorCameraPtr() const { return m_EditorCameraPtr; }
 
+		void SetScene(Scene&& scene);
 		void StencilOutlinePass();
+
 	private:
 		SceneManager();
 		Scene m_Scene;
+		Scene m_Lights;
 		static std::shared_ptr<SceneManager> m_SceneManager;
 		std::shared_ptr<EditorCamera> m_EditorCameraPtr;
 

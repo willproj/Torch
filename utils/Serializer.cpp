@@ -3,6 +3,7 @@
 #include <core/renderer/Entity.h>
 #include <core/renderer/Component.h>
 #include <core/renderer/ModelManager.h>
+#include <core/renderer/SceneManager.h>
 
 namespace YAML {
 
@@ -120,6 +121,16 @@ namespace utils
 			out << YAML::EndMap;
 		}
 
+		if (entity.HasComponent<core::EntityTypeComponent>())
+		{
+			out << YAML::Key << "Entity Type Component";
+			out << YAML::BeginMap;
+
+			auto& typeComp = entity.GetComponent<core::EntityTypeComponent>();
+			out << YAML::Key << "Entity Type" << YAML::Value << core::GetEntityTypeStr(typeComp.entityType);
+			out << YAML::EndMap;
+		}
+
 		if (entity.HasComponent<core::LabelComponent>())
 		{
 			out << YAML::Key << "Label Component";
@@ -205,6 +216,7 @@ namespace utils
 		}
 
 		auto entities = data["Entities"];
+		core::Scene scene;
 
 		if (entities)
 		{
@@ -217,7 +229,7 @@ namespace utils
 					label = labelComp["Label"].as<std::string>();
 				}
 
-				core::Entity deserializedEntity = m_ScenePtr->CreateEntity(label);
+				core::Entity deserializedEntity = scene.CreateEntity(label);
 
 				auto uuidComp = entity["UUID Component"];
 				if (uuidComp)
@@ -225,6 +237,14 @@ namespace utils
 					deserializedEntity.AddComponent<core::UUIDComponent>();
 					auto& uuid = deserializedEntity.GetComponent<core::UUIDComponent>();
 					uuid.uuid.SetUUIDStr(uuidComp["Entity UUID"].as<std::string>());
+				}
+
+				auto typeComp = entity["Entity Type Component"];
+				if (typeComp)
+				{
+					deserializedEntity.AddComponent<core::EntityTypeComponent>();
+					auto& type = deserializedEntity.GetComponent<core::EntityTypeComponent>();
+					type.entityType = core::GetEntityType(typeComp["Entity Type"].as<std::string>());
 				}
 
 				auto transformComp = entity["Transform Component"];
@@ -245,10 +265,11 @@ namespace utils
 					auto& model = deserializedEntity.GetComponent<core::ModelComponent>();
 					std::string path = modelComp["Mesh Path"].as<std::string>();
 					core::ModelManager::GetInstance()->LoadModel(path);
+					model.model = core::ModelManager::GetInstance()->GetModel(path);
 				}
 			}
 		}
-
+		core::SceneManager::GetSceneManager()->SetScene(std::move(scene));
 		return true;
 	}
 }

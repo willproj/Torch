@@ -38,7 +38,7 @@ void main()
 
     // Diffuse
     vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(-sunDir); 
+    vec3 lightDir = normalize(sunDir); 
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * sunColor;
 
@@ -58,7 +58,7 @@ void main()
     }
     else if(u_RenderType == RENDER_GCOLOR)
     {
-        FragColor = vec4(Diffuse, 1.0);
+        FragColor = vec4(diffuse, 1.0);
     }
     else if(u_RenderType == RENDER_GPOSITION)
     {
@@ -66,7 +66,7 @@ void main()
     }
     else if(u_RenderType == RENDER_GNORMAL)
     {
-        FragColor = vec4(Normal, 1.0);
+        FragColor = vec4(norm, 1.0);
     }
     else if(u_RenderType == RENDER_GDEPTH)
     {

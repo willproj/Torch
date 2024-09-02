@@ -1,8 +1,14 @@
 Scene: unknow
 Entities:
   - UUID Component:
-      Entity UUID: da2c11b0-52d0-446c-a8bb-0000a57f3204a010212d
+      Entity UUID: 613ec714-44a3-4faf-8354-00003ba66e6c5971d8c6
+    Entity Type Component:
+      Entity Type: General
     Label Component:
       Label: entity
+    Transform Component:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
     Model Component:
-      Mesh Path: D:\github\Torch\assets\models\sphere\scene.gltf
+      Mesh Path: D:\github\Torch\assets\models\cube\cube.glb

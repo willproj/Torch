@@ -5,7 +5,23 @@
 
 namespace core
 {
-	Entity Scene::CreateEntity(const std::string& entityName)
+	Scene::Scene(Scene&& other) noexcept
+		: m_SelectedEntityID(other.m_SelectedEntityID), m_EnttRegistry(std::move(other.m_EnttRegistry))
+	{
+	}
+
+	Scene& Scene::operator=(Scene&& other) noexcept
+	{
+		if (this != &other)
+		{
+			m_SelectedEntityID = other.m_SelectedEntityID;
+			m_EnttRegistry = std::move(other.m_EnttRegistry);
+		}
+		return *this;
+	}
+
+	//create general entity
+	Entity Scene::CreateEntity(const std::string& entityName, EntityType type)
 	{
 		Entity entity(m_EnttRegistry.create(), this);
 
@@ -22,23 +38,18 @@ namespace core
 		auto& labelComponent = entity.GetComponent<LabelComponent>();
 		labelComponent.label = entityName;
 
+		entity.AddComponent<EntityTypeComponent>();
+		auto& typeComponent = entity.GetComponent<EntityTypeComponent>();
+		typeComponent.entityType= type;
+
 		entity.AddComponent<ModelComponent>();
 		entity.AddComponent<TransformComponent>();
 
 		return entity;
 	}
 
-	void Scene::SetSelectedEntityID(entt::entity entity)
-	{
-		m_SelectedEntityID = entity;
-	}
-
 	void Scene::RemoveEntity(Entity entity)
 	{
 	}
-
-	entt::registry& Scene::GetRegisterRef()
-	{
-		return m_EnttRegistry;
-	}
+	
 }

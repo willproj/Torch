@@ -23,6 +23,7 @@ namespace editor
 		{
 			editor.second->Render();
 		}
+		KeyboardShortCut();
 	}
 
 	void Editor::SetUpImGui()
@@ -129,6 +130,26 @@ namespace editor
 		}
 	}
 
+	void Editor::OpenSceneFile()
+	{
+		std::string filepath = utils::FileUtils::OpenFile("Scene File (*.tc)\0*.tc\0");
+		if (!filepath.empty())
+		{
+			utils::Serializer serializer(&core::SceneManager::GetSceneManager()->GetSceneRef().get());
+			serializer.DeSerialize(filepath);
+		}
+	}
+
+	void Editor::SaveSceneFile()
+	{
+		std::string filePath = utils::FileUtils::SaveFile("Scene File (*.tc)\0*.tc\0");
+		if (!filePath.empty())
+		{
+			utils::Serializer serializer(&core::SceneManager::GetSceneManager()->GetSceneRef().get());
+			serializer.Serialize(filePath);
+		}
+	}
+
 	void Editor::DockSpace()
 	{
 
@@ -221,22 +242,12 @@ namespace editor
 		{
 			if (ImGui::MenuItem("Open File			Ctrl+O"))
 			{
-				std::string filepath = utils::FileUtils::OpenFile("Scene File (*.tc)\0*.tc\0");
-				if (!filepath.empty())
-				{
-					utils::Serializer serializer(&core::SceneManager::GetSceneManager()->GetSceneRef().get());
-					serializer.DeSerialize(filepath);
-				}
+				OpenSceneFile();
 			}
 
 			if (ImGui::MenuItem("Save File			Ctrl+S"))
 			{
-				std::string filePath = utils::FileUtils::SaveFile("Scene File (*.tc)\0*.tc\0");
-				if (!filePath.empty())
-				{
-					utils::Serializer serializer(&core::SceneManager::GetSceneManager()->GetSceneRef().get());
-					serializer.Serialize(filePath);
-				}
+				SaveSceneFile();
 			}
 
 			if (ImGui::MenuItem("EXIT				Alt+F4"))
@@ -260,10 +271,6 @@ namespace editor
 		if (ImGui::BeginMenu("Settings"))
 		{
 			ImGui::MenuItem("Docking Space", nullptr, &m_FullScreen);
-			ImGui::MenuItem("EXIT				Alt+F4");
-			ImGui::MenuItem("EXIT				Alt+F4");
-			ImGui::MenuItem("EXIT				Alt+F4");
-
 			auto context = utils::ServiceLocator::GetGraphicsContext();
 			auto currentRenderType = context->GetRenderType();
 
@@ -328,6 +335,20 @@ namespace editor
 
 		ImGui::EndMenuBar();
 		ImGui::PopStyleVar();
+	}
+
+	void Editor::KeyboardShortCut()
+	{
+		auto keyboard = utils::ServiceLocator::GetKeyboard();
+		if (keyboard->IsKeyPressed(core::KeyCode::KEY_LEFT_CONTROL) && keyboard->IsKeyPressed(core::KeyCode::KEY_O))
+		{
+			OpenSceneFile();
+		}
+
+		if (keyboard->IsKeyPressed(core::KeyCode::KEY_LEFT_CONTROL) && keyboard->IsKeyPressed(core::KeyCode::KEY_S))
+		{
+			SaveSceneFile();
+		}
 	}
 
 	void Editor::AddModule(EditorType type, std::unique_ptr<EditorModule> module)

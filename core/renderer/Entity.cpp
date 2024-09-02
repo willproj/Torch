@@ -5,9 +5,14 @@ namespace core
 	Entity::Entity(entt::entity entity, Scene* scene)
 		:m_Entity(entity), m_ScenePtr(scene)
 	{
-
+		m_Type = EntityType::General;
 	}
 
+	Entity::Entity(entt::entity entity, Scene* scene, EntityType type)
+		:m_Entity(entity), m_ScenePtr(scene), m_Type(type)
+	{
+
+	}
 
 	/*AABB generateAABB(const tinygltf::Model& model)
 	{

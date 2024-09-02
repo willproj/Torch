@@ -1,7 +1,7 @@
 #pragma once
 #include <pch/pch.h>
 #include <entt/entt.hpp>
-#include "Scene.h"
+#include "Component.h"
 
 namespace tinygltf {
 	class Model;
@@ -9,11 +9,13 @@ namespace tinygltf {
 
 namespace core
 {
+	
 	class Scene;
 	class Entity
 	{
 	public:
 		Entity() = default;
+		Entity(entt::entity entity, Scene* scene, EntityType type);
 		Entity(entt::entity entity, Scene* scene);
 		~Entity() = default;
 
@@ -66,5 +68,6 @@ namespace core
 	private:
 		entt::entity m_Entity;
 		Scene* m_ScenePtr;
+		EntityType m_Type;
 	};
 }
