@@ -28,7 +28,6 @@ namespace core
 		void CreateOffScreenTexture(int width, int height);
 		GLuint GetScreenFramebuffer() const { return m_ScreenFramebuffer; }
 		APIType GetAPIType() const override { return APIType::OpenGL; }
-
 		GBuffer& GetGbuffer() override { return *m_GBuffer; }
 
 		void BindGBuffer() { m_GBuffer->Bind(); }

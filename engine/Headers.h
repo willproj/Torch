@@ -10,4 +10,5 @@
 #include <editor/Viewport.h>
 #include <editor/SceneHierarchyPanel.h>
 #include <editor/EntityPropertiesPanel.h>
+#include <editor/EnvironmentPropertiesPanel.h>
 

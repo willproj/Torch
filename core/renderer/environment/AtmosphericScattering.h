@@ -16,9 +16,9 @@ namespace core
 		void Render() override;
 		utils::Ref<SpecificationVariant> GetSpecification() override { return m_Specification; }
 		EnvironmentEntityType GetType() const override { return m_Type; }
-
 	private:
 		void Initialize();
+		void SetDefault();
 		Shader m_Shader;
 		SpecificationVariant m_Specification = AtmosphericScatteringSpecification();
 		std::shared_ptr<TorchModel> m_SkyboxSphere;

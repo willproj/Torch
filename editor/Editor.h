@@ -14,7 +14,8 @@ namespace editor
         Settings,
         EntityPanel,
         Scene,
-        FileBrowser
+        FileBrowser,
+        Environment,
     };
 
     class Editor

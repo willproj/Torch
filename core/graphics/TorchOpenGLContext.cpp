@@ -185,7 +185,7 @@ namespace core
 		m_LightingShader.use();
 		m_LightingShader.setVec3("viewPos", m_EditorCamera->GetPosition());
 		auto speci = std::get<AtmosphericScatteringSpecification>(m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->GetSpecification().get());
-		m_LightingShader.setVec3("sunDir", speci.sunDir);
+		m_LightingShader.setVec3("sunDir", speci.sunPosition);
 		m_LightingShader.setVec3("sunColor", glm::vec3(1.0f));
 
 		// Bind GBuffer textures for lighting calculations

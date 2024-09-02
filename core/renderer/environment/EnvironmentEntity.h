@@ -13,7 +13,52 @@ namespace core
 
 	struct AtmosphericScatteringSpecification
 	{
-		glm::vec3 sunDir = glm::normalize(glm::vec3(-1.0f, 1.0f, -1.0f));
+
+		//sun position = sun direction skybox shader naming issue
+		glm::vec3 sunPosition;
+
+		glm::vec3 sunColor;
+
+		//1.0f default
+		float sunIntensity;
+
+		// [0.0001, 0.01]
+		float rayTMin;
+
+		//[6350000.0, 6400000.0]
+		float earthRadius;
+		//[90000.0, 120000.0]
+		float atmosphereHeight;
+
+		//[6000.0, 10000.0]
+		float rayleighHeight;
+
+		//[1e-7, 5e-5]
+		glm::vec3 rayleighScatteringCoef;
+
+		//[1000.0, 1500.0]
+		float mieHeight;
+
+		//[1e-7, 5e-5]
+		glm::vec3 mieScatteringCoef;
+
+		//[1e-6, 1e-4]
+		glm::vec3 ozoneAbsorptionCoef;
+
+		//[10- 200]
+		uint32_t sampleCount;
+
+		//[0.1 * PI / 180.0, 5.0 * PI / 180.0]
+		float sunAngle;
+
+		//[0.1, 10.0]
+		float exposure;
+
+		//[1.0,3.0]
+		float gamma;
+
+		//[0.0, 1.0] This controls the asymmetry factor g in the phase function for Mie scattering
+		float henyeyGreensteinCoef;
 	};
 
 	using SpecificationVariant = std::variant<AtmosphericScatteringSpecification>;

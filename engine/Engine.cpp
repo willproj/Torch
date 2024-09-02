@@ -1,5 +1,6 @@
 #include "Engine.h"
 #include "editor/Editor.h"
+
 namespace engine
 {
     std::unique_ptr<Engine> Engine::s_EngineInstance = nullptr;
@@ -40,6 +41,7 @@ namespace engine
         editor::Editor::AddModule(editor::EditorType::Viewport, std::make_unique<editor::Viewport>());
         editor::Editor::AddModule(editor::EditorType::ScenePanel, std::make_unique<editor::SceneHierarchyPanel>());
         editor::Editor::AddModule(editor::EditorType::EntityPanel, std::make_unique<editor::EntityPropertiesPanel>());
+        editor::Editor::AddModule(editor::EditorType::Environment, std::make_unique<editor::EnvironmentPropertiesPanel>());
 
         utils::ServiceLocator::RegisterGraphicsContext(std::move(core::TorchGraphicsContext::GetGraphicsContext()));
         TORCH_LOG_INFO("Torch Engine Initialized");

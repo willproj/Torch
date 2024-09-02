@@ -6,21 +6,25 @@ in vec3 TexCoords;
 
 // Constants
 const float PI = 3.14159265359;
-const float RAY_TMIN = 0.001;
 const float INVALID_INTERSECTION = -1.0;
 
-const float EARTH_RADIUS = 6371000.0;
-const vec3 EARTH_CENTER = vec3(0, -EARTH_RADIUS, 0);
 
-const float ATMOSPHERE_HEIGHT = 100000.0;
-const float RAYLEIGH_HEIGHT = 8000.0;
-const float MIE_HEIGHT = 1200.0;
+// uniforms
+uniform float u_RayTMin;
+uniform float u_EarthRadius;
+uniform float u_AtmosphereHeight;
+uniform float u_RayleighHeight;
+uniform float u_MieHeight;
+uniform vec3 u_RayleighScatteringCoef;
+uniform vec3 u_MieScatteringCoef;
+uniform vec3 u_OzoneAbsorptionCoef;
+uniform vec3 u_SunPosition;
+uniform float u_SunAngle;
+uniform vec3 u_SunColor;
+uniform float u_SunIntensity;
 
-const vec3 RAYLEIGH_SCATTERING_COEF = vec3(5.802, 13.558, 33.1) * 1e-6;
-const vec3 MIE_SCATTERING_COEF = vec3(3.996) * 1e-6;
-const vec3 OZONE_ABSORPTION_COEF = vec3(3.426, 8.298, 0.356) * 0.1 * 1e-5;
-
-const vec3 SUN_COLOR = vec3(1.0);
+const float GAMMA = 2.8;
+vec3 EARTH_CENTER = vec3(0, -u_EarthRadius, 0);
 
 // Functions
 float intersectSphere(vec3 org, vec3 dir, vec3 center, float radius)
@@ -33,10 +37,10 @@ float intersectSphere(vec3 org, vec3 dir, vec3 center, float radius)
     float t0 = -b - sqrt(D);
     float t1 = -b + sqrt(D);
     float t = t0;
-    if(t < RAY_TMIN)
+    if(t < u_RayTMin)
     {
         t = t1;
-        if(t < RAY_TMIN) return INVALID_INTERSECTION;
+        if(t < u_RayTMin) return INVALID_INTERSECTION;
     }
     
     return t;
@@ -44,12 +48,12 @@ float intersectSphere(vec3 org, vec3 dir, vec3 center, float radius)
 
 float intersectEarth(vec3 org, vec3 dir)
 {
-    return intersectSphere(org, dir, EARTH_CENTER, EARTH_RADIUS);
+    return intersectSphere(org, dir, EARTH_CENTER, u_EarthRadius);
 }
 
 float intersectAtmosphere(vec3 org, vec3 dir)
 {
-    return intersectSphere(org, dir, EARTH_CENTER, EARTH_RADIUS + ATMOSPHERE_HEIGHT);
+    return intersectSphere(org, dir, EARTH_CENTER, u_EarthRadius + u_AtmosphereHeight);
 }
 
 float phaseRayleigh(float c)
@@ -85,17 +89,17 @@ float phaseMie(float c)
 
 float atmosphereHeight(vec3 p)
 {
-    return distance(p, EARTH_CENTER) - EARTH_RADIUS;
+    return distance(p, EARTH_CENTER) - u_EarthRadius;
 }
 
 float densityRayleigh(float h)
 {
-    return exp(-max(0.0, h / RAYLEIGH_HEIGHT));
+    return exp(-max(0.0, h / u_RayleighHeight));
 }
 
 float densityMie(float h)
 {
-    return exp(-max(0.0, h / MIE_HEIGHT));
+    return exp(-max(0.0, h / u_MieHeight));
 }
 
 float densityOzone(float h)
@@ -105,17 +109,17 @@ float densityOzone(float h)
 
 vec3 scatteringRayleigh(float h)
 {
-    return RAYLEIGH_SCATTERING_COEF * densityRayleigh(h);
+    return u_RayleighScatteringCoef * densityRayleigh(h);
 }
 
 vec3 scatteringMie(float h)
 {
-    return MIE_SCATTERING_COEF * densityMie(h);
+    return u_MieScatteringCoef * densityMie(h);
 }
 
 vec3 absorptionOzone(float h)
 {
-    return OZONE_ABSORPTION_COEF * densityOzone(h);
+    return u_OzoneAbsorptionCoef * densityOzone(h);
 }
 
 vec3 extinctionAtmosphere(float h)
@@ -183,10 +187,6 @@ vec3 ACESFilm(vec3 x)
     return (x * (a * x + b)) / (x * (c * x + d) + e);
 }
 
-uniform vec3 u_SunDir;
-
-const float GAMMA = 2.8;
-float SUN_ANGLE = 2.0 * PI / 180.0;
 
 void main()
 {
@@ -201,14 +201,14 @@ void main()
     if(t != INVALID_INTERSECTION)
     {
         // Compute the atmosphere color
-        color = atmosphere(vec3(0), dir, u_SunDir, SUN_COLOR, t);
+        color = atmosphere(vec3(0), dir, u_SunPosition, u_SunColor * u_SunIntensity, t);
 
         // Calculate the sun's contribution
-        float c = acos(dot(dir, u_SunDir));
-        if(c < SUN_ANGLE)
+        float c = acos(dot(dir, u_SunPosition));
+        if(c < u_SunAngle)
         {
-            float h = c / SUN_ANGLE;
-            color += max(1.0 - h, 0.0) * SUN_COLOR * transmittance(vec3(0), dir);
+            float h = c / u_SunAngle;
+            color += max(1.0 - h, 0.0) * u_SunColor * u_SunIntensity * transmittance(vec3(0), dir);
         }
     }
 
