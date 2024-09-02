@@ -14,6 +14,19 @@ namespace core
 		
 		const std::string filepath = std::string(PROJECT_ROOT) + "/assets/models/essential/sphere/scene.gltf";
 		m_SkyboxSphere = ModelManager::GetInstance()->LoadModel(filepath);
+
+		// Define a buffer ID
+		glGenBuffers(1, &ssbo);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+
+		// Allocate memory for the SSBO (size of vec3, which is 3 floats, 3 * sizeof(float))
+		glBufferData(GL_SHADER_STORAGE_BUFFER, 3 * sizeof(float), NULL, GL_DYNAMIC_COPY);
+
+		// Bind the SSBO to binding point 0, matching the layout in the shader
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
+
+		// Unbind the buffer
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 	}
 
 	void AtmosphericScattering::SetDefault()
@@ -73,6 +86,24 @@ namespace core
 		m_Shader.setVec3("u_SunColor", specific.sunColor);
 		m_Shader.setFloat("u_SunAngle", specific.sunAngle);
 		m_SkyboxSphere->RenderModel();
+
+		// Read back the SSBO data
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+
+		// Map the buffer to read the data into CPU memory
+		GLfloat* ptr = (GLfloat*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, 3 * sizeof(float), GL_MAP_READ_BIT);
+
+		if (ptr) {
+			// Read the vec3 result (3 floats)
+			specific.finalSunlightColor = glm::vec3(ptr[0], ptr[1], ptr[2]);
+			std::cout << "SSBO vec3 result: (" << ptr[0] << ", " << ptr[1] << ", " << ptr[2] << ")\n";
+
+			// Unmap the buffer
+			glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		}
+
+		// Unbind the buffer
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 		glDepthFunc(GL_LESS);
 	}
 }

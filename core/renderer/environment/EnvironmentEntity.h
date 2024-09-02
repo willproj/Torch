@@ -59,6 +59,9 @@ namespace core
 
 		//[0.0, 1.0] This controls the asymmetry factor g in the phase function for Mie scattering
 		float henyeyGreensteinCoef;
+
+		//
+		glm::vec3 finalSunlightColor;
 	};
 
 	using SpecificationVariant = std::variant<AtmosphericScatteringSpecification>;

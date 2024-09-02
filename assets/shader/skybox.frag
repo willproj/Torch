@@ -1,4 +1,7 @@
 #version 430 core
+layout(std430, binding = 0) buffer SSBO {
+    vec3 finalColor;
+};
 
 out vec4 FragColor;
 
@@ -212,6 +215,35 @@ void main()
         }
     }
 
+    //color blended sun color
+    // Step 1: Compute sun color at the position
+    vec3 sunColorAtPosition = vec3(0.0);
+    float t_sun = intersectAtmosphere(vec3(0), normalize(u_SunPosition));
+    if (t_sun != INVALID_INTERSECTION) {
+        sunColorAtPosition = atmosphere(vec3(0), normalize(u_SunPosition), u_SunPosition, u_SunColor, t_sun);
+    }
+    
+    // Normalize the sun color
+    sunColorAtPosition = pow(sunColorAtPosition, vec3(1.0 / GAMMA));
+    float totalSum = sunColorAtPosition.r + sunColorAtPosition.g + sunColorAtPosition.b;
+    vec3 normalizedSunColor = sunColorAtPosition / totalSum;
+    
+    float sunElevation = dot(normalize(u_SunPosition), vec3(0.0, 1.0, 0.0)); // Dot product with the vertical direction
+    sunElevation = clamp(sunElevation, -1.0, 1.0);
+    float intensityMultiplier = mix(0.5, 1.0, (sunElevation + 1.0) * 0.5); // Linear interpolation between 0.5 and 1.0
+    vec3 scaledSunColor = u_SunColor * intensityMultiplier;
+    float totalIntensity = scaledSunColor.r + scaledSunColor.g + scaledSunColor.b;
+    
+    vec3 finalSunColor = vec3(
+        totalIntensity * normalizedSunColor.r,
+        totalIntensity * normalizedSunColor.g,
+        totalIntensity * normalizedSunColor.b
+    );
+
+
+    finalColor = finalSunColor;
+
+
     // Apply post-processing effects
     float exposure = 8.0;
     color *= exposure;
@@ -220,5 +252,6 @@ void main()
 
     // Output to screen
     FragColor = vec4(color, 1.0);
+
 }
 

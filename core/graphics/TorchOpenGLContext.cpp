@@ -186,7 +186,7 @@ namespace core
 		m_LightingShader.setVec3("viewPos", m_EditorCamera->GetPosition());
 		auto speci = std::get<AtmosphericScatteringSpecification>(m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->GetSpecification().get());
 		m_LightingShader.setVec3("sunDir", speci.sunPosition);
-		m_LightingShader.setVec3("sunColor", glm::vec3(1.0f));
+		m_LightingShader.setVec3("sunColor", speci.finalSunlightColor);
 
 		// Bind GBuffer textures for lighting calculations
 		m_LightingShader.setInt("u_RenderType", static_cast<int>(m_RenderType));
@@ -227,13 +227,13 @@ namespace core
 		// - Render scene model
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render();
 
+		
 
 		// 5. Copy final rendered result from default framebuffer to texture for ImGui
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // Read from default framebuffer
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_ScreenFramebuffer); // Draw to texture
 		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind final framebuffer
-		
 	}
 
 }

@@ -7,6 +7,7 @@ namespace core
 	{
 	public:
 		Shader() = default;
+		Shader(const std::string& computePath);
 		Shader(const std::string& vertexPath, const std::string& fragmentPath, const std::string& geometryPath = "");
 
 		void use() const
