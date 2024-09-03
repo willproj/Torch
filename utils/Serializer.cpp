@@ -4,6 +4,7 @@
 #include <core/renderer/Component.h>
 #include <core/renderer/ModelManager.h>
 #include <core/renderer/SceneManager.h>
+#include <core/glcore/Texture.h>
 
 namespace YAML {
 
@@ -165,6 +166,28 @@ namespace utils
 			out << YAML::EndMap;
 		}
 
+		if (entity.HasComponent<core::MaterialComponent>())
+		{
+			out << YAML::Key << "Material Component";
+			out << YAML::BeginMap;
+			auto& materialComp = entity.GetComponent<core::MaterialComponent>();
+			out << YAML::Key << "Albedo Path" << YAML::Value << materialComp.albedoPath;
+			out << YAML::Key << "Normal Path" << YAML::Value << materialComp.normalPath;
+			out << YAML::Key << "Metallic Path" << YAML::Value << materialComp.metallicPath;
+			out << YAML::Key << "Roughness Path" << YAML::Value << materialComp.roughnessPath;
+			out << YAML::Key << "AO Path" << YAML::Value << materialComp.aoPath;
+
+			out << YAML::Key << "Metallic" << YAML::Value << materialComp.metallic;
+			out << YAML::Key << "Roughness" << YAML::Value << materialComp.roughness;
+
+			out << YAML::Key << "Use Albedo" << YAML::Value << materialComp.useAlbedoTexture;
+			out << YAML::Key << "Use Normal" << YAML::Value << materialComp.useNormalTexture;
+			out << YAML::Key << "Use Metallic" << YAML::Value << materialComp.useMetallicTexture;
+			out << YAML::Key << "Use Roughness" << YAML::Value << materialComp.useRoughnessTexture;
+			out << YAML::Key << "Use AO" << YAML::Value << materialComp.useAOTexture;
+
+		}
+
 		out << YAML::EndMap;
 	}
 	Serializer::Serializer(core::Scene* scene)
@@ -246,8 +269,6 @@ namespace utils
 					uuid.uuid.SetUUIDStr(uuidComp["Entity UUID"].as<std::string>());
 				}
 
-				
-
 				auto transformComp = entity["Transform Component"];
 				if (transformComp)
 				{
@@ -264,6 +285,53 @@ namespace utils
 					std::string path = modelComp["Mesh Path"].as<std::string>();
 					core::ModelManager::GetInstance()->LoadModel(path);
 					model.model = core::ModelManager::GetInstance()->GetModel(path);
+				}
+
+				auto materialComp = entity["Material Component"];
+				if (materialComp)
+				{
+					deserializedEntity.AddComponent<core::MaterialComponent>();
+					auto& material = deserializedEntity.GetComponent<core::MaterialComponent>();
+					material.albedoPath = materialComp["Albedo Path"].as<std::string>();
+					if (!material.albedoPath.empty())
+					{
+						material.albedoTexture = core::Texture::LoadTexture(material.albedoPath);
+					}
+
+					material.normalPath = materialComp["Normal Path"].as<std::string>();
+					if (!material.normalPath.empty())
+					{
+						material.normalTexture = core::Texture::LoadTexture(material.normalPath);
+					}
+					
+					material.metallicPath = materialComp["Metallic Path"].as<std::string>();
+					if (!material.metallicPath.empty())
+					{
+						material.metallicTexture = core::Texture::LoadTexture(material.metallicPath);
+					}
+					
+					material.roughnessPath = materialComp["Roughness Path"].as<std::string>();
+					if (!material.roughnessPath.empty())
+					{
+						material.roughnessTexture = core::Texture::LoadTexture(material.roughnessPath);
+					}
+					
+					material.aoPath = materialComp["AO Path"].as<std::string>();
+					if (!material.aoPath.empty())
+					{
+						material.aoTexture = core::Texture::LoadTexture(material.aoPath);
+					}
+					
+
+					bool useAlbedo = materialComp["Use Albedo"].as<bool>();
+					bool useNormal = materialComp["Use Normal"].as<bool>();
+					bool useMetallic = materialComp["Use Metallic"].as<bool>();
+					bool useRoughness = materialComp["Use Roughness"].as<bool>();
+					bool useAO = materialComp["Use AO"].as<bool>();
+
+					material.metallic = materialComp["Metallic"].as<float>();
+					material.roughness = materialComp["Roughness"].as<float>();
+
 				}
 			}
 		}

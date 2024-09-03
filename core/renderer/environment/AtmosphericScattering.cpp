@@ -96,8 +96,6 @@ namespace core
 		if (ptr) {
 			// Read the vec3 result (3 floats)
 			specific.finalSunlightColor = glm::vec3(ptr[0], ptr[1], ptr[2]);
-			std::cout << "SSBO vec3 result: (" << ptr[0] << ", " << ptr[1] << ", " << ptr[2] << ")\n";
-
 			// Unmap the buffer
 			glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 		}

@@ -1,11 +1,11 @@
 Model Information:
-* title:	Sphere
-* source:	https://sketchfab.com/3d-models/sphere-5f9bdb4f93304088a2e52897df9c5010
-* author:	rebeccahahn (https://sketchfab.com/rebeccahahn)
+* title:	Decorative Sphere
+* source:	https://sketchfab.com/3d-models/decorative-sphere-7e5f818281a14d28aa37c541f308e729
+* author:	outofourlives (https://sketchfab.com/outofourlives)
 
 Model License:
 * license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
 * requirements:	Author must be credited. Commercial use is allowed.
 
 If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
-This work is based on "Sphere" (https://sketchfab.com/3d-models/sphere-5f9bdb4f93304088a2e52897df9c5010) by rebeccahahn (https://sketchfab.com/rebeccahahn) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+This work is based on "Decorative Sphere" (https://sketchfab.com/3d-models/decorative-sphere-7e5f818281a14d28aa37c541f308e729) by outofourlives (https://sketchfab.com/outofourlives) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

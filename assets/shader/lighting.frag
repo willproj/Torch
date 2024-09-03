@@ -1,75 +1,126 @@
 #version 430 core
-#define RENDER_ALL 0
-#define RENDER_GCOLOR 1
-#define RENDER_GPOSITION 2
-#define RENDER_GNORMAL 3
-#define RENDER_GDEPTH 4
-
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
 
 in vec2 TexCoords;
 
+// G-buffer inputs
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
-uniform sampler2D gColorSpec;
-uniform sampler2D gDepth;
+uniform sampler2D gAlbedoSpec;  // RGB = Albedo, A = Metallic
+uniform sampler2D gRoughAO;     // R = Roughness, G = AO
 
-uniform vec3 viewPos; 
-uniform vec3 sunDir; 
-uniform vec3 sunColor; 
+// Light properties
+uniform vec3 lightPositions[4];
+uniform vec3 lightColors[4];
 
-const float ambientStrength = 0.2f;
-const float specularStrength = 0.3f;
-const float shininess = 100.0f;
+// Camera position
+uniform vec3 camPos;
 
-uniform int u_RenderType;
+// Constants for PBR
+const float PI = 3.14159265359;
 
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
+{
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+float DistributionGGX(vec3 N, vec3 H, float roughness)
+{
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float NdotH = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH * NdotH;
+
+    float num = a2;
+    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom = PI * denom * denom;
+
+    return num / denom;
+}
+
+float GeometrySchlickGGX(float NdotV, float roughness)
+{
+    float r = (roughness + 1.0);
+    float k = (r * r) / 8.0;
+
+    float num = NdotV;
+    float denom = NdotV * (1.0 - k) + k;
+
+    return num / denom;
+}
+
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+{
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    float ggx1 = GeometrySchlickGGX(NdotV, roughness);
+    float ggx2 = GeometrySchlickGGX(NdotL, roughness);
+    return ggx1 * ggx2;
+}
 
 void main()
-{             
-    // Retrieve data from gbuffer
-    vec3 FragPos = texture(gPosition, TexCoords).rgb;
-    vec3 Normal = normalize(texture(gNormal, TexCoords).rgb);
-    vec3 Diffuse = texture(gColorSpec, TexCoords).rgb;
-    float Specular = texture(gColorSpec, TexCoords).a;
+{
+    // Retrieve data from G-buffer
+    vec3 WorldPos = texture(gPosition, TexCoords).rgb;
+    vec3 N = normalize(texture(gNormal, TexCoords).rgb);
+    vec4 gAlbedoSpecData = texture(gAlbedoSpec, TexCoords);
+    vec3 albedo = gAlbedoSpecData.rgb;
+    float metallic = gAlbedoSpecData.a;
 
-    // Ambient
-    vec3 ambient = ambientStrength * sunColor;
+    vec3 gRoughAOData = texture(gRoughAO, TexCoords).rgb;
+    float roughness = gRoughAOData.r;
+    float ao = gRoughAOData.g;
 
-    // Diffuse
-    vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(sunDir); 
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * sunColor;
+    // View vector
+    vec3 V = normalize(camPos - WorldPos);
+    vec3 F0 = vec3(0.04); 
+    F0 = mix(F0, albedo, metallic);
 
-    // Specular
-    vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-    vec3 specular = specularStrength * spec * sunColor;
+    // Lighting calculations
+    vec3 Lo = vec3(0.0);
 
-    // Final color calculation
-    vec3 finalColor = (ambient + diffuse + specular) * Diffuse;
-    
-    // Output final color
-    if(u_RenderType == RENDER_ALL)
+    for(int i = 0; i < 4; ++i) 
     {
-        FragColor = vec4(finalColor, 1.0);
-    }
-    else if(u_RenderType == RENDER_GCOLOR)
-    {
-        FragColor = vec4(diffuse, 1.0);
-    }
-    else if(u_RenderType == RENDER_GPOSITION)
-    {
-        FragColor = vec4(FragPos, 1.0);
-    }
-    else if(u_RenderType == RENDER_GNORMAL)
-    {
-        FragColor = vec4(norm, 1.0);
-    }
-    else if(u_RenderType == RENDER_GDEPTH)
-    {
-        FragColor = vec4(texture(gDepth, TexCoords).rgb, 1.0);
-    }
+        // calculate per-light radiance
+        vec3 L = normalize(lightPositions[i] - WorldPos);
+        vec3 H = normalize(V + L);
+        float distance = length(lightPositions[i] - WorldPos);
+        float attenuation = 1.0 / (distance * distance);
+        vec3 radiance = lightColors[i] * attenuation;
+
+        // Cook-Torrance BRDF
+        float NDF = DistributionGGX(N, H, roughness);   
+        float G   = GeometrySmith(N, V, L, roughness);      
+        vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
+           
+        vec3 numerator    = NDF * G * F; 
+        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; // + 0.0001 to prevent divide by zero
+        vec3 specular = numerator / denominator;
+        
+        // kS is equal to Fresnel
+        vec3 kS = F;
+        // for energy conservation, the diffuse and specular light can't
+        // be above 1.0 (unless the surface emits light); to preserve this
+        // relationship the diffuse component (kD) should equal 1.0 - kS.
+        vec3 kD = vec3(1.0) - kS;
+        // multiply kD by the inverse metalness such that only non-metals 
+        // have diffuse lighting, or a linear blend if partly metal (pure metals
+        // have no diffuse light).
+        kD *= 1.0 - metallic;	  
+
+        // scale light by NdotL
+        float NdotL = max(dot(N, L), 0.0);        
+
+        // add to outgoing radiance Lo
+        Lo += (kD * albedo / PI + specular) * radiance * NdotL;  // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
+    }   
+    // Add ambient lighting (with AO)
+    vec3 ambient = vec3(0.03) * albedo * ao;
+    vec3 color = ambient + Lo;
+
+    // HDR tonemapping and gamma correction
+    color = color / (color + vec3(1.0));
+    color = pow(color, vec3(1.0 / 2.2)); // Gamma correction
+
+    FragColor = vec4(color, 1.0);
 }

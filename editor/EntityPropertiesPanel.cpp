@@ -5,11 +5,13 @@
 #include <utils/FileUtils.h>
 #include <core/renderer/ModelManager.h>
 #include <imgui_internal.h>
+#include <core/glcore/Texture.h>
 
 namespace editor
 {
 	EntityPropertiesPanel::EntityPropertiesPanel()
 	{
+		m_DefaultTexture = core::Texture::LoadTexture(std::string(PROJECT_ROOT) + "/assets/texture/default.jpg");
 	}
 	EntityPropertiesPanel::~EntityPropertiesPanel()
 	{
@@ -34,6 +36,7 @@ namespace editor
 		RenderLabelHeader();
 		RenderModelHeader();
 		RenderTransformHeader();
+		RenderMaterialHeader();
 
 		RenderPopupWindow();
 
@@ -126,6 +129,84 @@ namespace editor
 			}
 		}
 	}
+	void EntityPropertiesPanel::RenderMaterialHeader()
+	{
+		if (m_Entity.HasComponent<core::MaterialComponent>())
+		{
+			auto& material = m_Entity.GetComponent<core::MaterialComponent>();
+			if (ImGui::CollapsingHeader("Material Component", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				uint32_t imageSize = 100;
+				ImGui::Checkbox("Use Albedo", &material.useAlbedoTexture);
+				ImGui::PushID(1);
+				if (ImGui::ImageButton((void*)(intptr_t)(material.albedoTexture == 0 ? m_DefaultTexture : material.albedoTexture), ImVec2(imageSize, imageSize)))
+				{
+					const std::string path = utils::FileUtils::OpenFile("Image Files (*.jpg;*.png)\0*.jpg;*.png\0");
+					if (!path.empty())
+					{
+						material.albedoPath = path;
+						material.albedoTexture = core::Texture::LoadTexture(path);
+					}
+				}
+				ImGui::PopID();
+				ImGui::Separator();
+
+				ImGui::Checkbox("Use Normal", &material.useNormalTexture);
+				ImGui::PushID(2);
+				if (ImGui::ImageButton((void*)(intptr_t)(material.normalTexture == 0 ? m_DefaultTexture : material.normalTexture), ImVec2(imageSize, imageSize)))
+				{
+					const std::string path = utils::FileUtils::OpenFile("Image Files (*.jpg;*.png)\0*.jpg;*.png\0");
+					if (!path.empty())
+					{
+						material.normalPath = path;
+						material.normalTexture = core::Texture::LoadTexture(path);
+					}
+				}
+				ImGui::PopID();
+				ImGui::Separator();
+
+				ImGui::Checkbox("Use Metallic", &material.useMetallicTexture);
+				if (ImGui::ImageButton((void*)(intptr_t)(material.metallicTexture == 0 ? m_DefaultTexture : material.metallicTexture), ImVec2(imageSize, imageSize)))
+				{
+					const std::string path = utils::FileUtils::OpenFile("Image Files (*.jpg;*.png)\0*.jpg;*.png\0");
+					if (!path.empty())
+					{
+						material.metallicPath = path;
+						material.metallicTexture = core::Texture::LoadTexture(path);
+					}
+				}
+				ImGui::SliderFloat("Metallic", &material.metallic, 0.0f, 1.0f);
+				ImGui::Separator();
+
+				ImGui::Checkbox("Use Roughness", &material.useRoughnessTexture);
+				if (ImGui::ImageButton((void*)(intptr_t)(material.roughnessTexture == 0 ? m_DefaultTexture : material.roughnessTexture), ImVec2(imageSize, imageSize)))
+				{
+					const std::string path = utils::FileUtils::OpenFile("Image Files (*.jpg;*.png)\0*.jpg;*.png\0");
+					if (!path.empty())
+					{
+						material.roughnessPath = path;
+						material.roughnessTexture = core::Texture::LoadTexture(path);
+					}
+				}
+				ImGui::SliderFloat("Roughness", &material.roughness, 0.0f, 1.0f);
+				ImGui::Separator();
+
+				ImGui::Checkbox("Use AO", &material.useNormalTexture);
+				if (ImGui::ImageButton((void*)(intptr_t)(material.aoTexture == 0 ? m_DefaultTexture : material.aoTexture), ImVec2(imageSize, imageSize)))
+				{
+					const std::string path = utils::FileUtils::OpenFile("Image Files (*.jpg;*.png)\0*.jpg;*.png\0");
+					if (!path.empty())
+					{
+						material.aoPath = path;
+						material.aoTexture = core::Texture::LoadTexture(path);
+					}
+				}
+
+				ImGui::Separator();
+			}
+		}
+	}
+
 	void EntityPropertiesPanel::RenderPopupWindow()
 	{
 		// Track added components using a set
@@ -158,6 +239,11 @@ namespace editor
 						if (componentName == "Add Color Component")
 						{
 
+						}
+
+						if (componentName == "Add Material Component")
+						{
+							m_Entity.AddComponent<core::MaterialComponent>();
 						}
 
 						selected = i;

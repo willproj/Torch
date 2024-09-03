@@ -1,0 +1,11 @@
+Model Information:
+* title:	Nick Logo [Sphere]
+* source:	https://sketchfab.com/3d-models/nick-logo-sphere-76f1489ae4b349d0855287e8164522e7
+* author:	martaveusjackson14 (https://sketchfab.com/martaveusjackson14)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Nick Logo [Sphere]" (https://sketchfab.com/3d-models/nick-logo-sphere-76f1489ae4b349d0855287e8164522e7) by martaveusjackson14 (https://sketchfab.com/martaveusjackson14) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

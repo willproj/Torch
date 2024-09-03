@@ -117,4 +117,33 @@ namespace core
 		ModelComponent(const ModelComponent&) = default;
 		ModelComponent& operator=(const ModelComponent&) = default;
 	};
+
+
+	struct MaterialComponent
+	{
+		uint32_t albedoTexture = 0;
+		uint32_t normalTexture = 0;
+		uint32_t metallicTexture = 0;
+		uint32_t roughnessTexture = 0;
+		uint32_t aoTexture = 0;
+
+		std::string albedoPath;
+		std::string normalPath;
+		std::string metallicPath;
+		std::string roughnessPath;
+		std::string aoPath;
+
+		bool useAlbedoTexture = true;
+		bool useNormalTexture = true;
+		bool useMetallicTexture = true;
+		bool useRoughnessTexture = true;
+		bool useAOTexture = true;
+
+		float roughness = 0;
+		float metallic = 0;
+
+		MaterialComponent() = default;
+		MaterialComponent(const MaterialComponent&) = default;
+		MaterialComponent& operator=(const MaterialComponent&) = default;
+	};
 }

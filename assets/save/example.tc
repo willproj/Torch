@@ -1,26 +1,27 @@
 Scene: unknow
 Entities:
   - UUID Component:
-      Entity UUID: 9e9ee940-aeab-4b97-80d4-000025407f8e621bd67d
-    Entity Type Component:
-      Entity Type: Light
-    Label Component:
-      Label: lgiht
-    Transform Component:
-      Translation: [0, 2.53389883, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    Model Component:
-      Mesh Path: D:\github\Torch\assets\models\stone\scene.gltf
-  - UUID Component:
-      Entity UUID: 613ec714-44a3-4faf-8354-00003ba66e6c5971d8c6
+      Entity UUID: 732dc498-e833-40ab-b1d2-0000a60fb94229c38066
     Entity Type Component:
       Entity Type: General
     Label Component:
       Label: cube
     Transform Component:
-      Translation: [0, 0, 0]
+      Translation: [0, -1.49011612e-08, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Model Component:
-      Mesh Path: D:\github\Torch\assets\models\cube\cube.glb
+      Mesh Path: D:\github\Torch\assets\models\sphere\scene.gltf
+    Material Component:
+      Albedo Path: D:\github\Torch\assets\texture\metal2\albedo.png
+      Normal Path: D:\github\Torch\assets\texture\metal2\normal.png
+      Metallic Path: D:\github\Torch\assets\texture\metal2\metallic.png
+      Roughness Path: D:\github\Torch\assets\texture\metal2\roughness.png
+      AO Path: D:\github\Torch\assets\texture\metal2\ao.png
+      Metallic: 0
+      Roughness: 0
+      Use Albedo: true
+      Use Normal: true
+      Use Metallic: true
+      Use Roughness: true
+      Use AO: true

@@ -19,6 +19,7 @@ namespace editor
 		void RenderLabelHeader();
 		void RenderModelHeader();
 		void RenderTransformHeader();
+		void RenderMaterialHeader();
 
 		void RenderPopupWindow();
 
@@ -28,10 +29,11 @@ namespace editor
 
 		std::unordered_set<uint32_t> m_AddedComponents;
 		std::vector<std::string> m_ComponentsNames = {
-			"Add Color Component"
+			"Add Color Component",
+			"Add Material Component"
 		};
 		
 		std::string m_ModelFilePath = "";
-
+		uint32_t m_DefaultTexture;
 	};
 }

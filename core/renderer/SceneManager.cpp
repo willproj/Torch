@@ -54,6 +54,36 @@ namespace core
 			m_GeomotryPassShader.setInt("entity", entity());
 			m_GeomotryPassShader.setMat4("model", transform);
 
+
+			// Get material component
+			if (entity.HasComponent<MaterialComponent>())
+			{
+				// Retrieve the material component from the entity
+				auto& materialComponent = entity.GetComponent<MaterialComponent>();
+
+				// Set up texture units and bind textures
+				glActiveTexture(GL_TEXTURE0); // Activate texture unit 0
+				glBindTexture(GL_TEXTURE_2D, materialComponent.albedoTexture); // Bind albedo texture
+				m_GeomotryPassShader.setInt("u_AlbedoMap", 0); // Set shader uniform for albedo map
+
+				glActiveTexture(GL_TEXTURE1); // Activate texture unit 1
+				glBindTexture(GL_TEXTURE_2D, materialComponent.normalTexture); // Bind normal texture
+				m_GeomotryPassShader.setInt("u_NormalMap", 1); // Set shader uniform for normal map
+
+				glActiveTexture(GL_TEXTURE2); // Activate texture unit 2
+				glBindTexture(GL_TEXTURE_2D, materialComponent.metallicTexture); // Bind metallic texture
+				m_GeomotryPassShader.setInt("u_MetallicMap", 2); // Set shader uniform for metallic map
+
+				glActiveTexture(GL_TEXTURE3); // Activate texture unit 3
+				glBindTexture(GL_TEXTURE_2D, materialComponent.roughnessTexture); // Bind roughness texture
+				m_GeomotryPassShader.setInt("u_RoughnessMap", 3); // Set shader uniform for roughness map
+
+				glActiveTexture(GL_TEXTURE4); // Activate texture unit 4
+				glBindTexture(GL_TEXTURE_2D, materialComponent.aoTexture); // Bind AO texture
+				m_GeomotryPassShader.setInt("u_AoMap", 4); // Set shader uniform for AO map
+
+			}
+
 			// Render model
 			if (entity.HasComponent<ModelComponent>())
 			{
@@ -121,6 +151,14 @@ namespace core
 			// Set entity-specific shader uniforms
 			m_LightsIDShader.setInt("entity", entity());
 			m_LightsIDShader.setMat4("model", transform);
+
+
+			// Get material component
+			if (entity.HasComponent<MaterialComponent>())
+			{
+				auto& materialComponent = entity.GetComponent<MaterialComponent>();
+				
+			}
 
 			// Render model
 			if (entity.HasComponent<ModelComponent>())

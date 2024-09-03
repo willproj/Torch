@@ -36,13 +36,21 @@ namespace core
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_GNormal, 0);
 
-        // Color + specular color buffer
+        // Color + specular color buffer (albedo + metallic )
         glGenTextures(1, &m_GColorSpec);
         glBindTexture(GL_TEXTURE_2D, m_GColorSpec);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_GColorSpec, 0);
+        
+        // roughness and ao
+        glGenTextures(1, &m_GSpecRoughAO);
+        glBindTexture(GL_TEXTURE_2D, m_GSpecRoughAO);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, m_GSpecRoughAO, 0);
 
         // Red int texture
         glGenTextures(1, &m_RedInt);
@@ -50,7 +58,7 @@ namespace core
         glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, width, height, 0, GL_RED_INTEGER, GL_INT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, m_RedInt, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, m_RedInt, 0);
 
         // Depth texture
         glGenTextures(1, &m_GDepth);
@@ -64,8 +72,8 @@ namespace core
 
 
         // List of color attachments (no depth)
-        m_Attachments = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-        glDrawBuffers(4, m_Attachments.data());
+        m_Attachments = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4 };
+        glDrawBuffers(m_Attachments.size(), m_Attachments.data());
 
         // Check if framebuffer is complete
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -103,9 +111,15 @@ namespace core
         glBindTexture(GL_TEXTURE_2D, m_GColorSpec);
     }
 
+    void GBuffer::BindRoughnessAOTexture() const
+    {
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, m_GSpecRoughAO);
+    }
+
     void GBuffer::BindDepthTexture() const
     {
-        glActiveTexture(GL_TEXTURE4);
+        glActiveTexture(GL_TEXTURE5);
         glBindTexture(GL_TEXTURE_2D, m_GDepth);
     }
 
@@ -131,6 +145,11 @@ namespace core
             glDeleteTextures(1, &m_GColorSpec);
             m_GColorSpec = 0;
         }
+        if (m_GSpecRoughAO)
+        {
+            glDeleteTextures(1, &m_GSpecRoughAO);
+            m_GSpecRoughAO = 0;
+        }
         if (m_RedInt)
         {
             glDeleteTextures(1, &m_RedInt);
@@ -152,5 +171,7 @@ namespace core
         glDeleteTextures(1, &m_GColorSpec);
         glDeleteTextures(1, &m_RedInt);
         glDeleteTextures(1, &m_GDepth);
+        glDeleteTextures(1, &m_GSpecRoughAO);
+        
     }
 }

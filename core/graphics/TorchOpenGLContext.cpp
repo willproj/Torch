@@ -13,7 +13,6 @@ namespace core
 		m_WindowPtr = utils::ServiceLocator::GetWindow();
 		m_EditorCamera = std::make_shared<EditorCamera>();
 		
-		ModelManager::GetInstance()->LoadModel(std::string(PROJECT_ROOT) + "/assets/models/sphere/scene.gltf");
 		m_SceneManager = SceneManager::GetSceneManager();
 		m_SceneManager->SetCamera(m_EditorCamera);
 		
@@ -29,12 +28,13 @@ namespace core
 		m_LightingShader.use();
 		m_LightingShader.setInt("gPosition", 0);
 		m_LightingShader.setInt("gNormal", 1);
-		m_LightingShader.setInt("gColorSpec", 2);
-		m_LightingShader.setInt("gDepth", 4);
+		m_LightingShader.setInt("gAlbedoSpec", 2);
+		m_LightingShader.setInt("gRoughAO", 3);
 
 		SceneManager::GetSceneManager()->GetSceneRef()->CreateEntity();
 		CreateOffScreenTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
 		CreateLightIDTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
+
 	}
 
 	void TorchOpenGLContext::CreateOffScreenTexture(int width, int height)
@@ -183,33 +183,24 @@ namespace core
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // Clear default framebuffer for lighting
 		
 		m_LightingShader.use();
-		m_LightingShader.setVec3("viewPos", m_EditorCamera->GetPosition());
-		auto speci = std::get<AtmosphericScatteringSpecification>(m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->GetSpecification().get());
-		m_LightingShader.setVec3("sunDir", speci.sunPosition);
-		m_LightingShader.setVec3("sunColor", speci.finalSunlightColor);
+		m_LightingShader.setVec3("camPos", m_EditorCamera->GetPosition());
+		// Pass these as uniforms to the shader
+		for (unsigned int i = 0; i < lightPositions.size(); ++i)
+		{
+			glm::vec3 newPos = lightPositions[i] + glm::vec3(sin(glfwGetTime() * 5.0) * 5.0, 0.0, 0.0);
+			newPos = lightPositions[i];
+			m_LightingShader.setVec3("lightPositions[" + std::to_string(i) + "]", newPos);
+			m_LightingShader.setVec3("lightColors[" + std::to_string(i) + "]", lightColors[i]);
+		}
 
-		// Bind GBuffer textures for lighting calculations
-		m_LightingShader.setInt("u_RenderType", static_cast<int>(m_RenderType));
-		if (m_RenderType == GBufferRenderType::All)
-		{
-			RenderAllGBufferTextures();
-		}
-		else if (m_RenderType == GBufferRenderType::GColor)
-		{
-			RenderGBufferColorTexture();
-		}
-		else if (m_RenderType == GBufferRenderType::GPosition)
-		{
-			RenderGBufferPositionTexture();
-		}
-		else if (m_RenderType == GBufferRenderType::GNormal)
-		{
-			RenderGBufferNormalTexture();
-		}
-		else if (m_RenderType == GBufferRenderType::GDepth)
-		{
-			RenderGBufferDepthTexture();
-		}
+
+		m_GBuffer->BindPositionTexture();  // World positions
+		m_GBuffer->BindNormalTexture();    // Normals
+		m_GBuffer->BindColorTexture();     // Color + Specular
+		m_GBuffer->BindRoughnessAOTexture();  // World positions
+		m_Quad.renderQuad();
+
+
 		// 3. Blit depth buffer from GBuffer to default framebuffer
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_GBuffer->GetFramebufferID());
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // Blit to default framebuffer

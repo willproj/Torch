@@ -16,6 +16,7 @@ namespace core
         void BindNormalTexture() const;
         void BindColorTexture() const;
         void BindDepthTexture() const;
+        void BindRoughnessAOTexture() const;
 
         void OnUpdate();
         void Create();
@@ -33,6 +34,6 @@ namespace core
         uint32_t m_BufferID;
 
         std::vector<uint32_t> m_Attachments;
-        uint32_t m_GPosition, m_GNormal, m_GColorSpec, m_RedInt, m_GDepth;
+        uint32_t m_GPosition, m_GNormal, m_GColorSpec, m_GSpecRoughAO, m_RedInt, m_GDepth;
     };
 }

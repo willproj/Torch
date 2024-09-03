@@ -74,5 +74,18 @@ namespace core
 		GBufferRenderType m_RenderType = GBufferRenderType::All;
 
 		HDR m_HDR;
+
+
+		// lights
+   // ------
+		std::vector<glm::vec3> lightPositions = {
+			glm::vec3(0.0f, 0.0f, 10.0f),
+		};
+		std::vector<glm::vec3> lightColors = {
+			glm::vec3(150.0f, 150.0f, 150.0f),
+		};
+		int nrRows = 7;
+		int nrColumns = 7;
+		float spacing = 2.5;
 	};
 }

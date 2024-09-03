@@ -175,7 +175,7 @@ namespace editor
 			int pixel = -1;
 			
 			context->BindGBuffer();
-			glReadBuffer(GL_COLOR_ATTACHMENT3);
+			glReadBuffer(GL_COLOR_ATTACHMENT4);
 			glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixel);
 
 			if (sceneRef->GetRegisterRef().valid(entt::entity(pixel)))
