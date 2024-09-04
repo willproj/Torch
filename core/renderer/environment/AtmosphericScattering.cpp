@@ -1,5 +1,6 @@
 #include "AtmosphericScattering.h"
 #include "core/renderer/ModelManager.h"
+#include "core/renderer/RenderCube.h"
 
 namespace core
 {
@@ -48,7 +49,15 @@ namespace core
 		specific.sunAngle = 2.0f * M_PI / 180.0f;
 	}
 
+	void AtmosphericScattering::SetIsRunning(bool isRunning)
+	{
+		m_IsRunning = isRunning;
+	}
 	
+	bool AtmosphericScattering::IsRunning()
+	{
+		return m_IsRunning;
+	}
 
 	AtmosphericScattering::AtmosphericScattering(std::shared_ptr<EditorCamera> camera)
 	{
@@ -64,6 +73,33 @@ namespace core
 	void AtmosphericScattering::Render()
 	{
 		RenderAtmosphere();
+	}
+
+	void AtmosphericScattering::SetShader()
+	{
+		auto& specific = std::get<AtmosphericScatteringSpecification>(m_Specification);
+		m_Shader.use();
+		m_Shader.setVec3("u_SunPosition", specific.sunPosition);
+		m_Shader.setFloat("u_SunIntensity", specific.sunIntensity);
+		m_Shader.setFloat("u_RayTMin", specific.rayTMin);
+		m_Shader.setFloat("u_EarthRadius", specific.earthRadius);
+		m_Shader.setFloat("u_AtmosphereHeight", specific.atmosphereHeight);
+		m_Shader.setFloat("u_RayleighHeight", specific.rayleighHeight);
+		m_Shader.setFloat("u_MieHeight", specific.mieHeight);
+		m_Shader.setVec3("u_RayleighScatteringCoef", specific.rayleighScatteringCoef);
+		m_Shader.setVec3("u_MieScatteringCoef", specific.mieScatteringCoef);
+		m_Shader.setVec3("u_OzoneAbsorptionCoef", specific.ozoneAbsorptionCoef);
+		m_Shader.setVec3("u_SunColor", specific.sunColor);
+		m_Shader.setFloat("u_SunAngle", specific.sunAngle);
+	}
+
+	void AtmosphericScattering::Render(const glm::mat4& view, const glm::mat4& projection)
+	{
+		m_Shader.setMat4("view", view);
+		m_Shader.setMat4("projection", projection);
+		glDepthFunc(GL_LEQUAL);
+		RenderCube::Render();
+		glDepthFunc(GL_LESS);
 	}
 
 	void AtmosphericScattering::RenderAtmosphere()
@@ -85,8 +121,8 @@ namespace core
 		m_Shader.setVec3("u_OzoneAbsorptionCoef", specific.ozoneAbsorptionCoef);
 		m_Shader.setVec3("u_SunColor", specific.sunColor);
 		m_Shader.setFloat("u_SunAngle", specific.sunAngle);
-		m_SkyboxSphere->RenderModel();
-
+		//m_SkyboxSphere->RenderModel();
+		RenderCube::Render();
 		// Read back the SSBO data
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
 

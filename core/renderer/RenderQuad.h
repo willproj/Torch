@@ -6,9 +6,9 @@ namespace core
     class RenderQuad
     {
     public:
-        unsigned int quadVAO = 0;
-        unsigned int quadVBO;
-        void renderQuad()
+        inline static unsigned int quadVAO = 0;
+        inline static unsigned int quadVBO;
+        static void renderQuad()
         {
             if (quadVAO == 0)
             {

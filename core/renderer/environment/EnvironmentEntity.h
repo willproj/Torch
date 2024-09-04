@@ -73,10 +73,14 @@ namespace core
 		virtual ~EnvironmentEntity() = default;
 
 		virtual void Render() = 0;
+		virtual void Render(const glm::mat4& view, const glm::mat4& projection) {};
+		virtual void SetShader() {};
 		virtual void Initialize() = 0;
 		virtual utils::Ref<SpecificationVariant> GetSpecification() = 0;
 		virtual EnvironmentEntityType GetType() const { return m_Type; }
 		virtual void OnUpdate() = 0;
+		virtual bool IsRunning() = 0;
+		virtual void SetIsRunning(bool isRunning) = 0;
 	protected:
 		EnvironmentEntityType m_Type = EnvironmentEntityType::None;
 		std::shared_ptr<EditorCamera> m_CurrentCamera= nullptr;

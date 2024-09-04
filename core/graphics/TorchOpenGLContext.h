@@ -12,6 +12,7 @@
 #include "core/renderer/EnvironmentManager.h"
 #include "core/renderer/SceneManager.h"
 #include "core/renderer/environment/HDR.h"
+#include "core/renderer/postprocess/IBL.h"
 
 namespace core
 {
@@ -77,7 +78,7 @@ namespace core
 
 
 		// lights
-   // ------
+		// ------
 		std::vector<glm::vec3> lightPositions = {
 			glm::vec3(0.0f, 0.0f, 10.0f),
 		};
@@ -87,5 +88,11 @@ namespace core
 		int nrRows = 7;
 		int nrColumns = 7;
 		float spacing = 2.5;
+
+		IBL ibl;
+		Shader test;
+
+
+		bool iblonce = true;
 	};
 }

@@ -1,9 +1,12 @@
-#version 430 core
+#version 330 core
+in vec3 WorldPos;
 out vec4 FragColor;
 
-in vec2 TexCoords;
+uniform samplerCube irradianceMap;
 
 void main()
-{    
-    FragColor = vec4(1.0f,1.0f,1.0f,1.0f);
+{
+    // Sample the irradiance cubemap using the world position of the cube's face
+    vec3 color = texture(irradianceMap, WorldPos).rgb;
+    FragColor = vec4(color, 1.0);
 }

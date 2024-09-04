@@ -3,6 +3,7 @@
 #include <editor/Editor.h>
 #include "core/renderer/Component.h"
 #include "core/renderer/SceneManager.h"
+#include "core/renderer/RenderCube.h"
 
 namespace core
 {
@@ -25,11 +26,18 @@ namespace core
 			std::string(PROJECT_ROOT) + "/assets/shader/lighting.vert",
 			std::string(PROJECT_ROOT) + "/assets/shader/lighting.frag");
 
+		test = Shader(
+			std::string(PROJECT_ROOT) + "/assets/shader/test.vert",
+			std::string(PROJECT_ROOT) + "/assets/shader/test.frag");
+
 		m_LightingShader.use();
 		m_LightingShader.setInt("gPosition", 0);
 		m_LightingShader.setInt("gNormal", 1);
 		m_LightingShader.setInt("gAlbedoSpec", 2);
 		m_LightingShader.setInt("gRoughAO", 3);
+		m_LightingShader.setInt("u_IrradianceMap", 4);
+		m_LightingShader.setInt("u_PrefilterMap", 5);
+		m_LightingShader.setInt("u_BrdfLUT", 6);
 
 		SceneManager::GetSceneManager()->GetSceneRef()->CreateEntity();
 		CreateOffScreenTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
@@ -181,9 +189,12 @@ namespace core
 		// 2. Lighting pass (render to default framebuffer)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // Clear default framebuffer for lighting
-		
+
 		m_LightingShader.use();
 		m_LightingShader.setVec3("camPos", m_EditorCamera->GetPosition());
+		// bind pre-computed IBL data
+		
+
 		// Pass these as uniforms to the shader
 		for (unsigned int i = 0; i < lightPositions.size(); ++i)
 		{
@@ -198,6 +209,13 @@ namespace core
 		m_GBuffer->BindNormalTexture();    // Normals
 		m_GBuffer->BindColorTexture();     // Color + Specular
 		m_GBuffer->BindRoughnessAOTexture();  // World positions
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, ibl.GetIrradianceTexture());
+		glActiveTexture(GL_TEXTURE5);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, ibl.GetPrefilterTexture());
+		glActiveTexture(GL_TEXTURE6);
+		glBindTexture(GL_TEXTURE_2D, ibl.GetBrdfLUTTexture());
+
 		m_Quad.renderQuad();
 
 
@@ -216,15 +234,40 @@ namespace core
 
 		// 4. Render scene model and skybox (to default framebuffer)
 		// - Render scene model
+		if (m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->IsRunning())
+		{
+			ibl.BindCubemapFramebuffer();
+			m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->SetShader();
+			for (int i = 0; i < 6; i++)
+			{
+				ibl.RenderAtmosphereToCubemapFace(i);
+				m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render(ibl.views[i], ibl.projection);
+			}
+			ibl.UnbindFramebuffer();
+
+			ibl.RenderIrradianceCubemap();
+			ibl.UnbindFramebuffer();
+
+			ibl.RenderPrefilterCubemap();
+			ibl.UnbindFramebuffer();
+		}
+
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render();
 
-		
 
 		// 5. Copy final rendered result from default framebuffer to texture for ImGui
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // Read from default framebuffer
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_ScreenFramebuffer); // Draw to texture
 		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind final framebuffer
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, ibl.GetPrefilterTexture());
+		test.use();
+		test.setInt("irradianceMap", 0);
+		test.setMat4("view", glm::mat4(glm::mat3(m_EditorCamera->GetViewMatrix())));
+		test.setMat4("projection", m_EditorCamera->getProjection());
+		RenderCube::Render();
 	}
 
 }

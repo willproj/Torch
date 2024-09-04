@@ -15,6 +15,10 @@ namespace core
 
 		void Render() override;
 		void OnUpdate() override;
+		void Render(const glm::mat4& view, const glm::mat4& projection) override;
+		void SetShader() override;
+		bool IsRunning() override;
+		void SetIsRunning(bool isRunning) override;
 
 		utils::Ref<SpecificationVariant> GetSpecification() override { return m_Specification; }
 		EnvironmentEntityType GetType() const override { return m_Type; }
@@ -27,6 +31,8 @@ namespace core
 		std::shared_ptr<TorchModel> m_SkyboxSphere;
 
 		GLuint ssbo;
+
+		bool m_IsRunning = false;
 	};
 }
 

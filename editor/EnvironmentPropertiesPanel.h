@@ -16,5 +16,8 @@ namespace editor
 	private:
 		void RenderAtmosphereHeader();
 		std::shared_ptr<core::EnvironmentManager> m_EnvirManager;
+
+		float m_LastAzimuthalAngle; // ¦È (rotation around Z-axis)
+		float m_LastPolarAngle; // ¦Õ (elevation angle from Z-axis)
 	};
 }

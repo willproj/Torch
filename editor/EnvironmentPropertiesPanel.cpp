@@ -55,7 +55,18 @@ namespace editor
 			// Polar angle (¦Õ) - Elevation angle from the Z-axis
 			ImGui::Text("Polar Angle");
 			ImGui::SliderFloat("##Polar Angle", &polarAngle, -M_PI / 2.0f, M_PI / 2.0f, "%.2f");
-			
+
+			if (m_LastAzimuthalAngle != azimuthalAngle || m_LastPolarAngle != polarAngle)
+			{
+				atmosphere->SetIsRunning(true);
+				m_LastAzimuthalAngle = azimuthalAngle;
+				m_LastPolarAngle = polarAngle;
+			}
+			else
+			{
+				atmosphere->SetIsRunning(false);
+			}
+
 			// Update sun position based on slider values
 			float x = cos(polarAngle) * cos(azimuthalAngle);
 			float y = cos(polarAngle) * sin(azimuthalAngle);
