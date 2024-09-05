@@ -21,6 +21,9 @@ uniform sampler2D u_MetallicMap;     // Metallic texture
 uniform sampler2D u_RoughnessMap;    // Roughness texture
 uniform sampler2D u_AoMap;           // Ambient occlusion texture
 
+uniform float u_Metallic;
+uniform float u_Roughness;
+
 vec3 getNormalFromMap()
 {
     vec3 tangentNormal = texture(u_NormalMap, TexCoords).xyz * 2.0 - 1.0;
@@ -47,7 +50,7 @@ void main()
     gNormal = getNormalFromMap();
 
     // Fetch the material properties from the textures
-    vec3 albedo = pow(texture(u_AlbedoMap, TexCoords).rgb, vec3(2.2));
+    vec3 albedo = pow(texture(u_AlbedoMap, TexCoords).rgb, vec3(3.2));
     float metallic = texture(u_MetallicMap, TexCoords).r;   // Metallic in red channel
     float roughness = texture(u_RoughnessMap, TexCoords).r; // Roughness in red channel
     float ao = texture(u_AoMap, TexCoords).r;               // AO in red channel
@@ -55,9 +58,11 @@ void main()
     // Store the albedo and metallic values in the gColorSpec buffer
     gAlbedoSpec.rgb = albedo;
     gAlbedoSpec.a = metallic;
+    //gAlbedoSpec.a = u_Metallic;
 
     // Store roughness and AO in the gSpecRoughAO buffer
     gRoughAO.r = roughness;
+    //gRoughAO.r = u_Roughness;
     gRoughAO.g = ao;
 
     //gRoughAO = vec3(1.0f,0.0f,1.0f);

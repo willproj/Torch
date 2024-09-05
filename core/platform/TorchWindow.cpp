@@ -42,6 +42,7 @@ namespace core
 
         glfwSetWindowUserPointer(m_Specification.glfwWindow, this);
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
         // set window size call back function
         glfwSetWindowSizeCallback(m_Specification.glfwWindow, [](GLFWwindow *window, int width, int height)

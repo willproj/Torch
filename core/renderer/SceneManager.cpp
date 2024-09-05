@@ -82,6 +82,9 @@ namespace core
 				glBindTexture(GL_TEXTURE_2D, materialComponent.aoTexture); // Bind AO texture
 				m_GeomotryPassShader.setInt("u_AoMap", 4); // Set shader uniform for AO map
 
+				m_GeomotryPassShader.setFloat("u_Roughness", materialComponent.roughness);
+				m_GeomotryPassShader.setFloat("u_Metallic", materialComponent.metallic);
+
 			}
 
 			// Render model

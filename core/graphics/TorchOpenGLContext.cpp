@@ -196,14 +196,9 @@ namespace core
 		
 
 		// Pass these as uniforms to the shader
-		for (unsigned int i = 0; i < lightPositions.size(); ++i)
-		{
-			glm::vec3 newPos = lightPositions[i] + glm::vec3(sin(glfwGetTime() * 5.0) * 5.0, 0.0, 0.0);
-			newPos = lightPositions[i];
-			m_LightingShader.setVec3("lightPositions[" + std::to_string(i) + "]", newPos);
-			m_LightingShader.setVec3("lightColors[" + std::to_string(i) + "]", lightColors[i]);
-		}
-
+		auto atmosphere = m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->GetSpecification();
+		m_LightingShader.setVec3("u_SunLightDir", std::get<AtmosphericScatteringSpecification>(atmosphere.get()).sunPosition);
+		m_LightingShader.setVec3("u_SunLightColor", glm::normalize(std::get<AtmosphericScatteringSpecification>(atmosphere.get()).finalSunlightColor) * 15.0f);
 
 		m_GBuffer->BindPositionTexture();  // World positions
 		m_GBuffer->BindNormalTexture();    // Normals
@@ -254,20 +249,21 @@ namespace core
 
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render();
 
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_CUBE_MAP, ibl.GetIrradianceTexture());
+		//test.use();
+		//test.setInt("irradianceMap", 0);
+		//test.setMat4("view", glm::mat4(glm::mat3(m_EditorCamera->GetViewMatrix())));
+		//test.setMat4("projection", m_EditorCamera->getProjection());
+		//RenderCube::Render();
 
 		// 5. Copy final rendered result from default framebuffer to texture for ImGui
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // Read from default framebuffer
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_ScreenFramebuffer); // Draw to texture
 		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind final framebuffer
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, ibl.GetPrefilterTexture());
-		test.use();
-		test.setInt("irradianceMap", 0);
-		test.setMat4("view", glm::mat4(glm::mat3(m_EditorCamera->GetViewMatrix())));
-		test.setMat4("projection", m_EditorCamera->getProjection());
-		RenderCube::Render();
+		
+		
 	}
 
 }

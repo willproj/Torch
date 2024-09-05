@@ -9,14 +9,16 @@ uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;  // RGB = Albedo, A = Metallic
 uniform sampler2D gRoughAO;     // R = Roughness, G = AO
 
+
 // IBL
 uniform samplerCube u_IrradianceMap;
 uniform samplerCube u_PrefilterMap;
 uniform sampler2D u_BrdfLUT;
 
 // Light properties
-uniform vec3 lightPositions[4];
-uniform vec3 lightColors[4];
+uniform vec3 u_SunLightDir;
+uniform vec3 u_SunLightColor;
+
 
 // Camera position
 uniform vec3 camPos;
@@ -93,11 +95,11 @@ void main()
     for(int i = 0; i < 4; ++i) 
     {
         // calculate per-light radiance
-        vec3 L = normalize(lightPositions[i] - WorldPos);
+        vec3 L = normalize(u_SunLightDir);
         vec3 H = normalize(V + L);
-        float distance = length(lightPositions[i] - WorldPos);
-        float attenuation = 1.0 / (distance * distance);
-        vec3 radiance = lightColors[i] * attenuation;
+        //float distance = length(lightPositions[i] - WorldPos);
+        //float attenuation = 1.0 / (distance * distance);
+        //vec3 radiance = lightColors[i] * attenuation;
 
         // Cook-Torrance BRDF
         float NDF = DistributionGGX(N, H, roughness);   
@@ -120,7 +122,10 @@ void main()
         kD *= 1.0 - metallic;	  
 
         // scale light by NdotL
-        float NdotL = max(dot(N, L), 0.0);        
+        float NdotL = max(dot(N, L), 0.0);
+        
+        // for directional light, no attenuation is needed
+        vec3 radiance = u_SunLightColor; 
 
         // add to outgoing radiance Lo
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;  // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again

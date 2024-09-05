@@ -18,9 +18,10 @@ namespace core
 	}
 
 	void IBL::Initialize() {
-		InitBrdf();
-		InitCubemap();
-		//InitEquiRectangle();
+		m_IrradianceShader = Shader(
+			std::string(PROJECT_ROOT) + "/assets/shader/cubemap.vert",
+			std::string(PROJECT_ROOT) + "/assets/shader/irradiance.frag"
+		);
 		glGenFramebuffers(1, &m_IrradianceFramebuffer);
 		glGenRenderbuffers(1, &m_IrradianceRenderBuffer);
 
@@ -30,8 +31,15 @@ namespace core
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_IrradianceRenderBuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+		InitBrdf();
+		InitCubemap();
+		//InitEquiRectangle();
+		
+
 		InitIrradianceCubemap();
 		InitPrefilterMap();
+
+		UnbindFramebuffer();
 	}
 
 	// BRDF LUT
@@ -142,9 +150,6 @@ namespace core
 	//------------------------------------irradiance map-------------------------------------------------------------------
 	void IBL::InitIrradianceCubemap()
 	{
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubemapTexture);
-		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-
 		glGenTextures(1, &m_IrradianceMap);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMap);
 		for (unsigned int i = 0; i < 6; ++i)
@@ -157,51 +162,45 @@ namespace core
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-		m_IrradianceShader = Shader(
-			std::string(PROJECT_ROOT) + "/assets/shader/cubemap.vert",
-			std::string(PROJECT_ROOT) + "/assets/shader/irradiance.frag"
-		);
-
 		glBindFramebuffer(GL_FRAMEBUFFER, m_IrradianceFramebuffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, m_IrradianceRenderBuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
+		//glBindRenderbuffer(GL_RENDERBUFFER, m_IrradianceRenderBuffer);
+		//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
 
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 			std::cout << "Framebuffer is not complete!" << std::endl;
 		}
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		//glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 
 	
 
-	void IBL::RenderIrradianceCubemap()
+	void IBL::RenderIrradianceCubemap() 
 	{
+		if (m_IrradianceFramebuffer)
+		{
+			glDeleteFramebuffers(1, &m_IrradianceFramebuffer);
+			glGenFramebuffers(1, &m_IrradianceFramebuffer);
+		}
 		glBindFramebuffer(GL_FRAMEBUFFER, m_IrradianceFramebuffer);
-		// Bind and set up the framebuffer
-		glViewport(0, 0, 32, 32);
-
-		// Use the irradiance convolution shader
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubemapTexture);
 		m_IrradianceShader.use();
 		m_IrradianceShader.setInt("environmentMap", 0);
 		m_IrradianceShader.setMat4("projection", projection);
+		glViewport(0, 0, 32, 32);  // Adjust size if needed
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubemapTexture);
-
-		// Render to each cubemap face
-		for (unsigned int i = 0; i < 6; ++i)
-		{
-			// Set view and projection matrix for current face
+		for (unsigned int i = 0; i < 6; ++i) {
 			m_IrradianceShader.setMat4("view", views[i]);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_IrradianceMap, 0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			RenderCube::Render();
 		}
 
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		UnbindFramebuffer();
 	}
+
 
 	
 	//------------------------------------------prefilter map------------------------------------------
