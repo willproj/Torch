@@ -185,7 +185,7 @@ namespace utils
 			out << YAML::Key << "Use Metallic" << YAML::Value << materialComp.useMetallicTexture;
 			out << YAML::Key << "Use Roughness" << YAML::Value << materialComp.useRoughnessTexture;
 			out << YAML::Key << "Use AO" << YAML::Value << materialComp.useAOTexture;
-
+			out << YAML::EndMap;
 		}
 
 		out << YAML::EndMap;

@@ -29,11 +29,12 @@ namespace core
         uint32_t GetGNormalTexture() const { return m_GNormal; }
         uint32_t GetGColorTexture() const { return m_GColorSpec; }
         uint32_t GetGDepthTexture() const { return m_GDepth; }
+        uint32_t GetGLightSpacePosition() const { return m_GLightSpacePosition; }
 
     private:
         uint32_t m_BufferID;
 
         std::vector<uint32_t> m_Attachments;
-        uint32_t m_GPosition, m_GNormal, m_GColorSpec, m_GSpecRoughAO, m_RedInt, m_GDepth;
+        uint32_t m_GPosition, m_GNormal, m_GColorSpec, m_GSpecRoughAO, m_RedInt, m_GDepth, m_GLightSpacePosition;
     };
 }

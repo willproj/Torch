@@ -139,7 +139,7 @@ namespace core
 		bool useRoughnessTexture = true;
 		bool useAOTexture = true;
 
-		float roughness = 0;
+		float roughness = 0.6;
 		float metallic = 0;
 
 		MaterialComponent() = default;

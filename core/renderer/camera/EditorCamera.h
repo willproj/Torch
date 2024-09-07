@@ -32,6 +32,8 @@ namespace core
         float GetYaw() const { return yaw; }
         void SetIsOnFocus(bool focus);
 
+        float GetNearClip() const { return nearClip; }
+        float GetFarClip() const { return farClip; }
     private:
         void UpdateProjection();
         void UpdateView();
@@ -45,6 +47,8 @@ namespace core
         std::pair<float, float> PanSpeed() const;
         float RotationSpeed() const;
         float ZoomSpeed() const;
+
+
 
     private:
         float FOV = 45.0f, aspectRatio = 1.778f, nearClip = 0.1f, farClip = 10000.0f;

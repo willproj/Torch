@@ -30,6 +30,16 @@ namespace core
 			std::string(PROJECT_ROOT) + "/assets/shader/test.vert",
 			std::string(PROJECT_ROOT) + "/assets/shader/test.frag");
 
+		vollight = Shader(
+			std::string(PROJECT_ROOT) + "/assets/shader/lighting.vert",
+			std::string(PROJECT_ROOT) + "/assets/shader/volumetricLighting.frag");
+
+		simpleshader = Shader(
+			std::string(PROJECT_ROOT) + "/assets/shader/shadowMapDepth.vert",
+			std::string(PROJECT_ROOT) + "/assets/shader/shadowMapDepth.frag");
+
+
+
 		m_LightingShader.use();
 		m_LightingShader.setInt("gPosition", 0);
 		m_LightingShader.setInt("gNormal", 1);
@@ -38,6 +48,8 @@ namespace core
 		m_LightingShader.setInt("u_IrradianceMap", 4);
 		m_LightingShader.setInt("u_PrefilterMap", 5);
 		m_LightingShader.setInt("u_BrdfLUT", 6);
+		m_LightingShader.setInt("u_ShadowMap", 7);
+		m_LightingShader.setInt("gLightSpacePosition", 8);
 
 		SceneManager::GetSceneManager()->GetSceneRef()->CreateEntity();
 		CreateOffScreenTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
@@ -173,6 +185,7 @@ namespace core
 		m_GBuffer->BindDepthTexture();  // World positions
 		m_Quad.renderQuad();
 	}
+	
 
 	void TorchOpenGLContext::DrawFrame()
 	{
@@ -186,17 +199,40 @@ namespace core
 		m_SceneManager->Render();
 		m_GBuffer->Unbind();
 
+
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// 1. render depth of scene to texture (from light's perspective)
+		// --------------------------------------------------------------
+		auto atmosphere = m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->GetSpecification();
+		glm::mat4 lightProjection, lightView;
+		glm::mat4 lightSpaceMatrix;
+		float near_plane = 1.0f, far_plane = 7.5f;
+		//lightProjection = glm::perspective(glm::radians(45.0f), (GLfloat)SHADOW_WIDTH / (GLfloat)SHADOW_HEIGHT, near_plane, far_plane); // note that if you use a perspective projection matrix you'll have to change the light position as the current light position isn't enough to reflect the whole scene
+		lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+		lightView = glm::lookAt(std::get<AtmosphericScatteringSpecification>(atmosphere.get()).sunPosition, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+		lightSpaceMatrix = lightProjection * lightView;
+		// render scene from light's point of view
+		simpleshader.use();
+		simpleshader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+		glViewport(0, 0, 1024, 1024);
+		shadowmap.Bind();
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glCullFace(GL_FRONT);
+		SceneManager::GetSceneManager()->RenderScene(simpleshader);
+		glCullFace(GL_BACK);
+		shadowmap.Unbind();
+		
+
 		// 2. Lighting pass (render to default framebuffer)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // Clear default framebuffer for lighting
 
 		m_LightingShader.use();
 		m_LightingShader.setVec3("camPos", m_EditorCamera->GetPosition());
-		// bind pre-computed IBL data
-		
-
 		// Pass these as uniforms to the shader
-		auto atmosphere = m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->GetSpecification();
 		m_LightingShader.setVec3("u_SunLightDir", std::get<AtmosphericScatteringSpecification>(atmosphere.get()).sunPosition);
 		m_LightingShader.setVec3("u_SunLightColor", glm::normalize(std::get<AtmosphericScatteringSpecification>(atmosphere.get()).finalSunlightColor) * 15.0f);
 
@@ -210,8 +246,27 @@ namespace core
 		glBindTexture(GL_TEXTURE_CUBE_MAP, ibl.GetPrefilterTexture());
 		glActiveTexture(GL_TEXTURE6);
 		glBindTexture(GL_TEXTURE_2D, ibl.GetBrdfLUTTexture());
-
+		glActiveTexture(GL_TEXTURE7);
+		glBindTexture(GL_TEXTURE_2D, shadowmap.GetShadowMapTexture());
+		glActiveTexture(GL_TEXTURE8);
+		glBindTexture(GL_TEXTURE_2D, m_GBuffer->GetGLightSpacePosition());
 		m_Quad.renderQuad();
+
+
+
+		// debug shadow map
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//
+		//vollight.use();
+		//vollight.setInt("gDepth", 0); // Texture unit 0 for depth texture
+		//vollight.setFloat("near_plane", m_EditorCamera->GetNearClip()); // Texture unit 0 for depth texture
+		//vollight.setFloat("far_plane", 10); // Texture unit 0 for depth texture
+		//
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, shadowmap.GetShadowMapTexture());
+		//
+		//m_Quad.renderQuad();
+
 
 
 		// 3. Blit depth buffer from GBuffer to default framebuffer
@@ -219,6 +274,9 @@ namespace core
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // Blit to default framebuffer
 		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind framebuffer
+
+		
+		
 
 		BindLightIDBuffer();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -249,13 +307,7 @@ namespace core
 
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render();
 
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_CUBE_MAP, ibl.GetIrradianceTexture());
-		//test.use();
-		//test.setInt("irradianceMap", 0);
-		//test.setMat4("view", glm::mat4(glm::mat3(m_EditorCamera->GetViewMatrix())));
-		//test.setMat4("projection", m_EditorCamera->getProjection());
-		//RenderCube::Render();
+		
 
 		// 5. Copy final rendered result from default framebuffer to texture for ImGui
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // Read from default framebuffer

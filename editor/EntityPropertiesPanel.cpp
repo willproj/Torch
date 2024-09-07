@@ -23,6 +23,7 @@ namespace editor
 		auto selectedEntityId = core::SceneManager::GetSceneManager()->GetSceneRef()->GetSelectedEntityID();
 		if (selectedEntityId == entt::null)
 		{
+			m_Entity = core::Entity();
 			ImGui::End();
 			return;
 		}
@@ -166,6 +167,7 @@ namespace editor
 				ImGui::Separator();
 
 				ImGui::Checkbox("Use Metallic", &material.useMetallicTexture);
+				ImGui::PushID(3);
 				if (ImGui::ImageButton((void*)(intptr_t)(material.metallicTexture == 0 ? m_DefaultTexture : material.metallicTexture), ImVec2(imageSize, imageSize)))
 				{
 					const std::string path = utils::FileUtils::OpenFile("Image Files (*.jpg;*.png)\0*.jpg;*.png\0");
@@ -176,9 +178,11 @@ namespace editor
 					}
 				}
 				ImGui::SliderFloat("Metallic", &material.metallic, 0.0f, 1.0f);
+				ImGui::PopID();
 				ImGui::Separator();
 
 				ImGui::Checkbox("Use Roughness", &material.useRoughnessTexture);
+				ImGui::PushID(4);
 				if (ImGui::ImageButton((void*)(intptr_t)(material.roughnessTexture == 0 ? m_DefaultTexture : material.roughnessTexture), ImVec2(imageSize, imageSize)))
 				{
 					const std::string path = utils::FileUtils::OpenFile("Image Files (*.jpg;*.png)\0*.jpg;*.png\0");
@@ -189,9 +193,11 @@ namespace editor
 					}
 				}
 				ImGui::SliderFloat("Roughness", &material.roughness, 0.0f, 1.0f);
+				ImGui::PopID();
 				ImGui::Separator();
 
-				ImGui::Checkbox("Use AO", &material.useNormalTexture);
+				ImGui::Checkbox("Use AO", &material.useAOTexture);
+				ImGui::PushID(5);
 				if (ImGui::ImageButton((void*)(intptr_t)(material.aoTexture == 0 ? m_DefaultTexture : material.aoTexture), ImVec2(imageSize, imageSize)))
 				{
 					const std::string path = utils::FileUtils::OpenFile("Image Files (*.jpg;*.png)\0*.jpg;*.png\0");
@@ -201,7 +207,7 @@ namespace editor
 						material.aoTexture = core::Texture::LoadTexture(path);
 					}
 				}
-
+				ImGui::PopID();
 				ImGui::Separator();
 			}
 		}
@@ -220,42 +226,19 @@ namespace editor
 		if (ImGui::BeginPopup("Create Component Window"))
 		{
 			ImGui::SeparatorText("Components");
-			for (int i = 0; i < m_ComponentsNames.size(); i++)
+			bool hasComponent = m_Entity.HasComponent<core::MaterialComponent>();
+			if (hasComponent)
 			{
-				bool alreadyAdded = m_AddedComponents.find(i) != m_AddedComponents.end();
-
-				// Disable the selectable if the component has already been added
-				if (alreadyAdded)
-				{
-					ImGui::BeginDisabled();
-				}
-
-				auto componentName = m_ComponentsNames[i];
-				if (ImGui::Selectable(componentName.c_str(), !alreadyAdded))
-				{
-					// Only allow selection if it hasn't already been added
-					if (!alreadyAdded)
-					{
-						if (componentName == "Add Color Component")
-						{
-
-						}
-
-						if (componentName == "Add Material Component")
-						{
-							m_Entity.AddComponent<core::MaterialComponent>();
-						}
-
-						selected = i;
-						m_AddedComponents.insert(i);  // Mark the component as added
-						ImGui::CloseCurrentPopup(); // Close the popup when an item is selected
-					}
-				}
-
-				if (alreadyAdded)
-				{
-					ImGui::EndDisabled();
-				}
+				ImGui::BeginDisabled();
+			}
+			if (ImGui::Selectable("Material Component", !hasComponent))
+			{
+				m_Entity.AddComponent<core::MaterialComponent>();
+				ImGui::CloseCurrentPopup();
+			}
+			if (hasComponent)
+			{
+				ImGui::EndDisabled();
 			}
 
 			ImGui::EndPopup();

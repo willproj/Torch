@@ -26,13 +26,6 @@ namespace editor
 		static void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f);
 
 		core::Entity m_Entity;
-
-		std::unordered_set<uint32_t> m_AddedComponents;
-		std::vector<std::string> m_ComponentsNames = {
-			"Add Color Component",
-			"Add Material Component"
-		};
-		
 		std::string m_ModelFilePath = "";
 		uint32_t m_DefaultTexture;
 	};

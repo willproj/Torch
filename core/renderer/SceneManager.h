@@ -28,6 +28,8 @@ namespace core
 		void SetScene(Scene&& scene);
 		void StencilOutlinePass();
 
+		void RenderScene(Shader shader);
+
 	private:
 		SceneManager();
 		Scene m_Scene;
