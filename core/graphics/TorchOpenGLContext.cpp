@@ -18,6 +18,8 @@ namespace core
 		
 		m_WindowPtr = utils::ServiceLocator::GetWindow();
 		m_EditorCamera = std::make_shared<EditorCamera>();
+
+		shadowmap.Initialize(m_EditorCamera);
 		
 		m_SceneManager = SceneManager::GetSceneManager();
 		m_SceneManager->SetCamera(m_EditorCamera);
@@ -29,6 +31,10 @@ namespace core
 		test = Shader(
 			std::string(PROJECT_ROOT) + "/assets/shader/test.vert",
 			std::string(PROJECT_ROOT) + "/assets/shader/test.frag");
+
+		debugCascadeShader = Shader(
+			std::string(PROJECT_ROOT) + "/assets/shader/debugcascade.vert",
+			std::string(PROJECT_ROOT) + "/assets/shader/debugcascade.frag");
 
 		auto& lightingPassShader = ShaderManager::GetInstance()->GetLightingPassShaderRef();
 		lightingPassShader.use();
@@ -189,9 +195,10 @@ namespace core
 		// --------------------------------------------------------------
 		auto atmosphere = m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->GetSpecification();
 		
+		shadowmap.UBOSetup();
 
-		glViewport(0, 0, 1024, 1024);
 		shadowmap.Bind();
+		glViewport(0, 0, shadowmap.GetDepthMapResolution(), shadowmap.GetDepthMapResolution());
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glCullFace(GL_FRONT);
 		SceneManager::GetSceneManager()->RenderScene();
@@ -205,10 +212,17 @@ namespace core
 		auto& lightingPassShader = ShaderManager::GetInstance()->GetLightingPassShaderRef();
 		lightingPassShader.use();
 		lightingPassShader.setVec3("camPos", m_EditorCamera->GetPosition());
+		lightingPassShader.setMat4("view", m_EditorCamera->GetViewMatrix());
 		// Pass these as uniforms to the shader
 		lightingPassShader.setVec3("u_SunLightDir", std::get<AtmosphericScatteringSpecification>(atmosphere.get()).sunPosition);
 		lightingPassShader.setVec3("u_SunLightColor", glm::normalize(std::get<AtmosphericScatteringSpecification>(atmosphere.get()).finalSunlightColor) * 15.0f);
-		
+		lightingPassShader.setFloat("farPlane", m_EditorCamera->GetFarClip());
+		lightingPassShader.setInt("cascadeCount", m_EditorCamera->shadowCascadeLevels.size());
+		for (size_t i = 0; i < m_EditorCamera->shadowCascadeLevels.size(); ++i)
+		{
+			lightingPassShader.setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", m_EditorCamera->shadowCascadeLevels[i]);
+		}
+
 		Texture::BindTexture(0, GL_TEXTURE_2D, m_GBuffer->GetGPositionTexture());
 		Texture::BindTexture(1, GL_TEXTURE_2D, m_GBuffer->GetGNormalTexture());
 		Texture::BindTexture(2, GL_TEXTURE_2D, m_GBuffer->GetGColorTexture());
@@ -216,9 +230,11 @@ namespace core
 		Texture::BindTexture(4, GL_TEXTURE_CUBE_MAP, ibl.GetIrradianceTexture());
 		Texture::BindTexture(5, GL_TEXTURE_CUBE_MAP, ibl.GetPrefilterTexture());
 		Texture::BindTexture(6, GL_TEXTURE_2D, ibl.GetBrdfLUTTexture());
-		Texture::BindTexture(7, GL_TEXTURE_2D, shadowmap.GetShadowMapTexture());
+		Texture::BindTexture(7, GL_TEXTURE_2D_ARRAY, shadowmap.GetShadowMapTexture());
 		Texture::BindTexture(8, GL_TEXTURE_2D, m_GBuffer->GetGLightSpacePosition());
 		RenderQuad::Render();
+
+		
 
 
 		// debug shadow map
@@ -230,9 +246,8 @@ namespace core
 		//vollight.setFloat("far_plane", 10); // Texture unit 0 for depth texture
 		//
 		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, shadowmap.GetShadowMapTexture());
-		//
-		//m_Quad.renderQuad();
+		//glBindTexture(GL_TEXTURE_2D_ARRAY, shadowmap.GetShadowMapTexture());
+		//RenderQuad::Render();
 
 		// 3. Blit depth buffer from GBuffer to default framebuffer
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_GBuffer->GetFramebufferID());
@@ -267,6 +282,19 @@ namespace core
 			ibl.RenderPrefilterCubemap();
 			ibl.UnbindFramebuffer();
 		}
+
+
+		//shadowmap.lightMatricesCache = shadowmap.getLightSpaceMatrices();
+		//if (shadowmap.lightMatricesCache.size() != 0)
+		//{
+		//	glEnable(GL_BLEND);
+		//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//	debugCascadeShader.use();
+		//	debugCascadeShader.setMat4("projection", m_EditorCamera->getProjection());
+		//	debugCascadeShader.setMat4("view", m_EditorCamera->GetViewMatrix());
+		//	shadowmap.drawCascadeVolumeVisualizers(shadowmap.lightMatricesCache, &debugCascadeShader);
+		//	glDisable(GL_BLEND);
+		//}
 
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render();
 

@@ -34,6 +34,14 @@ namespace core
 
         float GetNearClip() const { return nearClip; }
         float GetFarClip() const { return farClip; }
+        float GetZoom() const { return FOV; }
+
+
+        float GetViewportWidth() const { return viewportWidth; }
+        float GetViewportHeight() const { return viewportHeight; }
+
+        std::vector<float> shadowCascadeLevels{ 25.0f, 75.0f, 200.0f, 1000.0f };
+
     private:
         void UpdateProjection();
         void UpdateView();
@@ -49,9 +57,8 @@ namespace core
         float ZoomSpeed() const;
 
 
-
     private:
-        float FOV = 45.0f, aspectRatio = 1.778f, nearClip = 0.1f, farClip = 10000.0f;
+        float FOV = 45.0f, aspectRatio = 1.778f, nearClip = 0.1f, farClip = 1000.0f;
 
         glm::mat4 viewMatrix;
         glm::vec3 position = { 0.0f, 0.0f, 0.0f };

@@ -12,7 +12,7 @@ in vec2 TexCoords;
 in vec3 FragPos;
 in vec3 Normal;
 in vec3 WorldPos;
-in vec4 FragPosLightSpace;
+//in vec4 FragPosLightSpace;
 
 uniform int entity;
 
@@ -62,7 +62,7 @@ vec3 getNormalFromMap()
 
 void main()
 {    
-    gLightSpacePosition = FragPosLightSpace;
+    //gLightSpacePosition = FragPosLightSpace;
 
     // Store the fragment position in the G-buffer texture
     gPosition = WorldPos;

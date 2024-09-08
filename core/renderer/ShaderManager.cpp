@@ -51,7 +51,8 @@ namespace core
 		// Shadow Map Depth Shader
 		m_ShadowMapDepthShader = Shader(
 			root + "/assets/shader/shadowMapDepth.vert",
-			root + "/assets/shader/shadowMapDepth.frag"
+			root + "/assets/shader/shadowMapDepth.frag",
+			root + "/assets/shader/shadowMapDepth.geom"
 		);
 
 	}

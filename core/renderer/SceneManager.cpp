@@ -38,17 +38,7 @@ namespace core
 	void SceneManager::RenderScene()
 	{
 		auto& shadowMapDepthShader = ShaderManager::GetInstance()->GetShadowMapDepthShader();
-		auto atmosphere = EnvironmentManager::GetInstance()->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->GetSpecification();
-		glm::mat4 lightProjection, lightView;
-		glm::mat4 lightSpaceMatrix;
-		float near_plane = 1.0f, far_plane = 7.5f;
-		lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-		lightView = glm::lookAt(std::get<AtmosphericScatteringSpecification>(atmosphere.get()).sunPosition, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-		lightSpaceMatrix = lightProjection * lightView;
-
-		// render scene from light's point of view
 		shadowMapDepthShader.use();
-		shadowMapDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 
 		for (auto entityID : m_Scene.GetGeneralEntityIDs())
 		{
@@ -90,20 +80,6 @@ namespace core
 		gemotryPassShader.use();
 		gemotryPassShader.setMat4("view", m_EditorCameraPtr->GetViewMatrix());
 		gemotryPassShader.setMat4("projection", m_EditorCameraPtr->getProjection());
-
-		auto atmosphere = EnvironmentManager::GetInstance()->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->GetSpecification();
-		glm::mat4 lightProjection, lightView;
-		glm::mat4 lightSpaceMatrix;
-		float near_plane = 1.0f, far_plane = 7.5f;
-		float orthoSize = 10.0f;
-		//lightProjection = glm::perspective(glm::radians(45.0f), (GLfloat)1280/ (GLfloat)720, m_EditorCameraPtr->GetNearClip(), m_EditorCameraPtr->GetFarClip()); // note that if you use a perspective projection matrix you'll have to change the light position as the current light position isn't enough to reflect the whole scene
-		lightProjection = glm::ortho(-orthoSize, orthoSize, -orthoSize, orthoSize, near_plane, far_plane);
-		lightView = glm::lookAt(std::get<AtmosphericScatteringSpecification>(atmosphere.get()).sunPosition * 1.0f, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-		lightSpaceMatrix = lightProjection * lightView;
-		// render scene from light's point of view
-		gemotryPassShader.use();
-		gemotryPassShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-
 		// Iterate over entities and render
 		for (auto entityID : m_Scene.GetGeneralEntityIDs())
 		{

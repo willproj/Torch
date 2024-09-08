@@ -19,44 +19,81 @@ uniform sampler2D u_BrdfLUT;
 uniform vec3 u_SunLightDir;
 uniform vec3 u_SunLightColor;
 
-uniform sampler2D u_ShadowMap;
+// Shadow map 
+uniform sampler2DArray u_ShadowMap;
+uniform float farPlane;
+layout (std140) uniform LightSpaceMatrices
+{
+    mat4 lightSpaceMatrices[16];
+};
+uniform float cascadePlaneDistances[16];
+uniform int cascadeCount;   // number of frusta - 1
 
 // Camera position
 uniform vec3 camPos;
+uniform mat4 view;
 
 // Shadow Map calculation
-float ShadowCalculation(vec4 fragPosLightSpace)
+float ShadowCalculation(vec3 fragPosWorldSpace, vec3 N)
 {
+    // select cascade layer
+    vec4 fragPosViewSpace = view * vec4(fragPosWorldSpace, 1.0);
+    float depthValue = abs(fragPosViewSpace.z);
+
+    int layer = -1;
+    for (int i = 0; i < cascadeCount; ++i)
+    {
+        if (depthValue < cascadePlaneDistances[i])
+        {
+            layer = i;
+            break;
+        }
+    }
+    if (layer == -1)
+    {
+        layer = cascadeCount;
+    }
+
+    vec4 fragPosLightSpace = lightSpaceMatrices[layer] * vec4(fragPosWorldSpace, 1.0);
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     // transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
-    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float closestDepth = texture(u_ShadowMap, projCoords.xy).r; 
+
+
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
+
+    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+    if (currentDepth > 1.0)
+    {
+        return 0.0;
+    }
     // calculate bias (based on depth map resolution and slope)
-    vec3 normal =  normalize(texture(gNormal, TexCoords).rgb);
-    vec3 lightDir = normalize(u_SunLightDir);
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-    // check whether current frag pos is in shadow
-    // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+    vec3 normal = N;
+    float bias = max(0.05 * (1.0 - dot(normal, u_SunLightDir)), 0.005);
+    const float biasModifier = 0.5f;
+    if (layer == cascadeCount)
+    {
+        bias *= 1 / (farPlane * biasModifier);
+    }
+    else
+    {
+        bias *= 1 / (cascadePlaneDistances[layer] * biasModifier);
+    }
+
     // PCF
     float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(u_ShadowMap, 0);
+    vec2 texelSize = 1.0 / vec2(textureSize(u_ShadowMap, 0));
     for(int x = -1; x <= 1; ++x)
     {
         for(int y = -1; y <= 1; ++y)
         {
-            float pcfDepth = texture(u_ShadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
-            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;        
+            float pcfDepth = texture(u_ShadowMap, vec3(projCoords.xy + vec2(x, y) * texelSize, layer)).r;
+            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;        
         }    
     }
     shadow /= 9.0;
-    
-    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
-    if(projCoords.z > 1.0)
-        shadow = 0.0;
         
     return shadow;
 }
@@ -108,7 +145,7 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     return ggx1 * ggx2;
 }
 
-vec3 lightingCalculation(vec3 Lo, vec4 fragPosLightSpace, float shadow, vec3 lightDir, vec3 V, vec3 N, vec3 F0, float metallic, float roughness, vec3 albedo)
+vec3 lightingCalculation(vec3 Lo, float shadow, vec3 lightDir, vec3 V, vec3 N, vec3 F0, float metallic, float roughness, vec3 albedo)
 {
      // calculate per-light radiance
     vec3 L = normalize(lightDir);
@@ -145,7 +182,7 @@ vec3 lightingCalculation(vec3 Lo, vec4 fragPosLightSpace, float shadow, vec3 lig
     
     
     // add to outgoing radiance Lo
-    Lo += (kD * albedo / PI + specular) * radiance * NdotL; 
+    Lo += (kD * albedo / PI + specular)  * (1- shadow) * radiance * NdotL; 
     return Lo;
 }
 
@@ -170,9 +207,9 @@ void main()
 
     // Lighting calculations
     vec3 Lo = vec3(0.0);
-    vec4 fragPosLightSpace = texture(gLightSpacePosition, TexCoords);
-    float shadow = ShadowCalculation(fragPosLightSpace); 
-    Lo = lightingCalculation(Lo, fragPosLightSpace, shadow, u_SunLightDir, V, N, F0,metallic, roughness, albedo);
+    //vec4 fragPosLightSpace = texture(gLightSpacePosition, TexCoords);
+    float shadow = ShadowCalculation(WorldPos, N); 
+    Lo = lightingCalculation(Lo, shadow, u_SunLightDir, V, N, F0,metallic, roughness, albedo);
 
     // ambient lighting (we now use IBL as the ambient term)
     vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
@@ -193,7 +230,7 @@ void main()
    
     
     vec3 ambient = (kD * diffuse + specular) * ao;
-    vec3 color = ambient + Lo * (1-shadow);
+    vec3 color = ambient + Lo;
 
 
     // HDR tonemapping

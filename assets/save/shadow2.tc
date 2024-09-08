@@ -1,0 +1,52 @@
+Scene: unknow
+Entities:
+  - UUID Component:
+      Entity UUID: 128f9140-6ef0-4d45-b4da-000043b0cce8139326eb
+    Entity Type Component:
+      Entity Type: General
+    Label Component:
+      Label: new entity
+    Transform Component:
+      Translation: [0, -4.21718502, 0]
+      Rotation: [0, 0, 0]
+      Scale: [25.6292973, 1, 32.3171616]
+    Model Component:
+      Mesh Path: D:\github\Torch\assets\models\cube\cube.glb
+    Material Component:
+      Albedo Path: D:\github\Torch\assets\texture\plastic\albedo.png
+      Normal Path: D:\github\Torch\assets\texture\plastic\normal.png
+      Metallic Path: D:\github\Torch\assets\texture\plastic\metallic.png
+      Roughness Path: D:\github\Torch\assets\texture\plastic\roughness.png
+      AO Path: D:\github\Torch\assets\texture\plastic\ao.png
+      Metallic: 0
+      Roughness: 0.600000024
+      Use Albedo: true
+      Use Normal: true
+      Use Metallic: true
+      Use Roughness: true
+      Use AO: true
+  - UUID Component:
+      Entity UUID: 00f48218-9253-443d-9c00-0000726b2c42d6cfb49a
+    Entity Type Component:
+      Entity Type: General
+    Label Component:
+      Label: entity
+    Transform Component:
+      Translation: [3.43192744, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Model Component:
+      Mesh Path: D:\github\Torch\assets\models\cube\cube.glb
+    Material Component:
+      Albedo Path: D:\github\Torch\assets\texture\plastic\albedo.png
+      Normal Path: D:\github\Torch\assets\texture\plastic\normal.png
+      Metallic Path: D:\github\Torch\assets\texture\plastic\metallic.png
+      Roughness Path: D:\github\Torch\assets\texture\plastic\roughness.png
+      AO Path: D:\github\Torch\assets\texture\plastic\ao.png
+      Metallic: 0
+      Roughness: 1
+      Use Albedo: true
+      Use Normal: true
+      Use Metallic: true
+      Use Roughness: true
+      Use AO: true

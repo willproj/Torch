@@ -74,6 +74,7 @@ namespace core
 
 		HDR m_HDR;
 		ShadowMap shadowmap;
+		Shader debugCascadeShader;
 
 		// lights
 		// ------
