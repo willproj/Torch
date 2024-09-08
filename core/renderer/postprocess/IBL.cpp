@@ -73,7 +73,7 @@ namespace core
 	void IBL::RenderBrdfLUT() {
 		m_BrdfShader.use();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		m_RenderQuad.renderQuad();
+		m_RenderQuad.Render();
 		UnbindFramebuffer();
 	}
 
@@ -143,7 +143,7 @@ namespace core
 		SetFramebufferAndViewport(m_EquiRectangleFramebuffer, m_EquiRectangleSize, m_EquiRectangleSize);
 		m_EquiRectangleShader.use();
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_CubemapTexture);
-		m_RenderQuad.renderQuad();
+		m_RenderQuad.Render();
 		UnbindFramebuffer();
 	}
 

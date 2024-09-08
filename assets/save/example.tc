@@ -1,6 +1,30 @@
 Scene: unknow
 Entities:
   - UUID Component:
+      Entity UUID: a05c4514-5b08-46ca-bbce-000051bd83241531bd0
+    Entity Type Component:
+      Entity Type: Light
+    Label Component:
+      Label: lights
+    Transform Component:
+      Translation: [0, 0, 851.280457]
+      Rotation: [0, 0, 0]
+      Scale: [104.141998, 104.141998, 104.141998]
+    Model Component:
+      Mesh Path: D:\github\Torch\assets\models\cube\cube.glb
+  - UUID Component:
+      Entity UUID: a78cd598-c6f5-4fe4-b223-0000235952b69819c9dc
+    Entity Type Component:
+      Entity Type: General
+    Label Component:
+      Label: new entity
+    Transform Component:
+      Translation: [-383.804382, -600.896667, 0]
+      Rotation: [0, 0, 0]
+      Scale: [292.832794, 292.832794, 292.832794]
+    Model Component:
+      Mesh Path: D:\github\Torch\assets\models\cube\cube.glb
+  - UUID Component:
       Entity UUID: 362f157c-c7ae-4e16-a285-00008add7034fc681e43
     Entity Type Component:
       Entity Type: General
@@ -25,15 +49,3 @@ Entities:
       Use Metallic: true
       Use Roughness: true
       Use AO: true
-  - UUID Component:
-      Entity UUID: a78cd598-c6f5-4fe4-b223-0000235952b69819c9dc
-    Entity Type Component:
-      Entity Type: General
-    Label Component:
-      Label: new entity
-    Transform Component:
-      Translation: [-383.804382, -600.896667, 0]
-      Rotation: [0, 0, 0]
-      Scale: [292.832794, 292.832794, 292.832794]
-    Model Component:
-      Mesh Path: D:\github\Torch\assets\models\cube\cube.glb

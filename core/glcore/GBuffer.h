@@ -12,12 +12,6 @@ namespace core
         void Bind() const;
         void Unbind() const;
 
-        void BindPositionTexture() const;
-        void BindNormalTexture() const;
-        void BindColorTexture() const;
-        void BindDepthTexture() const;
-        void BindRoughnessAOTexture() const;
-
         void OnUpdate();
         void Create();
         void Initialize();
@@ -30,11 +24,12 @@ namespace core
         uint32_t GetGColorTexture() const { return m_GColorSpec; }
         uint32_t GetGDepthTexture() const { return m_GDepth; }
         uint32_t GetGLightSpacePosition() const { return m_GLightSpacePosition; }
+        uint32_t GetGRoughnessAOTexture() const { return m_GSpecRoughAO; }
 
     private:
         uint32_t m_BufferID;
 
         std::vector<uint32_t> m_Attachments;
-        uint32_t m_GPosition, m_GNormal, m_GColorSpec, m_GSpecRoughAO, m_RedInt, m_GDepth, m_GLightSpacePosition;
+        uint32_t m_GPosition = 0, m_GNormal = 0, m_GColorSpec = 0, m_GSpecRoughAO = 0, m_RedInt = 0, m_GDepth = 0, m_GLightSpacePosition = 0;
     };
 }

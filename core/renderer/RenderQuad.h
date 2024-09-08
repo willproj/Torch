@@ -5,10 +5,11 @@ namespace core
 {
     class RenderQuad
     {
-    public:
+    private:
         inline static unsigned int quadVAO = 0;
         inline static unsigned int quadVBO;
-        static void renderQuad()
+    public:
+        static void Render()
         {
             if (quadVAO == 0)
             {

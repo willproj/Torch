@@ -26,7 +26,6 @@ namespace core
 		void Initialize();
 		void SetDefault();
 		void RenderAtmosphere();
-		Shader m_Shader;
 		SpecificationVariant m_Specification = AtmosphericScatteringSpecification();
 		std::shared_ptr<TorchModel> m_SkyboxSphere;
 

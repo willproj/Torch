@@ -12,13 +12,17 @@ out vec4 FragPosLightSpace;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform mat4 lightSpaceMatrix ;
+uniform mat4 lightSpaceMatrix;
+
+uniform vec3 scale;        
+uniform vec3 tilingFactor;
 
 void main()
 {
     vec4 worldPos = model * vec4(aPos, 1.0);
     WorldPos = worldPos.xyz;
     FragPos = worldPos.xyz; 
+    //TexCoords = aTexCoords * (tilingFactor.xy / scale.xy);
     TexCoords = aTexCoords;
     
     Normal = transpose(inverse(mat3(model))) * aNormal;  

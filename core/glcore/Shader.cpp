@@ -28,22 +28,11 @@ namespace core
 
     Shader::Shader(const std::string& computePath)
     {
-        // 1. retrieve the vertex/fragment source code from filePath
-        //std::string computeCode = utils::FileUtils::ReadShaderFile(computePath);
-        //const char* computeCodeStr = computeCode.c_str();
-        //// 2. compile shaders
-        //uint32_t compute;
-        //// compute shader
-        //compute = glCreateShader(GL_COMPUTE_SHADER);
-        //glShaderSource(compute, 1, &computeCodeStr, NULL);
-        //glCompileShader(compute);
-        //
-        //// shader Program
-        //m_ShaderID = glCreateProgram();
-        //glAttachShader(m_ShaderID, compute);
-        //glLinkProgram(m_ShaderID);
-        //glDeleteShader(compute);
+        InitShader(computePath);
+    }
 
+    void Shader::InitShader(const std::string& computePath)
+    {
         // 1. retrieve the vertex/fragment source code from filePath
         std::string computeCode;
         std::ifstream cShaderFile;
@@ -84,8 +73,7 @@ namespace core
         glDeleteShader(compute);
     }
 
-
-    Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath, const std::string& geometryPath)
+    void Shader::InitShader(const std::string& vertexPath, const std::string& fragmentPath, const std::string& geometryPath)
     {
         // Load and compile shaders
         std::string vertexCode = utils::FileUtils::ReadShaderFile(vertexPath);
@@ -113,6 +101,11 @@ namespace core
             glDeleteShader(geometry);
     }
 
+
+    Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath, const std::string& geometryPath)
+    {
+        InitShader(vertexPath, fragmentPath, geometryPath);
+    }
 
     uint32_t Shader::CreateShader(const std::string& source, GLenum shaderType)
     {

@@ -7,7 +7,7 @@ namespace core
 	{
         m_WindowPtr = utils::ServiceLocator::GetWindow();
         m_HDRShader = Shader(
-            std::string(PROJECT_ROOT) + "/assets/shader/lighting.vert",
+            std::string(PROJECT_ROOT) + "/assets/shader/lightingPass.vert",
             std::string(PROJECT_ROOT) + "/assets/shader/hdr.frag");
         Create();
 	}

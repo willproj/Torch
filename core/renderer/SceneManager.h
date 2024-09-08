@@ -28,7 +28,7 @@ namespace core
 		void SetScene(Scene&& scene);
 		void StencilOutlinePass();
 
-		void RenderScene(Shader shader);
+		void RenderScene();
 
 	private:
 		SceneManager();
@@ -37,9 +37,6 @@ namespace core
 		static std::shared_ptr<SceneManager> m_SceneManager;
 		std::shared_ptr<EditorCamera> m_EditorCameraPtr;
 
-		Shader m_GeomotryPassShader;
-		Shader m_LightsShader;
-		Shader m_LightsIDShader;
 		Shader m_StencilOutlineShader;
 	};
 }

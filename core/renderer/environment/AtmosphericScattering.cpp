@@ -1,6 +1,7 @@
 #include "AtmosphericScattering.h"
 #include "core/renderer/ModelManager.h"
 #include "core/renderer/RenderCube.h"
+#include "core/renderer/ShaderManager.h"
 
 namespace core
 {
@@ -9,10 +10,6 @@ namespace core
 		SetDefault();
 
 		m_Type = EnvironmentEntityType::Atmosphere;
-		m_Shader= Shader(
-			std::string(PROJECT_ROOT) + "/assets/shader/skybox.vert",
-			std::string(PROJECT_ROOT) + "/assets/shader/skybox.frag");
-		
 		const std::string filepath = std::string(PROJECT_ROOT) + "/assets/models/essential/sphere/scene.gltf";
 		m_SkyboxSphere = ModelManager::GetInstance()->LoadModel(filepath);
 
@@ -77,26 +74,28 @@ namespace core
 
 	void AtmosphericScattering::SetShader()
 	{
+		auto& shader = ShaderManager::GetInstance()->GetAtmosphereShaderRef();
 		auto& specific = std::get<AtmosphericScatteringSpecification>(m_Specification);
-		m_Shader.use();
-		m_Shader.setVec3("u_SunPosition", specific.sunPosition);
-		m_Shader.setFloat("u_SunIntensity", specific.sunIntensity);
-		m_Shader.setFloat("u_RayTMin", specific.rayTMin);
-		m_Shader.setFloat("u_EarthRadius", specific.earthRadius);
-		m_Shader.setFloat("u_AtmosphereHeight", specific.atmosphereHeight);
-		m_Shader.setFloat("u_RayleighHeight", specific.rayleighHeight);
-		m_Shader.setFloat("u_MieHeight", specific.mieHeight);
-		m_Shader.setVec3("u_RayleighScatteringCoef", specific.rayleighScatteringCoef);
-		m_Shader.setVec3("u_MieScatteringCoef", specific.mieScatteringCoef);
-		m_Shader.setVec3("u_OzoneAbsorptionCoef", specific.ozoneAbsorptionCoef);
-		m_Shader.setVec3("u_SunColor", specific.sunColor);
-		m_Shader.setFloat("u_SunAngle", specific.sunAngle);
+		shader.use();
+		shader.setVec3("u_SunPosition", specific.sunPosition);
+		shader.setFloat("u_SunIntensity", specific.sunIntensity);
+		shader.setFloat("u_RayTMin", specific.rayTMin);
+		shader.setFloat("u_EarthRadius", specific.earthRadius);
+		shader.setFloat("u_AtmosphereHeight", specific.atmosphereHeight);
+		shader.setFloat("u_RayleighHeight", specific.rayleighHeight);
+		shader.setFloat("u_MieHeight", specific.mieHeight);
+		shader.setVec3("u_RayleighScatteringCoef", specific.rayleighScatteringCoef);
+		shader.setVec3("u_MieScatteringCoef", specific.mieScatteringCoef);
+		shader.setVec3("u_OzoneAbsorptionCoef", specific.ozoneAbsorptionCoef);
+		shader.setVec3("u_SunColor", specific.sunColor);
+		shader.setFloat("u_SunAngle", specific.sunAngle);
 	}
 
 	void AtmosphericScattering::Render(const glm::mat4& view, const glm::mat4& projection)
 	{
-		m_Shader.setMat4("view", view);
-		m_Shader.setMat4("projection", projection);
+		auto& shader = ShaderManager::GetInstance()->GetAtmosphereShaderRef();
+		shader.setMat4("view", view);
+		shader.setMat4("projection", projection);
 		glDepthFunc(GL_LEQUAL);
 		RenderCube::Render();
 		glDepthFunc(GL_LESS);
@@ -104,23 +103,24 @@ namespace core
 
 	void AtmosphericScattering::RenderAtmosphere()
 	{
+		auto& shader = ShaderManager::GetInstance()->GetAtmosphereShaderRef();
 		auto& specific = std::get<AtmosphericScatteringSpecification>(m_Specification);
 		glDepthFunc(GL_LEQUAL);
-		m_Shader.use();
-		m_Shader.setMat4("view", glm::mat4(glm::mat3(m_CurrentCamera->GetViewMatrix())));
-		m_Shader.setMat4("projection", m_CurrentCamera->getProjection());
-		m_Shader.setVec3("u_SunPosition", specific.sunPosition);
-		m_Shader.setFloat("u_SunIntensity", specific.sunIntensity);
-		m_Shader.setFloat("u_RayTMin", specific.rayTMin);
-		m_Shader.setFloat("u_EarthRadius", specific.earthRadius);
-		m_Shader.setFloat("u_AtmosphereHeight", specific.atmosphereHeight);
-		m_Shader.setFloat("u_RayleighHeight", specific.rayleighHeight);
-		m_Shader.setFloat("u_MieHeight", specific.mieHeight);
-		m_Shader.setVec3("u_RayleighScatteringCoef", specific.rayleighScatteringCoef);
-		m_Shader.setVec3("u_MieScatteringCoef", specific.mieScatteringCoef);
-		m_Shader.setVec3("u_OzoneAbsorptionCoef", specific.ozoneAbsorptionCoef);
-		m_Shader.setVec3("u_SunColor", specific.sunColor);
-		m_Shader.setFloat("u_SunAngle", specific.sunAngle);
+		shader.use();
+		shader.setMat4("view", glm::mat4(glm::mat3(m_CurrentCamera->GetViewMatrix())));
+		shader.setMat4("projection", m_CurrentCamera->getProjection());
+		shader.setVec3("u_SunPosition", specific.sunPosition);
+		shader.setFloat("u_SunIntensity", specific.sunIntensity);
+		shader.setFloat("u_RayTMin", specific.rayTMin);
+		shader.setFloat("u_EarthRadius", specific.earthRadius);
+		shader.setFloat("u_AtmosphereHeight", specific.atmosphereHeight);
+		shader.setFloat("u_RayleighHeight", specific.rayleighHeight);
+		shader.setFloat("u_MieHeight", specific.mieHeight);
+		shader.setVec3("u_RayleighScatteringCoef", specific.rayleighScatteringCoef);
+		shader.setVec3("u_MieScatteringCoef", specific.mieScatteringCoef);
+		shader.setVec3("u_OzoneAbsorptionCoef", specific.ozoneAbsorptionCoef);
+		shader.setVec3("u_SunColor", specific.sunColor);
+		shader.setFloat("u_SunAngle", specific.sunAngle);
 		//m_SkyboxSphere->RenderModel();
 		RenderCube::Render();
 		// Read back the SSBO data

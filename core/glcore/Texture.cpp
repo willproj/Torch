@@ -51,4 +51,10 @@ namespace core
 		glBindTexture(GL_TEXTURE_2D, 0);
 		return texture;
 	}
+
+    void Texture::BindTexture(int slot, GLenum target, uint32_t texture)
+    {
+        glActiveTexture(GL_TEXTURE0 + slot);
+        glBindTexture(target, texture);
+    }
 }

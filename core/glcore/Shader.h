@@ -10,6 +10,9 @@ namespace core
 		Shader(const std::string& computePath);
 		Shader(const std::string& vertexPath, const std::string& fragmentPath, const std::string& geometryPath = "");
 
+		void InitShader(const std::string& computePath);
+		void InitShader(const std::string& vertexPath, const std::string& fragmentPath, const std::string& geometryPath = "");
+
 		void use() const
 		{
 			glUseProgram(m_ShaderID);

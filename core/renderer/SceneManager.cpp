@@ -3,7 +3,9 @@
 #include "Component.h"
 #include "core/glcore/Shader.h"
 #include "core/renderer/EnvironmentManager.h"
-
+#include "core/renderer/ShaderManager.h"
+#include "core/glcore/Texture.h"
+#include "core/renderer/EnvironmentManager.h"
 namespace core
 {
 
@@ -33,8 +35,21 @@ namespace core
 		return m_SceneManager;
 	}
 
-	void SceneManager::RenderScene(Shader shader)
+	void SceneManager::RenderScene()
 	{
+		auto& shadowMapDepthShader = ShaderManager::GetInstance()->GetShadowMapDepthShader();
+		auto atmosphere = EnvironmentManager::GetInstance()->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->GetSpecification();
+		glm::mat4 lightProjection, lightView;
+		glm::mat4 lightSpaceMatrix;
+		float near_plane = 1.0f, far_plane = 7.5f;
+		lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+		lightView = glm::lookAt(std::get<AtmosphericScatteringSpecification>(atmosphere.get()).sunPosition, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+		lightSpaceMatrix = lightProjection * lightView;
+
+		// render scene from light's point of view
+		shadowMapDepthShader.use();
+		shadowMapDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
 		for (auto entityID : m_Scene.GetGeneralEntityIDs())
 		{
 			Entity entity = { entityID, &m_Scene };
@@ -46,7 +61,7 @@ namespace core
 				transform = entity.GetComponent<TransformComponent>().getTransform();
 			}
 
-			shader.setMat4("model", transform);
+			shadowMapDepthShader.setMat4("model", transform);
 
 			// Get material component
 			if (entity.HasComponent<MaterialComponent>())
@@ -70,9 +85,11 @@ namespace core
 	void SceneManager::Render()
 	{
 		// Set up shader once before the loop
-		m_GeomotryPassShader.use();
-		m_GeomotryPassShader.setMat4("view", m_EditorCameraPtr->GetViewMatrix());
-		m_GeomotryPassShader.setMat4("projection", m_EditorCameraPtr->getProjection());
+		auto& gemotryPassShader = ShaderManager::GetInstance()->GetGemotryPassShaderRef();
+
+		gemotryPassShader.use();
+		gemotryPassShader.setMat4("view", m_EditorCameraPtr->GetViewMatrix());
+		gemotryPassShader.setMat4("projection", m_EditorCameraPtr->getProjection());
 
 		auto atmosphere = EnvironmentManager::GetInstance()->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->GetSpecification();
 		glm::mat4 lightProjection, lightView;
@@ -84,8 +101,8 @@ namespace core
 		lightView = glm::lookAt(std::get<AtmosphericScatteringSpecification>(atmosphere.get()).sunPosition * 1.0f, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
 		lightSpaceMatrix = lightProjection * lightView;
 		// render scene from light's point of view
-		m_GeomotryPassShader.use();
-		m_GeomotryPassShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+		gemotryPassShader.use();
+		gemotryPassShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 
 		// Iterate over entities and render
 		for (auto entityID : m_Scene.GetGeneralEntityIDs())
@@ -99,8 +116,8 @@ namespace core
 				transform = entity.GetComponent<TransformComponent>().getTransform();
 			}
 			// Set entity-specific shader uniforms
-			m_GeomotryPassShader.setInt("entity", entity());
-			m_GeomotryPassShader.setMat4("model", transform);
+			gemotryPassShader.setInt("entity", entity());
+			gemotryPassShader.setMat4("model", transform);
 
 
 			// Get material component
@@ -110,43 +127,38 @@ namespace core
 				auto& materialComponent = entity.GetComponent<MaterialComponent>();
 
 				// Set up texture units and bind textures
-				glActiveTexture(GL_TEXTURE0); // Activate texture unit 0
-				glBindTexture(GL_TEXTURE_2D, materialComponent.albedoTexture); // Bind albedo texture
-				m_GeomotryPassShader.setInt("u_AlbedoMap", 0); // Set shader uniform for albedo map
-				m_GeomotryPassShader.setBool("u_UseAlbedoMap", materialComponent.useAlbedoTexture); // Set shader uniform for albedo map
+				Texture::BindTexture(0, GL_TEXTURE_2D, materialComponent.albedoTexture);
+				gemotryPassShader.setInt("u_AlbedoMap", 0); // Set shader uniform for albedo map
+				gemotryPassShader.setBool("u_UseAlbedoMap", materialComponent.useAlbedoTexture); // Set shader uniform for albedo map
 				
-				glActiveTexture(GL_TEXTURE1); // Activate texture unit 1
-				glBindTexture(GL_TEXTURE_2D, materialComponent.normalTexture); // Bind normal texture
-				m_GeomotryPassShader.setInt("u_NormalMap", 1); // Set shader uniform for normal map
-				m_GeomotryPassShader.setBool("u_UseNormalMap", materialComponent.useNormalTexture); // Set shader uniform for normal map
+				Texture::BindTexture(1, GL_TEXTURE_2D, materialComponent.normalTexture);
+				gemotryPassShader.setInt("u_NormalMap", 1); // Set shader uniform for normal map
+				gemotryPassShader.setBool("u_UseNormalMap", materialComponent.useNormalTexture); // Set shader uniform for normal map
 
-				glActiveTexture(GL_TEXTURE2); // Activate texture unit 2
-				glBindTexture(GL_TEXTURE_2D, materialComponent.metallicTexture); // Bind metallic texture
-				m_GeomotryPassShader.setInt("u_MetallicMap", 2); // Set shader uniform for metallic map
-				m_GeomotryPassShader.setBool("u_UseMetallicMap", materialComponent.useMetallicTexture); // Set shader uniform for metallic map
-				m_GeomotryPassShader.setFloat("u_Metallic", materialComponent.metallic);
+				Texture::BindTexture(2, GL_TEXTURE_2D, materialComponent.metallicTexture);
+				gemotryPassShader.setInt("u_MetallicMap", 2); // Set shader uniform for metallic map
+				gemotryPassShader.setBool("u_UseMetallicMap", materialComponent.useMetallicTexture); // Set shader uniform for metallic map
+				gemotryPassShader.setFloat("u_Metallic", materialComponent.metallic);
 
-				glActiveTexture(GL_TEXTURE3); // Activate texture unit 3
-				glBindTexture(GL_TEXTURE_2D, materialComponent.roughnessTexture); // Bind roughness texture
-				m_GeomotryPassShader.setInt("u_RoughnessMap", 3); // Set shader uniform for roughness map
-				m_GeomotryPassShader.setBool("u_UseRoughnessMap", materialComponent.useRoughnessTexture); // Set shader uniform for roughness map
-				m_GeomotryPassShader.setFloat("u_Roughness", materialComponent.roughness);
+				Texture::BindTexture(3, GL_TEXTURE_2D, materialComponent.roughnessTexture);
+				gemotryPassShader.setInt("u_RoughnessMap", 3); // Set shader uniform for roughness map
+				gemotryPassShader.setBool("u_UseRoughnessMap", materialComponent.useRoughnessTexture); // Set shader uniform for roughness map
+				gemotryPassShader.setFloat("u_Roughness", materialComponent.roughness);
 
-				glActiveTexture(GL_TEXTURE4); // Activate texture unit 4
-				glBindTexture(GL_TEXTURE_2D, materialComponent.aoTexture); // Bind AO texture
-				m_GeomotryPassShader.setInt("u_AoMap", 4); // Set shader uniform for AO map
-				m_GeomotryPassShader.setBool("u_UseAoMap", materialComponent.useAOTexture); // Set shader uniform for AO map
+				Texture::BindTexture(4, GL_TEXTURE_2D, materialComponent.aoTexture);
+				gemotryPassShader.setInt("u_AoMap", 4); // Set shader uniform for AO map
+				gemotryPassShader.setBool("u_UseAoMap", materialComponent.useAOTexture); // Set shader uniform for AO map
 			}
 			else
 			{
-				m_GeomotryPassShader.setBool("u_UseAlbedoMap", false);
-				m_GeomotryPassShader.setBool("u_UseNormalMap", false);
-				m_GeomotryPassShader.setBool("u_UseMetallicMap", false);
-				m_GeomotryPassShader.setBool("u_UseRoughness", false);
-				m_GeomotryPassShader.setBool("u_UseAoMap", false);
+				gemotryPassShader.setBool("u_UseAlbedoMap", false);
+				gemotryPassShader.setBool("u_UseNormalMap", false);
+				gemotryPassShader.setBool("u_UseMetallicMap", false);
+				gemotryPassShader.setBool("u_UseRoughness", false);
+				gemotryPassShader.setBool("u_UseAoMap", false);
 				
-				m_GeomotryPassShader.setFloat("u_Metallic", 0.0);
-				m_GeomotryPassShader.setFloat("u_Roughness", 1.0);
+				gemotryPassShader.setFloat("u_Metallic", 0.0);
+				gemotryPassShader.setFloat("u_Roughness", 1.0);
 			}
 
 			// Render model
@@ -164,9 +176,10 @@ namespace core
 	void SceneManager::RenderLights()
 	{
 		// Set up shader once before the loop
-		m_LightsShader.use();
-		m_LightsShader.setMat4("view", m_EditorCameraPtr->GetViewMatrix());
-		m_LightsShader.setMat4("projection", m_EditorCameraPtr->getProjection());
+		auto& lightsShader = ShaderManager::GetInstance()->GetLightsShader();
+		lightsShader.use();
+		lightsShader.setMat4("view", m_EditorCameraPtr->GetViewMatrix());
+		lightsShader.setMat4("projection", m_EditorCameraPtr->getProjection());
 
 		// Iterate over entities and render
 		for (auto entityID : m_Scene.GetLightEntityIDs())
@@ -180,7 +193,7 @@ namespace core
 				transform = entity.GetComponent<TransformComponent>().getTransform();
 			}
 			// Set entity-specific shader uniforms
-			m_LightsShader.setMat4("model", transform);
+			lightsShader.setMat4("model", transform);
 
 			// Render model
 			if (entity.HasComponent<ModelComponent>())
@@ -198,9 +211,10 @@ namespace core
 	void SceneManager::RenderLightsToID()
 	{
 		// Set up shader once before the loop
-		m_LightsIDShader.use();
-		m_LightsIDShader.setMat4("view", m_EditorCameraPtr->GetViewMatrix());
-		m_LightsIDShader.setMat4("projection", m_EditorCameraPtr->getProjection());
+		auto& lightsIDShader = ShaderManager::GetInstance()->GetLightsIDShader();
+		lightsIDShader.use();
+		lightsIDShader.setMat4("view", m_EditorCameraPtr->GetViewMatrix());
+		lightsIDShader.setMat4("projection", m_EditorCameraPtr->getProjection());
 
 		// Iterate over entities and render
 		for (auto entityID : m_Scene.GetLightEntityIDs())
@@ -213,9 +227,10 @@ namespace core
 			{
 				transform = entity.GetComponent<TransformComponent>().getTransform();
 			}
+
 			// Set entity-specific shader uniforms
-			m_LightsIDShader.setInt("entity", entity());
-			m_LightsIDShader.setMat4("model", transform);
+			lightsIDShader.setInt("entity", entity());
+			lightsIDShader.setMat4("model", transform);
 
 
 			// Get material component
@@ -247,20 +262,7 @@ namespace core
 
 	SceneManager::SceneManager()
 	{
-		m_GeomotryPassShader = Shader(
-			std::string(PROJECT_ROOT) + "/assets/shader/shader.vert",
-			std::string(PROJECT_ROOT) + "/assets/shader/shader.frag"
-		);
 
-		m_LightsShader = Shader(
-			std::string(PROJECT_ROOT) + "/assets/shader/lightShader.vert",
-			std::string(PROJECT_ROOT) + "/assets/shader/lightShader.frag"
-		);
-
-		m_LightsIDShader = Shader(
-			std::string(PROJECT_ROOT) + "/assets/shader/lightShader.vert",
-			std::string(PROJECT_ROOT) + "/assets/shader/lightIDShader.frag"
-		);
 
 		m_StencilOutlineShader = Shader(
 			std::string(PROJECT_ROOT) + "/assets/shader/outline.vert",
