@@ -79,7 +79,7 @@ namespace core
 
 		gemotryPassShader.use();
 		gemotryPassShader.setMat4("view", m_EditorCameraPtr->GetViewMatrix());
-		gemotryPassShader.setMat4("projection", m_EditorCameraPtr->getProjection());
+		gemotryPassShader.setMat4("projection", m_EditorCameraPtr->GetProjection());
 		// Iterate over entities and render
 		for (auto entityID : m_Scene.GetGeneralEntityIDs())
 		{
@@ -155,7 +155,7 @@ namespace core
 		auto& lightsShader = ShaderManager::GetInstance()->GetLightsShader();
 		lightsShader.use();
 		lightsShader.setMat4("view", m_EditorCameraPtr->GetViewMatrix());
-		lightsShader.setMat4("projection", m_EditorCameraPtr->getProjection());
+		lightsShader.setMat4("projection", m_EditorCameraPtr->GetProjection());
 
 		// Iterate over entities and render
 		for (auto entityID : m_Scene.GetLightEntityIDs())
@@ -190,7 +190,7 @@ namespace core
 		auto& lightsIDShader = ShaderManager::GetInstance()->GetLightsIDShader();
 		lightsIDShader.use();
 		lightsIDShader.setMat4("view", m_EditorCameraPtr->GetViewMatrix());
-		lightsIDShader.setMat4("projection", m_EditorCameraPtr->getProjection());
+		lightsIDShader.setMat4("projection", m_EditorCameraPtr->GetProjection());
 
 		// Iterate over entities and render
 		for (auto entityID : m_Scene.GetLightEntityIDs())

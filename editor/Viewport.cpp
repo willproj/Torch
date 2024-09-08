@@ -132,7 +132,7 @@ namespace editor
 		
 			// Editor camera
 			auto camera = core::SceneManager::GetSceneManager()->GetEditorCameraPtr();
-			const glm::mat4& cameraProjection = camera->getProjection();
+			const glm::mat4& cameraProjection = camera->GetProjection();
 			glm::mat4 cameraView = camera->GetViewMatrix();
 			// Entity transform
 			auto& tc = entity.GetComponent<core::TransformComponent>();

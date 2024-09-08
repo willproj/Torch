@@ -8,14 +8,14 @@ namespace core
 	Keyboard* Camera::m_Keyboard = nullptr;
 	
 	Camera::Camera()
-		:projection(glm::mat4(1.0f))
+		:m_Projection(glm::mat4(1.0f))
 	{
 		m_Mouse = utils::ServiceLocator::GetMouse();
 		m_Keyboard = utils::ServiceLocator::GetKeyboard();
 	}
 
 	Camera::Camera(const glm::mat4& projection)
-		:projection(projection)
+		:m_Projection(projection)
 	{
 		m_Mouse = utils::ServiceLocator::GetMouse();
 		m_Keyboard = utils::ServiceLocator::GetKeyboard();
@@ -26,8 +26,8 @@ namespace core
 
 	}
 
-	const glm::mat4& Camera::getProjection() const
+	const glm::mat4& Camera::GetProjection() const
 	{
-		return projection;
+		return m_Projection;
 	}
 }

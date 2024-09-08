@@ -12,7 +12,7 @@
 #include "core/renderer/SceneManager.h"
 #include "core/renderer/environment/HDR.h"
 #include "core/renderer/postprocess/IBL.h"
-#include "core/renderer/environment/ShadowMap.h"
+#include "core/renderer/environment/CascadeShadowMap.h"
 #include "core/renderer/ShaderManager.h"
 
 namespace core
@@ -73,8 +73,6 @@ namespace core
 		GBufferRenderType m_RenderType = GBufferRenderType::All;
 
 		HDR m_HDR;
-		ShadowMap shadowmap;
-		Shader debugCascadeShader;
 
 		// lights
 		// ------

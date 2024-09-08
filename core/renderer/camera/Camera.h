@@ -13,10 +13,10 @@ namespace core
 
 		virtual ~Camera();
 
-		const glm::mat4& getProjection() const;
+		const glm::mat4& GetProjection() const;
 
 	protected:
-		glm::mat4 projection;
+		glm::mat4 m_Projection;
 		static Mouse* m_Mouse;
 		static Keyboard* m_Keyboard;
 	};

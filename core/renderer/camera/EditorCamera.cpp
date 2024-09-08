@@ -12,7 +12,7 @@ namespace core
     }
 
     EditorCamera::EditorCamera(float fov, float aspectRatio, float nearClip, float farClip)
-        : FOV(fov), aspectRatio(aspectRatio), nearClip(nearClip), farClip(farClip),
+        : m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip),
         Camera(glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip))
     {
         UpdateView();
@@ -22,7 +22,7 @@ namespace core
     {
         if (m_Keyboard->IsKeyPressed(KeyCode::KEY_LEFT_CONTROL))
         {
-            if (isOnFocus)
+            if (m_IsOnFocus)
             {
                 auto posX = m_Mouse->GetCursorPosX();
                 auto posY = m_Mouse->GetCursorPosY();
@@ -49,12 +49,12 @@ namespace core
 
     void EditorCamera::SetCameraAttributes(float fov, float aspectRatio, float nearClip, float farClip)
     {
-        FOV = fov;
-        this->aspectRatio = aspectRatio;
-        this->nearClip = nearClip;
-        this->farClip = farClip;
+        m_FOV = fov;
+        this->m_AspectRatio = aspectRatio;
+        this->m_NearClip = nearClip;
+        this->m_FarClip = farClip;
 
-        projection = glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip);
+        m_Projection = glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip);
         UpdateView();
     }
 
@@ -75,62 +75,62 @@ namespace core
 
     glm::quat EditorCamera::GetOrientation() const
     {
-        return glm::quat(glm::vec3(-pitch, -yaw, 0.0f));
+        return glm::quat(glm::vec3(-m_Pitch, -m_Yaw, 0.0f));
     }
 
     void EditorCamera::UpdateProjection()
     {
-        if (viewportHeight <= 0.0f)
+        if (m_ViewportHeight <= 0.0f)
         {
-            viewportWidth = 1.0f;
+            m_ViewportWidth = 1.0f;
         }
-        float aspectRatio = viewportWidth / viewportHeight;
-        projection = glm::perspective(glm::radians(FOV), aspectRatio, nearClip, farClip);
+        float aspectRatio = m_ViewportWidth / m_ViewportHeight;
+        m_Projection = glm::perspective(glm::radians(m_FOV), aspectRatio, m_NearClip, m_FarClip);
     }
 
     void EditorCamera::UpdateView()
     {
-        position = CalculatePosition();
+        m_Position = CalculatePosition();
         glm::quat orientation = GetOrientation();
-        viewMatrix = glm::translate(glm::mat4(1.0f), position) * glm::toMat4(orientation);
-        viewMatrix = glm::inverse(viewMatrix);
+        m_ViewMatrix = glm::translate(glm::mat4(1.0f), m_Position) * glm::toMat4(orientation);
+        m_ViewMatrix = glm::inverse(m_ViewMatrix);
     }
 
     void EditorCamera::MousePan(const glm::vec2& delta)
     {
         auto [xSpeed, ySpeed] = PanSpeed();
-        focalPoint += -GetRightDirection() * delta.x * xSpeed * distance;
-        focalPoint += GetUpDirection() * delta.y * ySpeed * distance;
+        m_FocalPoint += -GetRightDirection() * delta.x * xSpeed * m_Distance;
+        m_FocalPoint += GetUpDirection() * delta.y * ySpeed * m_Distance;
     }
 
     void EditorCamera::MouseRotate(const glm::vec2& delta)
     {
         float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
-        yaw += yawSign * delta.x * RotationSpeed();
-        pitch += delta.y * RotationSpeed();
+        m_Yaw += yawSign * delta.x * RotationSpeed();
+        m_Pitch += delta.y * RotationSpeed();
     }
 
     void EditorCamera::MouseZoom(float delta)
     {
-        distance -= delta * ZoomSpeed();
-        if (distance < 1.0f)
+        m_Distance -= delta * ZoomSpeed();
+        if (m_Distance < 1.0f)
         {
-            focalPoint += GetForwardDirection();
-            distance = 1.0f;
+            m_FocalPoint += GetForwardDirection();
+            m_Distance = 1.0f;
         }
     }
 
     glm::vec3 EditorCamera::CalculatePosition() const
     {
-        return focalPoint - GetForwardDirection() * distance;
+        return m_FocalPoint - GetForwardDirection() * m_Distance;
     }
 
     std::pair<float, float> EditorCamera::PanSpeed() const
     {
-        float x = std::min(viewportWidth / 1000.0f, 2.4f); // max = 2.4f
+        float x = std::min(m_ViewportWidth / 1000.0f, 2.4f); // max = 2.4f
         float xFactor = 0.0366f * (x * x) - 0.1778f * x + 0.3021f;
 
-        float y = std::min(viewportHeight / 1000.0f, 2.4f); // max = 2.4f
+        float y = std::min(m_ViewportHeight / 1000.0f, 2.4f); // max = 2.4f
         float yFactor = 0.0366f * (y * y) - 0.1778f * y + 0.3021f;
 
         return { xFactor, yFactor };
@@ -143,7 +143,7 @@ namespace core
 
     float EditorCamera::ZoomSpeed() const
     {
-        float distance = this->distance * 0.2f;
+        float distance = this->m_Distance * 0.2f;
         distance = std::max(distance, 0.0f);
         float speed = distance * distance;
         speed = std::min(speed, 100.0f); // max speed = 100
@@ -152,6 +152,6 @@ namespace core
 
     void EditorCamera::SetIsOnFocus(bool focus)
     {
-        isOnFocus = focus;
+        m_IsOnFocus = focus;
     }
 }

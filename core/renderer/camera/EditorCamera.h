@@ -14,33 +14,30 @@ namespace core
 
         void SetCameraAttributes(float fov, float aspectRatio, float nearClip, float farClip);
 
-        inline float GetDistance() const { return distance; }
-        inline void SetDistance(float distance) { this->distance = distance; }
+        inline float GetDistance() const { return m_Distance; }
+        inline void SetDistance(float distance) { m_Distance = distance; }
 
-        inline void SetViewportSize(float width, float height) { viewportWidth = width; viewportHeight = height; UpdateProjection(); }
+        inline void SetViewportSize(float width, float height) { m_ViewportWidth = width; m_ViewportHeight = height; UpdateProjection(); }
 
-        const glm::mat4& GetViewMatrix() const { return viewMatrix; }
-        glm::mat4 GetViewProjection() const { return projection * viewMatrix; }
+        const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; }
+        glm::mat4 GetViewProjection() const { return m_Projection * m_ViewMatrix; }
 
         glm::vec3 GetUpDirection() const;
         glm::vec3 GetRightDirection() const;
         glm::vec3 GetForwardDirection() const;
-        const glm::vec3& GetPosition() const { return position; }
+        const glm::vec3& GetPosition() const { return m_Position; }
         glm::quat GetOrientation() const;
 
-        float GetPitch() const { return pitch; }
-        float GetYaw() const { return yaw; }
+        float GetPitch() const { return m_Pitch; }
+        float GetYaw() const { return m_Yaw; }
         void SetIsOnFocus(bool focus);
 
-        float GetNearClip() const { return nearClip; }
-        float GetFarClip() const { return farClip; }
-        float GetZoom() const { return FOV; }
+        float GetNearClip() const { return m_NearClip; }
+        float GetFarClip() const { return m_FarClip; }
+        float GetZoom() const { return m_FOV; }
 
-
-        float GetViewportWidth() const { return viewportWidth; }
-        float GetViewportHeight() const { return viewportHeight; }
-
-        std::vector<float> shadowCascadeLevels{ 25.0f, 75.0f, 200.0f, 1000.0f };
+        float GetViewportWidth() const { return m_ViewportWidth; }
+        float GetViewportHeight() const { return m_ViewportHeight; }
 
     private:
         void UpdateProjection();
@@ -56,21 +53,25 @@ namespace core
         float RotationSpeed() const;
         float ZoomSpeed() const;
 
-
     private:
-        float FOV = 45.0f, aspectRatio = 1.778f, nearClip = 0.1f, farClip = 1000.0f;
+        float m_FOV = 45.0f;
+        float m_AspectRatio = 1.778f;
+        float m_NearClip = 0.1f;
+        float m_FarClip = 10000.0f;
 
-        glm::mat4 viewMatrix;
-        glm::vec3 position = { 0.0f, 0.0f, 0.0f };
-        glm::vec3 focalPoint = { 0.0f, 0.0f, 0.0f };
+        glm::mat4 m_ViewMatrix;
+        glm::vec3 m_Position = { 0.0f, 0.0f, 0.0f };
+        glm::vec3 m_FocalPoint = { 0.0f, 0.0f, 0.0f };
 
-        glm::vec2 initialMousePosition = { 0.0f, 0.0f };
+        glm::vec2 m_InitialMousePosition = { 0.0f, 0.0f };
 
-        float distance = 10.0f;
-        float pitch = 0.0f, yaw = 0.0f;
+        float m_Distance = 10.0f;
+        float m_Pitch = 0.0f;
+        float m_Yaw = 0.0f;
 
-        float viewportWidth = 1280, viewportHeight = 720;
+        float m_ViewportWidth = 1280.0f;
+        float m_ViewportHeight = 720.0f;
 
-        bool isOnFocus = true;
+        bool m_IsOnFocus = true;
     };
 }

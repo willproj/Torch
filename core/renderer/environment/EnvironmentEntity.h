@@ -8,6 +8,7 @@ namespace core
 		None,
 		Atmosphere,
 		VolmetricFog,
+		CascadeShadowMap
 	};
 
 
@@ -64,7 +65,16 @@ namespace core
 		glm::vec3 finalSunlightColor;
 	};
 
-	using SpecificationVariant = std::variant<AtmosphericScatteringSpecification>;
+	struct CascadeShadowMapSpecification
+	{
+		uint32_t shadowMapFramebuffer;
+		uint32_t depthMapResolution = 4096;
+		uint32_t shadowMapTexture;
+
+		std::vector<float> shadowCascadeLevels{ 10.0f, 20.0f, 80.0f, 640.0f, 5000.0f };
+	};
+
+	using SpecificationVariant = std::variant<AtmosphericScatteringSpecification, CascadeShadowMapSpecification>;
 	
 	class EnvironmentEntity
 	{
@@ -73,14 +83,18 @@ namespace core
 		virtual ~EnvironmentEntity() = default;
 
 		virtual void Render() = 0;
+
+		virtual void BeginRender() {};
+		virtual void EndRender() {};
+
 		virtual void Render(const glm::mat4& view, const glm::mat4& projection) {};
 		virtual void SetShader() {};
-		virtual void Initialize() = 0;
+		virtual void Initialize() {};
 		virtual utils::Ref<SpecificationVariant> GetSpecification() = 0;
 		virtual EnvironmentEntityType GetType() const { return m_Type; }
-		virtual void OnUpdate() = 0;
-		virtual bool IsRunning() = 0;
-		virtual void SetIsRunning(bool isRunning) = 0;
+		virtual void OnUpdate() {};
+		virtual bool IsRunning() { return false;  };
+		virtual void SetIsRunning(bool isRunning) { };
 	protected:
 		EnvironmentEntityType m_Type = EnvironmentEntityType::None;
 		std::shared_ptr<EditorCamera> m_CurrentCamera= nullptr;

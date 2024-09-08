@@ -21,29 +21,29 @@ uniform vec3 u_SunLightColor;
 
 // Shadow map 
 uniform sampler2DArray u_ShadowMap;
-uniform float farPlane;
+uniform float u_FarPlane;
 layout (std140) uniform LightSpaceMatrices
 {
     mat4 lightSpaceMatrices[16];
 };
-uniform float cascadePlaneDistances[16];
-uniform int cascadeCount;   // number of frusta - 1
+uniform float u_CascadePlaneDistances[16];
+uniform int u_CascadeCount;   // number of frusta - 1
 
 // Camera position
-uniform vec3 camPos;
-uniform mat4 view;
+uniform vec3 u_CamPos;
+uniform mat4 u_View;
 
 // Shadow Map calculation
 float ShadowCalculation(vec3 fragPosWorldSpace, vec3 N)
 {
     // select cascade layer
-    vec4 fragPosViewSpace = view * vec4(fragPosWorldSpace, 1.0);
+    vec4 fragPosViewSpace = u_View * vec4(fragPosWorldSpace, 1.0);
     float depthValue = abs(fragPosViewSpace.z);
 
     int layer = -1;
-    for (int i = 0; i < cascadeCount; ++i)
+    for (int i = 0; i < u_CascadeCount; ++i)
     {
-        if (depthValue < cascadePlaneDistances[i])
+        if (depthValue < u_CascadePlaneDistances[i])
         {
             layer = i;
             break;
@@ -51,7 +51,7 @@ float ShadowCalculation(vec3 fragPosWorldSpace, vec3 N)
     }
     if (layer == -1)
     {
-        layer = cascadeCount;
+        layer = u_CascadeCount;
     }
 
     vec4 fragPosLightSpace = lightSpaceMatrices[layer] * vec4(fragPosWorldSpace, 1.0);
@@ -73,13 +73,13 @@ float ShadowCalculation(vec3 fragPosWorldSpace, vec3 N)
     vec3 normal = N;
     float bias = max(0.05 * (1.0 - dot(normal, u_SunLightDir)), 0.005);
     const float biasModifier = 0.5f;
-    if (layer == cascadeCount)
+    if (layer == u_CascadeCount)
     {
-        bias *= 1 / (farPlane * biasModifier);
+        bias *= 1 / (u_FarPlane * biasModifier);
     }
     else
     {
-        bias *= 1 / (cascadePlaneDistances[layer] * biasModifier);
+        bias *= 1 / (u_CascadePlaneDistances[layer] * biasModifier);
     }
 
     // PCF
@@ -200,7 +200,7 @@ void main()
     float ao = gRoughAOData.g;
 
     // View vector
-    vec3 V = normalize(camPos - WorldPos);
+    vec3 V = normalize(u_CamPos - WorldPos);
     vec3 R = reflect(-V, N);
     vec3 F0 = vec3(0.04); 
     F0 = mix(F0, albedo, metallic);

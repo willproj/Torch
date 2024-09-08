@@ -108,7 +108,7 @@ namespace core
 		glDepthFunc(GL_LEQUAL);
 		shader.use();
 		shader.setMat4("view", glm::mat4(glm::mat3(m_CurrentCamera->GetViewMatrix())));
-		shader.setMat4("projection", m_CurrentCamera->getProjection());
+		shader.setMat4("projection", m_CurrentCamera->GetProjection());
 		shader.setVec3("u_SunPosition", specific.sunPosition);
 		shader.setFloat("u_SunIntensity", specific.sunIntensity);
 		shader.setFloat("u_RayTMin", specific.rayTMin);

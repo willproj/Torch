@@ -1,6 +1,31 @@
 Scene: unknow
 Entities:
   - UUID Component:
+      Entity UUID: a0b0cc14-ef11-4c30-9aa5-00007f182632c2ba97bd
+    Entity Type Component:
+      Entity Type: General
+    Label Component:
+      Label: new entity
+    Transform Component:
+      Translation: [0, -2.79006362, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Model Component:
+      Mesh Path: D:\github\Torch\assets\models\cube\cube.glb
+    Material Component:
+      Albedo Path: ""
+      Normal Path: ""
+      Metallic Path: ""
+      Roughness Path: ""
+      AO Path: ""
+      Metallic: 0
+      Roughness: 0.170000002
+      Use Albedo: false
+      Use Normal: false
+      Use Metallic: false
+      Use Roughness: false
+      Use AO: false
+  - UUID Component:
       Entity UUID: 2aaed990-bc56-4d74-b107-000008fdb0414af26d6e
     Entity Type Component:
       Entity Type: General
@@ -10,17 +35,5 @@ Entities:
       Translation: [0, -4.84042406, 0]
       Rotation: [0, 0, 0]
       Scale: [11.3629074, 1, 9.47767448]
-    Model Component:
-      Mesh Path: D:\github\Torch\assets\models\cube\cube.glb
-  - UUID Component:
-      Entity UUID: a0b0cc14-ef11-4c30-9aa5-00007f182632c2ba97bd
-    Entity Type Component:
-      Entity Type: General
-    Label Component:
-      Label: new entity
-    Transform Component:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
     Model Component:
       Mesh Path: D:\github\Torch\assets\models\cube\cube.glb

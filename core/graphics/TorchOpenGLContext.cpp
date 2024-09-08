@@ -19,22 +19,19 @@ namespace core
 		m_WindowPtr = utils::ServiceLocator::GetWindow();
 		m_EditorCamera = std::make_shared<EditorCamera>();
 
-		shadowmap.Initialize(m_EditorCamera);
-		
 		m_SceneManager = SceneManager::GetSceneManager();
 		m_SceneManager->SetCamera(m_EditorCamera);
 		
 		m_EnvirManager = EnvironmentManager::GetInstance();
 		auto atmosphere = std::shared_ptr<EnvironmentEntity>(new AtmosphericScattering(m_EditorCamera));
+		auto cascadeShadowMap = std::shared_ptr<EnvironmentEntity>(new CascadeShadowMap(m_EditorCamera));
+
 		m_EnvirManager->AddEntity(EnvironmentEntityType::Atmosphere, atmosphere);
+		m_EnvirManager->AddEntity(EnvironmentEntityType::CascadeShadowMap, cascadeShadowMap);
 		
 		test = Shader(
 			std::string(PROJECT_ROOT) + "/assets/shader/test.vert",
 			std::string(PROJECT_ROOT) + "/assets/shader/test.frag");
-
-		debugCascadeShader = Shader(
-			std::string(PROJECT_ROOT) + "/assets/shader/debugcascade.vert",
-			std::string(PROJECT_ROOT) + "/assets/shader/debugcascade.frag");
 
 		auto& lightingPassShader = ShaderManager::GetInstance()->GetLightingPassShaderRef();
 		lightingPassShader.use();
@@ -178,6 +175,13 @@ namespace core
 
 	void TorchOpenGLContext::DrawFrame()
 	{
+		//------------------------------------------- renderers & spcifications --------------------------------------------
+		auto& atmosphere = m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->GetSpecification();
+		auto& atmosphereSpcific = std::get<AtmosphericScatteringSpecification>(atmosphere.get());
+		auto& cascadeShadowMap = m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::CascadeShadowMap)->GetSpecification();
+		auto& shadowMapSpcific = std::get<CascadeShadowMapSpecification>(cascadeShadowMap.get());
+		//----------------------------------------------------------------------------------------------------------------------
+
 		this->UpdateCameraViewport();
 		glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -191,36 +195,28 @@ namespace core
 
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		// 1. render depth of scene to texture (from light's perspective)
-		// --------------------------------------------------------------
-		auto atmosphere = m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->GetSpecification();
 		
-		shadowmap.UBOSetup();
-
-		shadowmap.Bind();
-		glViewport(0, 0, shadowmap.GetDepthMapResolution(), shadowmap.GetDepthMapResolution());
-		glClear(GL_DEPTH_BUFFER_BIT);
-		glCullFace(GL_FRONT);
+		// 2. Render cascade shadow map
+		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::CascadeShadowMap)->BeginRender();
 		SceneManager::GetSceneManager()->RenderScene();
-		glCullFace(GL_BACK);
-		shadowmap.Unbind();
-		
+		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::CascadeShadowMap)->EndRender();
 
-		// 2. Lighting pass (render to default framebuffer)
+
+		// 3. Lighting pass (render to default framebuffer)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // Clear default framebuffer for lighting
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 		auto& lightingPassShader = ShaderManager::GetInstance()->GetLightingPassShaderRef();
 		lightingPassShader.use();
-		lightingPassShader.setVec3("camPos", m_EditorCamera->GetPosition());
-		lightingPassShader.setMat4("view", m_EditorCamera->GetViewMatrix());
-		// Pass these as uniforms to the shader
-		lightingPassShader.setVec3("u_SunLightDir", std::get<AtmosphericScatteringSpecification>(atmosphere.get()).sunPosition);
-		lightingPassShader.setVec3("u_SunLightColor", glm::normalize(std::get<AtmosphericScatteringSpecification>(atmosphere.get()).finalSunlightColor) * 15.0f);
-		lightingPassShader.setFloat("farPlane", m_EditorCamera->GetFarClip());
-		lightingPassShader.setInt("cascadeCount", m_EditorCamera->shadowCascadeLevels.size());
-		for (size_t i = 0; i < m_EditorCamera->shadowCascadeLevels.size(); ++i)
+		lightingPassShader.setVec3("u_CamPos", m_EditorCamera->GetPosition());
+		lightingPassShader.setMat4("u_View", m_EditorCamera->GetViewMatrix());
+		lightingPassShader.setVec3("u_SunLightDir", atmosphereSpcific.sunPosition);
+		lightingPassShader.setVec3("u_SunLightColor", glm::normalize(atmosphereSpcific.finalSunlightColor) * 15.0f);
+		lightingPassShader.setFloat("u_FarPlane", m_EditorCamera->GetFarClip());
+		lightingPassShader.setInt("u_CascadeCount", shadowMapSpcific.shadowCascadeLevels.size());
+
+		for (size_t i = 0; i < shadowMapSpcific.shadowCascadeLevels.size(); ++i)
 		{
-			lightingPassShader.setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", m_EditorCamera->shadowCascadeLevels[i]);
+			lightingPassShader.setFloat("u_CascadePlaneDistances[" + std::to_string(i) + "]", shadowMapSpcific.shadowCascadeLevels[i]);
 		}
 
 		Texture::BindTexture(0, GL_TEXTURE_2D, m_GBuffer->GetGPositionTexture());
@@ -230,41 +226,27 @@ namespace core
 		Texture::BindTexture(4, GL_TEXTURE_CUBE_MAP, ibl.GetIrradianceTexture());
 		Texture::BindTexture(5, GL_TEXTURE_CUBE_MAP, ibl.GetPrefilterTexture());
 		Texture::BindTexture(6, GL_TEXTURE_2D, ibl.GetBrdfLUTTexture());
-		Texture::BindTexture(7, GL_TEXTURE_2D_ARRAY, shadowmap.GetShadowMapTexture());
+		Texture::BindTexture(7, GL_TEXTURE_2D_ARRAY, shadowMapSpcific.shadowMapTexture);
 		Texture::BindTexture(8, GL_TEXTURE_2D, m_GBuffer->GetGLightSpacePosition());
 		RenderQuad::Render();
-
 		
 
-
-		// debug shadow map
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//
-		//vollight.use();
-		//vollight.setInt("gDepth", 0); // Texture unit 0 for depth texture
-		//vollight.setFloat("near_plane", m_EditorCamera->GetNearClip()); // Texture unit 0 for depth texture
-		//vollight.setFloat("far_plane", 10); // Texture unit 0 for depth texture
-		//
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D_ARRAY, shadowmap.GetShadowMapTexture());
-		//RenderQuad::Render();
-
-		// 3. Blit depth buffer from GBuffer to default framebuffer
+		// 4. Blit depth buffer from GBuffer to default framebuffer
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_GBuffer->GetFramebufferID());
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // Blit to default framebuffer
 		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind framebuffer
 		
-		// Render Lights to Light Framebuffer to get light ID
+		// 5. Render Lights to Light Framebuffer to get light ID
 		BindLightIDBuffer();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		m_SceneManager->RenderLightsToID();
 		UnbindLightIDBuffer();
 
-		// Render Lights
+		// 6. Render Lights
 		m_SceneManager->RenderLights();
 
-		// 4. skybox (to default framebuffer)
+		// 7. skybox (to default framebuffer)
 		if (m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->IsRunning())
 		{
 			ibl.BindCubemapFramebuffer();
@@ -283,23 +265,9 @@ namespace core
 			ibl.UnbindFramebuffer();
 		}
 
-
-		//shadowmap.lightMatricesCache = shadowmap.getLightSpaceMatrices();
-		//if (shadowmap.lightMatricesCache.size() != 0)
-		//{
-		//	glEnable(GL_BLEND);
-		//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		//	debugCascadeShader.use();
-		//	debugCascadeShader.setMat4("projection", m_EditorCamera->getProjection());
-		//	debugCascadeShader.setMat4("view", m_EditorCamera->GetViewMatrix());
-		//	shadowmap.drawCascadeVolumeVisualizers(shadowmap.lightMatricesCache, &debugCascadeShader);
-		//	glDisable(GL_BLEND);
-		//}
-
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render();
 
-
-		// 5. Copy final rendered result from default framebuffer to texture for ImGui
+		// 8. Copy final rendered result from default framebuffer to texture for ImGui
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // Read from default framebuffer
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_ScreenFramebuffer); // Draw to texture
 		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
