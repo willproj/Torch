@@ -1,30 +1,17 @@
 Scene: unknow
 Entities:
   - UUID Component:
-      Entity UUID: a0b0cc14-ef11-4c30-9aa5-00007f182632c2ba97bd
+      Entity UUID: 6ef1c1f0-f405-4bf5-b385-0000c89db2b820f84650
     Entity Type Component:
       Entity Type: General
     Label Component:
       Label: new entity
     Transform Component:
-      Translation: [0, -2.79006362, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Translation: [0, -3.8545599, -5.81989098]
+      Rotation: [1.57079637, 0, 0]
+      Scale: [1, 0.999975562, 0.999975562]
     Model Component:
-      Mesh Path: D:\github\Torch\assets\models\cube\cube.glb
-    Material Component:
-      Albedo Path: ""
-      Normal Path: ""
-      Metallic Path: ""
-      Roughness Path: ""
-      AO Path: ""
-      Metallic: 0
-      Roughness: 0.170000002
-      Use Albedo: false
-      Use Normal: false
-      Use Metallic: false
-      Use Roughness: false
-      Use AO: false
+      Mesh Path: D:\github\Torch\assets\models\dragon\DragonAttenuation.glb
   - UUID Component:
       Entity UUID: 2aaed990-bc56-4d74-b107-000008fdb0414af26d6e
     Entity Type Component:
@@ -37,3 +24,28 @@ Entities:
       Scale: [11.3629074, 1, 9.47767448]
     Model Component:
       Mesh Path: D:\github\Torch\assets\models\cube\cube.glb
+  - UUID Component:
+      Entity UUID: a0b0cc14-ef11-4c30-9aa5-00007f182632c2ba97bd
+    Entity Type Component:
+      Entity Type: General
+    Label Component:
+      Label: new entity
+    Transform Component:
+      Translation: [0, -2.64887094, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Model Component:
+      Mesh Path: D:\github\Torch\assets\models\cube\cube.glb
+    Material Component:
+      Albedo Path: D:\github\Torch\assets\texture\plastic\albedo.png
+      Normal Path: D:\github\Torch\assets\texture\plastic\normal.png
+      Metallic Path: D:\github\Torch\assets\texture\plastic\metallic.png
+      Roughness Path: D:\github\Torch\assets\texture\plastic\roughness.png
+      AO Path: D:\github\Torch\assets\texture\plastic\ao.png
+      Metallic: 0
+      Roughness: 1
+      Use Albedo: false
+      Use Normal: false
+      Use Metallic: false
+      Use Roughness: false
+      Use AO: false

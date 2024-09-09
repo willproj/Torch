@@ -29,6 +29,9 @@ layout (std140) uniform LightSpaceMatrices
 uniform float u_CascadePlaneDistances[16];
 uniform int u_CascadeCount;   // number of frusta - 1
 
+// SSAO
+uniform sampler2D u_SSAO;
+
 // Camera position
 uniform vec3 u_CamPos;
 uniform mat4 u_View;
@@ -197,6 +200,12 @@ void main()
     float roughness = gRoughAOData.r;
     float ao = gRoughAOData.g;
 
+    // Retrieve SSAO value
+    float ssao = texture(u_SSAO, TexCoords).r;
+
+    // Calculate ambient occlusion factor
+    float ambientOcclusion = ao * ssao;
+
     // View vector
     vec3 V = normalize(u_CamPos - WorldPos);
     vec3 R = reflect(-V, N);
@@ -227,7 +236,7 @@ void main()
 
    
     
-    vec3 ambient = (kD * diffuse + specular) * ao;
+    vec3 ambient = (kD * diffuse + specular) * ambientOcclusion;
     vec3 color = ambient + Lo;
 
 
@@ -236,5 +245,5 @@ void main()
     // gamma correct
     color = pow(color, vec3(1.0/2.2)); 
 
-    FragColor = vec4(color , 1.0);
+    FragColor = vec4(color, 1.0f);
 }

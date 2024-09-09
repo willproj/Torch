@@ -18,6 +18,9 @@ namespace core
 		Shader& GetLightsIDShader() { return m_LightsIDShader; }
 		Shader& GetLightsShader() { return m_LightsShader; }
 		Shader& GetShadowMapDepthShader() { return m_ShadowMapDepthShader; }
+
+		Shader& GetSSAOShaderRef() { return m_SSAOShader; }
+		Shader& GetSSAOBlurShaderRef() { return m_SSAOBlurShader; }
 		void Initialize();
 	private:
 		inline static std::shared_ptr<ShaderManager> s_Instance = nullptr;
@@ -29,15 +32,22 @@ namespace core
 		Shader m_GemotryPassShader;
 		Shader m_LightingPassShader;
 
-		// Environment Shaders
+		// Atmosphere Shaders
 		Shader m_AtmosphereShader;
+		
+		// Shadow Map Shaders
+		Shader m_ShadowMapDepthShader;
+
+		// SSAO shader
+		Shader m_SSAOShader;
+		Shader m_SSAOBlurShader;
 
 		// Lights Shader
 		Shader m_LightsIDShader;
 		Shader m_LightsShader;
 
-		// Shadow Map Shaders
-		Shader m_ShadowMapDepthShader;
+		
+
 
 	};
 }

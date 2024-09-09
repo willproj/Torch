@@ -25,9 +25,12 @@ namespace core
 		m_EnvirManager = EnvironmentManager::GetInstance();
 		auto atmosphere = std::shared_ptr<EnvironmentEntity>(new AtmosphericScattering(m_EditorCamera));
 		auto cascadeShadowMap = std::shared_ptr<EnvironmentEntity>(new CascadeShadowMap(m_EditorCamera));
+		auto ssao = std::shared_ptr<EnvironmentEntity>(new SSAO(m_EditorCamera));
 
 		m_EnvirManager->AddEntity(EnvironmentEntityType::Atmosphere, atmosphere);
 		m_EnvirManager->AddEntity(EnvironmentEntityType::CascadeShadowMap, cascadeShadowMap);
+		m_EnvirManager->AddEntity(EnvironmentEntityType::SSAO, ssao);
+
 		
 		test = Shader(
 			std::string(PROJECT_ROOT) + "/assets/shader/test.vert",
@@ -44,6 +47,7 @@ namespace core
 		lightingPassShader.setInt("u_BrdfLUT", 6);
 		lightingPassShader.setInt("u_ShadowMap", 7);
 		lightingPassShader.setInt("gLightSpacePosition", 8);
+		lightingPassShader.setInt("u_SSAO", 9);
 
 		SceneManager::GetSceneManager()->GetSceneRef()->CreateEntity();
 		CreateOffScreenTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
@@ -127,7 +131,7 @@ namespace core
 
 		CreateOffScreenTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
 		CreateLightIDTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
-		m_HDR.OnUpdate();
+		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->OnUpdate();
 	}
 
 	TorchOpenGLContext::~TorchOpenGLContext()
@@ -180,6 +184,8 @@ namespace core
 		auto& atmosphereSpcific = std::get<AtmosphericScatteringSpecification>(atmosphere.get());
 		auto& cascadeShadowMap = m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::CascadeShadowMap)->GetSpecification();
 		auto& shadowMapSpcific = std::get<CascadeShadowMapSpecification>(cascadeShadowMap.get());
+		auto& ssao = m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->GetSpecification();
+		auto& ssaoSpecific = std::get<SSAOSpecification>(ssao.get());
 		//----------------------------------------------------------------------------------------------------------------------
 
 		this->UpdateCameraViewport();
@@ -193,6 +199,17 @@ namespace core
 		m_GBuffer->Unbind();
 
 
+		// render ssao
+		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->BeginRender();
+		Texture::BindTexture(0, GL_TEXTURE_2D, m_GBuffer->GetGViewPositionTexture());
+		Texture::BindTexture(1, GL_TEXTURE_2D, m_GBuffer->GetGNormalTexture());
+		Texture::BindTexture(2, GL_TEXTURE_2D, ssaoSpecific.noiseTexture);
+		RenderQuad::Render();
+		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->EndRender();
+
+		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->Render();
+		
+
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
@@ -200,7 +217,6 @@ namespace core
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::CascadeShadowMap)->BeginRender();
 		SceneManager::GetSceneManager()->RenderScene();
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::CascadeShadowMap)->EndRender();
-
 
 		// 3. Lighting pass (render to default framebuffer)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -228,6 +244,7 @@ namespace core
 		Texture::BindTexture(6, GL_TEXTURE_2D, ibl.GetBrdfLUTTexture());
 		Texture::BindTexture(7, GL_TEXTURE_2D_ARRAY, shadowMapSpcific.shadowMapTexture);
 		Texture::BindTexture(8, GL_TEXTURE_2D, m_GBuffer->GetGLightSpacePosition());
+		Texture::BindTexture(9, GL_TEXTURE_2D, ssaoSpecific.ssaoColorBlurTexture);
 		RenderQuad::Render();
 		
 
@@ -272,6 +289,14 @@ namespace core
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_ScreenFramebuffer); // Draw to texture
 		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind final framebuffer
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		test.use();
+		test.setInt("tex", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, ssaoSpecific.ssaoColorBlurTexture);
+		RenderQuad::Render();
+
 	}
 
 }

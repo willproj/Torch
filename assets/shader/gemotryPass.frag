@@ -5,6 +5,7 @@ layout (location = 2) out vec4 gAlbedoSpec; // RGB = Albedo, A = Metallic
 layout (location = 3) out vec3 gRoughAO; // R = Roughness, G = AO, B = unused or other data
 layout (location = 4) out int EntityColor;
 layout (location = 5) out vec4 gLightSpacePosition;
+layout (location = 6) out vec3 gViewPosition;
 
 const float PI = 3.14159265359;
 
@@ -63,7 +64,7 @@ vec3 getNormalFromMap()
 void main()
 {    
     //gLightSpacePosition = FragPosLightSpace;
-
+    gViewPosition = FragPos;
     // Store the fragment position in the G-buffer texture
     gPosition = WorldPos;
     

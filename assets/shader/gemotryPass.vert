@@ -21,7 +21,7 @@ void main()
 {
     vec4 worldPos = model * vec4(aPos, 1.0);
     WorldPos = worldPos.xyz;
-    FragPos = worldPos.xyz; 
+    FragPos = (view * worldPos).xyz; 
     //TexCoords = aTexCoords * (tilingFactor.xy / scale.xy);
     TexCoords = aTexCoords;
     

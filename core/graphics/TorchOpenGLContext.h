@@ -13,6 +13,7 @@
 #include "core/renderer/environment/HDR.h"
 #include "core/renderer/postprocess/IBL.h"
 #include "core/renderer/environment/CascadeShadowMap.h"
+#include "core/renderer/environment/SSAO.h"
 #include "core/renderer/ShaderManager.h"
 
 namespace core

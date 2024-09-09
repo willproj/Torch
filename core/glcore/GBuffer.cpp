@@ -20,7 +20,7 @@ namespace core
         uint32_t width = utils::ServiceLocator::GetWindow()->GetWinSpecification().width;
         uint32_t height = utils::ServiceLocator::GetWindow()->GetWinSpecification().height;
 
-        // Position color buffer
+        // Position buffer
         glGenTextures(1, &m_GPosition);
         glBindTexture(GL_TEXTURE_2D, m_GPosition);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
@@ -76,10 +76,19 @@ namespace core
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_GDepth, 0);
+
+
+        // View Position buffer ( SSAO need view position buffer)
+        glGenTextures(1, &m_GViewPosition);
+        glBindTexture(GL_TEXTURE_2D, m_GViewPosition);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, GL_TEXTURE_2D, m_GViewPosition, 0);
         
 
         // List of color attachments (no depth)
-        m_Attachments = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5 };
+        m_Attachments = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6 };
         glDrawBuffers(m_Attachments.size(), m_Attachments.data());
 
         // Check if framebuffer is complete

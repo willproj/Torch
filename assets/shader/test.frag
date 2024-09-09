@@ -1,12 +1,15 @@
-#version 330 core
-in vec3 WorldPos;
+#version 430 core
 out vec4 FragColor;
 
-uniform samplerCube irradianceMap;
+in vec2 TexCoords;
+
+uniform sampler2D tex;  // SSAO texture
 
 void main()
 {
-    // Sample the irradiance cubemap using the world position of the cube's face
-    vec3 color = texture(irradianceMap, WorldPos).rgb;
-    FragColor = vec4(color, 1.0);
+    // Retrieve the SSAO factor from the SSAO texture
+    vec3 ssao = texture(tex, TexCoords).rgb;
+
+    // Display the SSAO as a grayscale value
+    FragColor = vec4(ssao, 1.0);
 }

@@ -36,11 +36,23 @@ namespace core
 			root + "/assets/shader/lightingPass.frag"
 		);
 		
-		// Environment Renderers Shader
+		// Atmosphere Renderers Shader
 		m_AtmosphereShader.InitShader(
 			root + "/assets/shader/skybox.vert",
 			root + "/assets/shader/skybox.frag"
 		);
+
+		// SSAO Shader
+		m_SSAOShader.InitShader(
+			root + "/assets/shader/ssao.vert",
+			root + "/assets/shader/ssao.frag"
+		);
+
+		m_SSAOBlurShader.InitShader(
+			root + "/assets/shader/ssao.vert",
+			root + "/assets/shader/ssaoBlur.frag"
+		);
+
 
 		// Lights Shader
 		m_LightsIDShader = Shader(
