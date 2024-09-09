@@ -36,7 +36,7 @@ uniform mat4 u_View;
 // Shadow Map calculation
 float ShadowCalculation(vec3 fragPosWorldSpace, vec3 N)
 {
-    // select cascade layer
+    // Select cascade layer
     vec4 fragPosViewSpace = u_View * vec4(fragPosWorldSpace, 1.0);
     float depthValue = abs(fragPosViewSpace.z);
 
@@ -55,21 +55,16 @@ float ShadowCalculation(vec3 fragPosWorldSpace, vec3 N)
     }
 
     vec4 fragPosLightSpace = lightSpaceMatrices[layer] * vec4(fragPosWorldSpace, 1.0);
-    // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    // transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
 
-
-    // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
 
-    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
     if (currentDepth > 1.0)
     {
         return 0.0;
     }
-    // calculate bias (based on depth map resolution and slope)
+
     vec3 normal = N;
     float bias = max(0.05 * (1.0 - dot(normal, u_SunLightDir)), 0.005);
     const float biasModifier = 0.5f;
@@ -82,21 +77,24 @@ float ShadowCalculation(vec3 fragPosWorldSpace, vec3 N)
         bias *= 1 / (u_CascadePlaneDistances[layer] * biasModifier);
     }
 
-    // PCF
+    // PCF with a larger kernel
     float shadow = 0.0;
-    vec2 texelSize = 1.0 / vec2(textureSize(u_ShadowMap, 0));
-    for(int x = -1; x <= 1; ++x)
+    vec2 texelSize = 1.0 / vec2(textureSize(u_ShadowMap, 0).xy);
+    int kernelSize = 3; // Size of the kernel
+    for(int x = -kernelSize; x <= kernelSize; ++x)
     {
-        for(int y = -1; y <= 1; ++y)
+        for(int y = -kernelSize; y <= kernelSize; ++y)
         {
-            float pcfDepth = texture(u_ShadowMap, vec3(projCoords.xy + vec2(x, y) * texelSize, layer)).r;
-            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;        
-        }    
+            vec2 offset = vec2(x, y) * texelSize;
+            float pcfDepth = texture(u_ShadowMap, vec3(projCoords.xy + offset, layer)).r;
+            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
+        }
     }
-    shadow /= 9.0;
-        
+    shadow /= float((2 * kernelSize + 1) * (2 * kernelSize + 1)); // Normalize
+
     return shadow;
 }
+
 
 // Constants for PBR
 const float PI = 3.14159265359;
