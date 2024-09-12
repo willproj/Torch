@@ -192,7 +192,7 @@ namespace editor
 						material.roughnessTexture = core::Texture::LoadTexture(path);
 					}
 				}
-				ImGui::SliderFloat("Roughness", &material.roughness, 0.0f, 1.0f);
+				ImGui::SliderFloat("Roughness", &material.roughness, 0.0f, 10.0f);
 				ImGui::PopID();
 				ImGui::Separator();
 

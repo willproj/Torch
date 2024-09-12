@@ -273,6 +273,9 @@ namespace core
 				ibl.RenderAtmosphereToCubemapFace(i);
 				m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render(ibl.views[i], ibl.projection);
 			}
+			glBindTexture(GL_TEXTURE_CUBE_MAP, ibl.GetCubemapTexture());
+			glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
 			ibl.UnbindFramebuffer();
 
 			ibl.RenderIrradianceCubemap();

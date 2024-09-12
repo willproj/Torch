@@ -52,6 +52,8 @@ namespace core
 		void CreateEquiRectangleTexture();
 		void CreateEquiRectangleFramebuffer();
 
+		void ConvertHDRToCubemap();
+
 		// Irradiance Map
 		void InitIrradianceCubemap();
 
@@ -67,6 +69,9 @@ namespace core
 		uint32_t m_BrdfResolution;
 		uint32_t m_BrdfFramebuffer;
 		Shader m_BrdfShader;
+
+		uint32_t m_HdrTexture;
+
 
 		uint32_t m_CubemapTexture;
 		uint32_t m_CubemapSize;

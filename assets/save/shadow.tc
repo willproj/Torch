@@ -12,6 +12,19 @@ Entities:
       Scale: [1, 0.999975562, 0.999975562]
     Model Component:
       Mesh Path: D:\github\Torch\assets\models\dragon\DragonAttenuation.glb
+    Material Component:
+      Albedo Path: D:\github\Torch\assets\texture\black-white-tile-ue\black-white-tile_albedo.png
+      Normal Path: D:\github\Torch\assets\texture\black-white-tile-ue\black-white-tile_normal-dx.png
+      Metallic Path: D:\github\Torch\assets\texture\black-white-tile-ue\black-white-tile_metallic.png
+      Roughness Path: D:\github\Torch\assets\texture\black-white-tile-ue\black-white-tile_roughness.png
+      AO Path: D:\github\Torch\assets\texture\black-white-tile-ue\black-white-tile_ao.png
+      Metallic: 1
+      Roughness: 0.151999995
+      Use Albedo: false
+      Use Normal: false
+      Use Metallic: false
+      Use Roughness: false
+      Use AO: false
   - UUID Component:
       Entity UUID: 2aaed990-bc56-4d74-b107-000008fdb0414af26d6e
     Entity Type Component:
@@ -43,9 +56,34 @@ Entities:
       Roughness Path: D:\github\Torch\assets\texture\plastic\roughness.png
       AO Path: D:\github\Torch\assets\texture\plastic\ao.png
       Metallic: 0
-      Roughness: 1
-      Use Albedo: false
-      Use Normal: false
-      Use Metallic: false
-      Use Roughness: false
-      Use AO: false
+      Roughness: 0.453000009
+      Use Albedo: true
+      Use Normal: true
+      Use Metallic: true
+      Use Roughness: true
+      Use AO: true
+  - UUID Component:
+      Entity UUID: b6f74b68-842d-4f9e-97b8-000025211fb9fbe8751c
+    Entity Type Component:
+      Entity Type: General
+    Label Component:
+      Label: new entity
+    Transform Component:
+      Translation: [0, 0, 3.03284073]
+      Rotation: [0, 0, 0]
+      Scale: [0.00373000023, 0.00373000023, 0.00373000023]
+    Model Component:
+      Mesh Path: D:\github\Torch\assets\models\cube2\scene.gltf
+    Material Component:
+      Albedo Path: D:\github\Torch\assets\texture\bronze\albedo.png
+      Normal Path: D:\github\Torch\assets\texture\bronze\normal.png
+      Metallic Path: D:\github\Torch\assets\texture\bronze\metallic.png
+      Roughness Path: D:\github\Torch\assets\texture\bronze\roughness.png
+      AO Path: D:\github\Torch\assets\texture\bronze\ao.png
+      Metallic: 1
+      Roughness: 3.84100008
+      Use Albedo: true
+      Use Normal: true
+      Use Metallic: true
+      Use Roughness: true
+      Use AO: true

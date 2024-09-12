@@ -191,6 +191,8 @@ vec3 ACESFilm(vec3 x)
 }
 
 
+
+
 void main()
 {
     // Normalize the TexCoords to get the direction vector for the skybox
@@ -248,7 +250,7 @@ void main()
     float exposure = 8.0;
     color *= exposure;
     color = ACESFilm(color);
-    color = pow(color, vec3(1.0 / GAMMA));
+    color = pow(color, vec3(1.0 / 2.0));
 
     // Output to screen
     FragColor = vec4(color, 1.0);

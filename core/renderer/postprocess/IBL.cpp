@@ -2,6 +2,8 @@
 #include "utils/ServiceLocator.h"
 #include "core/renderer/RenderQuad.h"
 #include "core/renderer/RenderCube.h"
+#include <stb_image.h>
+
 namespace core
 {
 	IBL::IBL() {
@@ -31,9 +33,32 @@ namespace core
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_IrradianceRenderBuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+		stbi_set_flip_vertically_on_load(true);
+		int width, height, nrComponents;
+		std::string path = std::string(PROJECT_ROOT) + "/assets/hdr/newport_loft.hdr";
+		float* data = stbi_loadf(path.c_str(), &width, &height, &nrComponents, 0);
+		if (data)
+		{
+			glGenTextures(1, &m_HdrTexture);
+			glBindTexture(GL_TEXTURE_2D, m_HdrTexture);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data); // note how we specify the texture's data value to be float
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+			stbi_image_free(data);
+		}
+
+		else
+		{
+			std::cout << "Failed to load HDR image." << std::endl;
+		}
+
 		InitBrdf();
 		InitCubemap();
-		//InitEquiRectangle();
+		InitEquiRectangle();
 		
 
 		InitIrradianceCubemap();
@@ -95,6 +120,8 @@ namespace core
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+
 	}
 
 	void IBL::CreateCubemapFramebuffer() {
@@ -137,6 +164,31 @@ namespace core
 		glGenFramebuffers(1, &m_EquiRectangleFramebuffer);
 		SetFramebufferAndViewport(m_EquiRectangleFramebuffer, m_EquiRectangleSize, m_EquiRectangleSize);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_EquiRectangleTexture, 0);
+	}
+
+	void IBL::ConvertHDRToCubemap()
+	{
+		//equirectangularToCubemapShader.use();
+		//equirectangularToCubemapShader.setInt("equirectangularMap", 0);
+		//equirectangularToCubemapShader.setMat4("projection", captureProjection);
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, hdrTexture);
+
+		//glViewport(0, 0, 512, 512); // don't forget to configure the viewport to the capture dimensions.
+		//glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+		//for (unsigned int i = 0; i < 6; ++i)
+		//{
+		//	equirectangularToCubemapShader.setMat4("view", captureViews[i]);
+		//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
+		//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//	renderCube();
+		//}
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		//// then let OpenGL generate mipmaps from first mip face (combatting visible dots artifact)
+		//glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+		//glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 	}
 
 	void IBL::RenderCubemapToEquiRectangle() {
