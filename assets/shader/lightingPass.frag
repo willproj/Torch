@@ -28,6 +28,15 @@ layout (std140) uniform LightSpaceMatrices
 };
 uniform float u_CascadePlaneDistances[16];
 uniform int u_CascadeCount;   // number of frusta - 1
+uniform int u_TextureSize;
+
+#define NUM_SAMPLES 25 //PCSS sample parameter in step 3
+#define BLOCKER_SEARCH_NUM_SAMPLES NUM_SAMPLES //PCSS sample parameter in step 1
+#define EPS 1e-3
+
+#define PI 3.141592653589793
+#define PI2 6.283185307179586
+#define NUM_RINGS 10
 
 // SSAO
 uniform sampler2D u_SSAO;
@@ -35,6 +44,60 @@ uniform sampler2D u_SSAO;
 // Camera position
 uniform vec3 u_CamPos;
 uniform mat4 u_View;
+
+/*******-------------------- PCSS functions --------------------******/
+
+highp float rand_1to1(highp float x) {
+	// -1 -1
+	return fract(sin(x) * 10000.0);
+}
+
+highp float rand_2to1(vec2 uv) {
+	// 0 - 1
+	const highp float a = 12.9898, b = 78.233, c = 43758.5453;
+	highp float dt = dot(uv.xy, vec2(a, b)), sn = mod(dt, PI);
+	return fract(sin(sn) * c);
+}
+
+
+// poisson distribution
+vec2 poissonDisk[NUM_SAMPLES];
+
+void poissonDiskSamples(const in vec2 randomSeed) {
+
+	float ANGLE_STEP = PI2 * float(NUM_RINGS) / float(NUM_SAMPLES);
+	float INV_NUM_SAMPLES = 1.0 / float(NUM_SAMPLES);
+
+	float angle = rand_2to1(randomSeed) * PI2;
+	float radius = INV_NUM_SAMPLES;
+	float radiusStep = radius;
+
+	for (int i = 0; i < NUM_SAMPLES; i++) {
+		poissonDisk[i] = vec2(cos(angle), sin(angle)) * pow(radius, 0.75);
+		radius += radiusStep;
+		angle += ANGLE_STEP;
+	}
+}
+
+void uniformDiskSamples(const in vec2 randomSeed) {
+
+	float randNum = rand_2to1(randomSeed);
+	float sampleX = rand_1to1(randNum);
+	float sampleY = rand_1to1(sampleX);
+
+	float angle = sampleX * PI2;
+	float radius = sqrt(sampleY);
+
+	for (int i = 0; i < NUM_SAMPLES; i++) {
+		poissonDisk[i] = vec2(radius * cos(angle), radius * sin(angle));
+
+		sampleX = rand_1to1(sampleY);
+		sampleY = rand_1to1(sampleX);
+
+		angle = sampleX * PI2;
+		radius = sqrt(sampleY);
+	}
+}
 
 // Shadow Map calculation
 float ShadowCalculation(vec3 fragPosWorldSpace, vec3 N)
@@ -80,27 +143,86 @@ float ShadowCalculation(vec3 fragPosWorldSpace, vec3 N)
         bias *= 1 / (u_CascadePlaneDistances[layer] * biasModifier);
     }
 
+    /***--------STEP 1: Blocker search: find the average blocker depth---------***/
+
+	poissonDiskSamples(projCoords.xy); //sampled from poisson distribution
+    const float u_LightSize = 200.0f;
+	float sampleStride = u_LightSize/2.5; 
+	float dBlocker = 0.0;
+	float sampleSize = 1.0 / u_TextureSize * sampleStride;
+	int blockerNumSample = BLOCKER_SEARCH_NUM_SAMPLES;
+
+    float border = sampleStride / u_TextureSize;
+	// just cut out the no padding area according to the sarched area size
+    //if (projCoords.x <= border || projCoords.x >= 1.0f - border) {
+	//	return 1.0;
+	//}
+	//if (projCoords.y <= border || projCoords.y >= 1.0f - border) {
+	//	return 1.0;
+	//}
+
+	int count = 0;
+	for (int i = 0; i < blockerNumSample; ++i) {
+		vec2 sampleCoord = poissonDisk[i] * sampleSize + projCoords.xy;
+		float closestDepth = texture(u_ShadowMap, vec3(sampleCoord, layer)).r;
+		//Only compute average depth of blocker! not the average of the whole filter's area!
+		if (closestDepth < currentDepth) {
+			dBlocker += closestDepth;
+			count++;
+		}
+	}
+	
+	dBlocker /= count;
+
+	if (dBlocker < bias) {
+		return 0.0;
+	}
+	if (dBlocker > 1.0) {
+		return 1.0;
+	}
+
+    /***---------STEP 02: Penumbra estimation----------***/
+	// estimation the filter size to control the softness
+
+	poissonDiskSamples(projCoords.xy); // sampled from poisson distribution
+
+	float lightWidth = u_LightSize/2.5;
+	float wPenumbra = (currentDepth - dBlocker) * lightWidth / dBlocker;
+
+	float filterStride = 5.0;
+	float filterSize = 1.0 / u_TextureSize * filterStride * wPenumbra;
+
+	/***--------STEP 03: Percentage Closer Filtering (PCF)---------***/
+
+	float shadow = 0.0;
+	int NumSample = NUM_SAMPLES;
+
+	for (int i = 0; i < NumSample; ++i) {
+		vec2 sampleCoord = poissonDisk[i] * filterSize + projCoords.xy;
+		float pcfDepth = texture(u_ShadowMap, vec3(sampleCoord, layer)).r;
+		shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+	}
+	
+	shadow /= NumSample;
+
+	return shadow;
     // PCF with a larger kernel
-    float shadow = 0.0;
-    vec2 texelSize = 1.0 / vec2(textureSize(u_ShadowMap, 0).xy);
-    int kernelSize = 3; // Size of the kernel
-    for(int x = -kernelSize; x <= kernelSize; ++x)
-    {
-        for(int y = -kernelSize; y <= kernelSize; ++y)
-        {
-            vec2 offset = vec2(x, y) * texelSize;
-            float pcfDepth = texture(u_ShadowMap, vec3(projCoords.xy + offset, layer)).r;
-            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
-        }
-    }
-    shadow /= float((2 * kernelSize + 1) * (2 * kernelSize + 1)); // Normalize
-
-    return shadow;
+    //float shadow = 0.0;
+    //vec2 texelSize = 1.0 / vec2(textureSize(u_ShadowMap, 0).xy);
+    //int kernelSize = 3; // Size of the kernel
+    //for(int x = -kernelSize; x <= kernelSize; ++x)
+    //{
+    //    for(int y = -kernelSize; y <= kernelSize; ++y)
+    //    {
+    //        vec2 offset = vec2(x, y) * texelSize;
+    //        float pcfDepth = texture(u_ShadowMap, vec3(projCoords.xy + offset, layer)).r;
+    //        shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
+    //    }
+    //}
+    //shadow /= float((2 * kernelSize + 1) * (2 * kernelSize + 1)); // Normalize
+    //
+    //return shadow;
 }
-
-
-// Constants for PBR
-const float PI = 3.14159265359;
 
 vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
