@@ -67,5 +67,9 @@ namespace core
 			root + "/assets/shader/shadowMapDepth.geom"
 		);
 
+		m_StencilOutlineShader.InitShader(
+			root + "/assets/shader/stencilOutlineColor.vert",
+			root + "/assets/shader/stencilOutlineColor.frag"
+		);
 	}
 }

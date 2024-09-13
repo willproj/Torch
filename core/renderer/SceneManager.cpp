@@ -80,6 +80,14 @@ namespace core
 		gemotryPassShader.use();
 		gemotryPassShader.setMat4("view", m_EditorCameraPtr->GetViewMatrix());
 		gemotryPassShader.setMat4("projection", m_EditorCameraPtr->GetProjection());
+
+		// Set up stencil buffer configuration before rendering
+		glEnable(GL_STENCIL_TEST);
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
+
 		// Iterate over entities and render
 		for (auto entityID : m_Scene.GetGeneralEntityIDs())
 		{
@@ -147,6 +155,8 @@ namespace core
 				}
 			}
 		}
+		glStencilMask(0x00);
+		glDisable(GL_STENCIL_TEST);
 	}
 
 	void SceneManager::RenderLights()
@@ -231,8 +241,49 @@ namespace core
 
 	void SceneManager::StencilOutlinePass()
 	{
-		
+		glEnable(GL_STENCIL_TEST); // Enable stencil test
+		glStencilFunc(GL_EQUAL, 1, 0xFF); // Only render where stencil value is 1
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // Don't change stencil value
+		glStencilMask(0x00); // Disable writing to stencil buffer
+		glDepthFunc(GL_LEQUAL);
+		auto& outlineShader = ShaderManager::GetInstance()->GetStencilOutlineShaderRef();
+
+		outlineShader.use();
+		outlineShader.setMat4("view", m_EditorCameraPtr->GetViewMatrix());
+		outlineShader.setMat4("projection", m_EditorCameraPtr->GetProjection());
+		outlineShader.setVec3("outlineColor", glm::vec3(1.0f, 1.0f, 0.0f)); // Example outline color
+
+		// Render slightly larger version of the objects
+		for (auto entityID : m_Scene.GetGeneralEntityIDs())
+		{
+			Entity entity = { entityID, &m_Scene };
+
+			glm::mat4 transform = glm::mat4(1.0f);
+			if (entity.HasComponent<TransformComponent>())
+			{
+				transform = entity.GetComponent<TransformComponent>().getTransform();
+			}
+
+			// Scale the model slightly larger for the outline
+			outlineShader.setMat4("model", glm::scale(transform, glm::vec3(1.05f))); // Slightly larger scale for the outline
+
+			if (entity.HasComponent<ModelComponent>())
+			{
+				auto model = entity.GetComponent<ModelComponent>().model;
+				if (model)
+				{
+					model->RenderModel(); // Render the model with the outline shader
+				}
+			}
+		}
+
+		glEnable(GL_DEPTH_TEST); // Re-enable depth testing
+		glDisable(GL_STENCIL_TEST); // Disable stencil test
+		glStencilMask(0xFF);        // Re-enable writing to the stencil buffer
+		glStencilFunc(GL_ALWAYS, 0, 0xFF);
 	}
+
+
 
 
 

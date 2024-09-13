@@ -21,6 +21,9 @@ namespace core
 
 		Shader& GetSSAOShaderRef() { return m_SSAOShader; }
 		Shader& GetSSAOBlurShaderRef() { return m_SSAOBlurShader; }
+
+		Shader& GetStencilOutlineShaderRef() { return m_StencilOutlineShader; }
+
 		void Initialize();
 	private:
 		inline static std::shared_ptr<ShaderManager> s_Instance = nullptr;
@@ -45,6 +48,9 @@ namespace core
 		// Lights Shader
 		Shader m_LightsIDShader;
 		Shader m_LightsShader;
+
+		// Stencil buffer
+		Shader m_StencilOutlineShader;
 
 		
 

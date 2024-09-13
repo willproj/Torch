@@ -1,8 +1,9 @@
-#version 430 core
+#version 330 core
 
 out vec4 FragColor;
 
-void main()
-{
-	FragColor = vec4(1.0f,0.0f,0.0f,1.0f);
+uniform vec3 outlineColor; // Color of the outline
+
+void main() {
+    FragColor = vec4(outlineColor, 1.0);
 }

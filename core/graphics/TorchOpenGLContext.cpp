@@ -194,10 +194,9 @@ namespace core
 
 		// 1. Geometry pass (render to GBuffer)
 		m_GBuffer->Bind();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		m_SceneManager->Render();
 		m_GBuffer->Unbind();
-
 
 		// render ssao
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->BeginRender();
@@ -212,15 +211,15 @@ namespace core
 
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
 		// 2. Render cascade shadow map
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::CascadeShadowMap)->BeginRender();
 		SceneManager::GetSceneManager()->RenderScene();
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::CascadeShadowMap)->EndRender();
 
+
 		// 3. Lighting pass (render to default framebuffer)
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 		auto& lightingPassShader = ShaderManager::GetInstance()->GetLightingPassShaderRef();
 		lightingPassShader.use();
 		lightingPassShader.setVec3("u_CamPos", m_EditorCamera->GetPosition());
@@ -230,12 +229,12 @@ namespace core
 		lightingPassShader.setFloat("u_FarPlane", m_EditorCamera->GetFarClip());
 		lightingPassShader.setInt("u_CascadeCount", shadowMapSpcific.shadowCascadeLevels.size());
 		lightingPassShader.setInt("u_TextureSize", shadowMapSpcific.depthMapResolution);
-
+		
 		for (size_t i = 0; i < shadowMapSpcific.shadowCascadeLevels.size(); ++i)
 		{
 			lightingPassShader.setFloat("u_CascadePlaneDistances[" + std::to_string(i) + "]", shadowMapSpcific.shadowCascadeLevels[i]);
 		}
-
+		
 		Texture::BindTexture(0, GL_TEXTURE_2D, m_GBuffer->GetGPositionTexture());
 		Texture::BindTexture(1, GL_TEXTURE_2D, m_GBuffer->GetGNormalTexture());
 		Texture::BindTexture(2, GL_TEXTURE_2D, m_GBuffer->GetGColorTexture());
@@ -247,23 +246,25 @@ namespace core
 		Texture::BindTexture(8, GL_TEXTURE_2D, m_GBuffer->GetGLightSpacePosition());
 		Texture::BindTexture(9, GL_TEXTURE_2D, ssaoSpecific.ssaoColorBlurTexture);
 		RenderQuad::Render();
-		
 
 		// 4. Blit depth buffer from GBuffer to default framebuffer
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_GBuffer->GetFramebufferID());
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // Blit to default framebuffer
 		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind framebuffer
-		
+
+
 		// 5. Render Lights to Light Framebuffer to get light ID
 		BindLightIDBuffer();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		m_SceneManager->RenderLightsToID();
 		UnbindLightIDBuffer();
+		
 
+		
 		// 6. Render Lights
 		m_SceneManager->RenderLights();
-
+		
 		// 7. skybox (to default framebuffer)
 		if (m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->IsRunning())
 		{
@@ -276,17 +277,19 @@ namespace core
 			}
 			glBindTexture(GL_TEXTURE_CUBE_MAP, ibl.GetCubemapTexture());
 			glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-
+		
 			ibl.UnbindFramebuffer();
-
+		
 			ibl.RenderIrradianceCubemap();
 			ibl.UnbindFramebuffer();
-
+		
 			ibl.RenderPrefilterCubemap();
 			ibl.UnbindFramebuffer();
 		}
 
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render();
+
+
 
 		// 8. Copy final rendered result from default framebuffer to texture for ImGui
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // Read from default framebuffer
@@ -294,12 +297,13 @@ namespace core
 		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind final framebuffer
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		test.use();
-		test.setInt("tex", 0);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, ssaoSpecific.ssaoColorBlurTexture);
-		RenderQuad::Render();
+
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//test.use();
+		//test.setInt("tex", 0);
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, ssaoSpecific.ssaoColorBlurTexture);
+		//RenderQuad::Render();
 
 	}
 
