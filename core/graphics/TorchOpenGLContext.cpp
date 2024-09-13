@@ -36,6 +36,16 @@ namespace core
 			std::string(PROJECT_ROOT) + "/assets/shader/test.vert",
 			std::string(PROJECT_ROOT) + "/assets/shader/test.frag");
 
+		vollight = Shader(
+			std::string(PROJECT_ROOT) + "/assets/shader/volumetricLighting.vert",
+			std::string(PROJECT_ROOT) + "/assets/shader/volumetricLighting.frag");
+
+		//light.Initialize();
+		shader.InitShader(
+			std::string(PROJECT_ROOT) + "/assets/shader/DynamicLightingDataCompute.comp"
+		);
+		
+
 		auto& lightingPassShader = ShaderManager::GetInstance()->GetLightingPassShaderRef();
 		lightingPassShader.use();
 		lightingPassShader.setInt("gPosition", 0);
@@ -198,6 +208,17 @@ namespace core
 		m_SceneManager->Render();
 		m_GBuffer->Unbind();
 
+		//shader.use();
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, m_GBuffer->GetGPositionTexture());
+		//shader.setInt("gPosition", 0);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, m_GBuffer->GetGColorTexture());
+		//shader.setInt("gColor", 1);
+		//shader.setVec3("lightPosition", glm::vec3(-1.0f, 1.0f, -1.0f));
+		//shader.setFloat("lightIntensity", 10);
+		//light.Dispatch();
+
 
 		// render ssao
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->BeginRender();
@@ -294,10 +315,60 @@ namespace core
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind final framebuffer
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		test.use();
-		test.setInt("tex", 0);
+		//test.use();
+		//test.setInt("tex", 0);
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, ssaoSpecific.ssaoColorBlurTexture);
+		//RenderQuad::Render();
+
+		//vollight.use();
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, m_GBuffer->GetGPositionTexture());
+		//vollight.setInt("gPosition", 0);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_3D, light.GetLightVolumeTexture());
+		//vollight.setInt("lightVolumeTexture", 1);
+		//vollight.setVec3("viewPosition", m_EditorCamera->GetPosition());
+		//RenderQuad::Render();
+		
+		// Assuming you have these variables defined
+		float nearPlane = 0.1f; // Near clipping plane
+		float farPlane = 30000.0f; // Far clipping plane
+		float orthoSize = 10.0f; // Size of the orthographic projection
+
+		// Step 1: Create the Light¡¯s View Matrix
+		// For a directional light
+		glm::mat4 lightViewMatrix = glm::lookAt(atmosphereSpcific.sunPosition * 10000.0f, atmosphereSpcific.sunPosition, glm::vec3(0.0f, 1.0f, 0.0f));
+
+		// Step 2: Create the Light¡¯s Projection Matrix
+		// For a directional light, we use an orthographic projection
+		glm::mat4 lightProjectionMatrix = glm::ortho(
+			-orthoSize, orthoSize,  // Left and right
+			-orthoSize, orthoSize,  // Bottom and top
+			nearPlane, farPlane     // Near and far planes
+		);
+
+		// Step 3: Compute the Light¡¯s View-Projection Matrix
+		glm::mat4 lightViewProjectionMatrix = lightProjectionMatrix * lightViewMatrix;
+		auto& god = ShaderManager::GetInstance()->GetGodRayShaderRef();
+		god.use();
+		god.setMat4("projectionMatrix", m_EditorCamera->GetProjection());
+		god.setMat4("viewMatrix", m_EditorCamera->GetViewMatrix());
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, ssaoSpecific.ssaoColorBlurTexture);
+		glBindTexture(GL_TEXTURE_2D, m_GBuffer->GetGDepthTexture());
+		god.setInt("gDepth", 0);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, m_GBuffer->GetGPositionTexture());
+		god.setInt("gPosition", 1);
+		god.setVec3("sunPosition", atmosphereSpcific.sunPosition * 100.0f);
+		god.setVec3("sunColor", glm::vec3(1.0f));
+
+
+		god.setFloat("densityFactor", 0.1f);  // Higher density for more visible rays
+		god.setFloat("depthBias", 0.002f);    // Small bias to prevent Z-fighting artifacts
+		god.setFloat("maxDistance", 500.0f);  // Longer ray distance for dramatic effect
+		god.setFloat("stepSize", 0.2f);
+
 		RenderQuad::Render();
 
 	}

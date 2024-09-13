@@ -1,0 +1,44 @@
+#version 430
+
+layout (local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
+
+// G-buffer textures
+uniform sampler2D gPosition; // World positions
+uniform sampler2D gColor;    // Colors (not used here but could be used in a more complex shader)
+
+// Light parameters
+uniform vec3 lightPosition;
+uniform float lightIntensity;
+
+// 3D texture to store volumetric lighting
+layout (rgba32f, binding = 0) uniform image3D lightVolumeTexture;
+
+void main()
+{
+    // Get the size of the 3D texture
+    ivec3 texSize = imageSize(lightVolumeTexture);
+    
+    // Get the current texel coordinate
+    ivec3 texCoord = ivec3(gl_GlobalInvocationID.xyz);
+
+    // Ensure we are within bounds
+    if (texCoord.x >= texSize.x || texCoord.y >= texSize.y || texCoord.z >= texSize.z)
+        return;
+
+    // Convert the texture coordinate to normalized device coordinates
+    vec3 coord = vec3(texCoord) / vec3(texSize);
+
+    // Sample the world position from the gPosition texture
+    vec3 worldPosition = texture(gPosition, coord.xy).rgb;
+
+    // Calculate the direction and distance from the light to the world position
+    vec3 lightDir = normalize(lightPosition - worldPosition);
+    float distance = length(lightPosition - worldPosition);
+
+    // Calculate the light contribution
+    float lightContribution = max(dot(lightDir, normalize(lightPosition - worldPosition)), 0.0);
+    lightContribution *= lightIntensity / (distance * distance);
+
+    // Store the result in the 3D texture
+    imageStore(lightVolumeTexture, texCoord, vec4(lightContribution, lightContribution, lightContribution, 1.0));
+}

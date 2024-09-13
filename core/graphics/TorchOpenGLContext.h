@@ -15,6 +15,7 @@
 #include "core/renderer/environment/CascadeShadowMap.h"
 #include "core/renderer/environment/SSAO.h"
 #include "core/renderer/ShaderManager.h"
+#include "core/renderer/postprocess/VolumetricLighting.h"
 
 namespace core
 {
@@ -75,19 +76,12 @@ namespace core
 
 		HDR m_HDR;
 
-		// lights
-		// ------
-		std::vector<glm::vec3> lightPositions = {
-			glm::vec3(0.0f, 0.0f, 10.0f),
-		};
-		std::vector<glm::vec3> lightColors = {
-			glm::vec3(150.0f, 150.0f, 150.0f),
-		};
 
 		IBL ibl;
 		Shader test;
 
 		bool iblonce = true;
 		Shader vollight;
+		Shader shader;
 	};
 }

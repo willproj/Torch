@@ -21,6 +21,8 @@ namespace core
 
 		Shader& GetSSAOShaderRef() { return m_SSAOShader; }
 		Shader& GetSSAOBlurShaderRef() { return m_SSAOBlurShader; }
+
+		Shader& GetGodRayShaderRef() { return m_GodRays; }
 		void Initialize();
 	private:
 		inline static std::shared_ptr<ShaderManager> s_Instance = nullptr;
@@ -45,6 +47,10 @@ namespace core
 		// Lights Shader
 		Shader m_LightsIDShader;
 		Shader m_LightsShader;
+
+
+		// God Rays
+		Shader m_GodRays;
 
 		
 

@@ -67,5 +67,10 @@ namespace core
 			root + "/assets/shader/shadowMapDepth.geom"
 		);
 
+		m_GodRays.InitShader(
+			root + "/assets/shader/lightingPass.vert",
+			root + "/assets/shader/godRays.frag"
+		);
+
 	}
 }
