@@ -10,11 +10,21 @@ namespace core
     TorchModel::TorchModel()
     {
     }
+
     TorchModel::~TorchModel()
     {
+        // Cleanup OpenGL buffers to prevent memory leaks
+        for (auto vbo : m_VertexBuffers)
+        {
+            glDeleteBuffers(1, &vbo);
+        }
+        for (auto vao : m_VertexArrays)
+        {
+            glDeleteVertexArrays(1, &vao);
+        }
     }
 
-    std::string TorchModel::GetModelNameFromPath(const std::string &path)
+    std::string TorchModel::GetModelNameFromPath(const std::string& path)
     {
         size_t lastSlashPos = path.find_last_of("/\\");
         size_t lastDotPos = path.find_last_of('.');
@@ -26,7 +36,7 @@ namespace core
         return "";
     }
 
-    void TorchModel::LoadModel(const std::string &modelPath)
+    void TorchModel::LoadModel(const std::string& modelPath)
     {
         m_ModelPath = modelPath;
         m_ModelName = GetModelNameFromPath(modelPath);
@@ -34,6 +44,8 @@ namespace core
         tinygltf::TinyGLTF loader;
         std::string err, warn;
         bool ret = false;
+
+        // Determine the file format (ASCII glTF or binary glTF)
         if (modelPath.substr(modelPath.find_last_of(".") + 1) == "gltf")
         {
             ret = loader.LoadASCIIFromFile(&model, &err, &warn, modelPath);  // ASCII-based glTF
@@ -61,13 +73,14 @@ namespace core
         if (!ret)
         {
             TORCH_LOG_ERROR("[{}:{}] Failed to load the model: {}", __FILE__, __LINE__, ret);
-            return;
+            return;  // Return here to prevent further processing if model loading fails
         }
+
         TORCH_LOG_INFO("[{}:{}] Success: Load model successfully.", __FILE__, __LINE__);
         ProcessMesh(model);
     }
 
-    void TorchModel::UploadMeshToOpenGL(const std::vector<float> &vertices, const std::vector<unsigned int> &indices, GLuint &vao, GLuint &vbo, GLuint &ebo)
+    void TorchModel::UploadMeshToOpenGL(const std::vector<float>& vertices, const std::vector<unsigned int>& indices, GLuint& vao, GLuint& vbo, GLuint& ebo)
     {
         glGenVertexArrays(1, &vao);
         glGenBuffers(1, &vbo);
@@ -81,21 +94,22 @@ namespace core
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-        GLsizei stride = 8 * sizeof(float);
+        GLsizei stride = 8 * sizeof(float); // Assuming normals and UVs are present
 
         // Position attribute
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void *)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
         glEnableVertexAttribArray(0);
 
         // Normal attribute
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void *)(3 * sizeof(float)));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
 
         // Texture coordinate attribute
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void *)(6 * sizeof(float)));
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));
         glEnableVertexAttribArray(2);
 
         glBindVertexArray(0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // Unbind EBO after VAO
     }
 
     void TorchModel::RenderModel()
@@ -108,36 +122,70 @@ namespace core
         }
     }
 
-    void TorchModel::ProcessMesh(const tinygltf::Model &model)
+    void TorchModel::ProcessMesh(const tinygltf::Model& model)
     {
-        for (const auto &mesh : model.meshes)
+        for (const auto& mesh : model.meshes)
         {
-            for (const auto &primitive : mesh.primitives)
+            for (const auto& primitive : mesh.primitives)
             {
                 // Process indices
-                const tinygltf::Accessor &indexAccessor = model.accessors[primitive.indices];
-                const tinygltf::BufferView &indexBufferView = model.bufferViews[indexAccessor.bufferView];
-                const tinygltf::Buffer &indexBuffer = model.buffers[indexBufferView.buffer];
+                const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
+                const tinygltf::BufferView& indexBufferView = model.bufferViews[indexAccessor.bufferView];
+                const tinygltf::Buffer& indexBuffer = model.buffers[indexBufferView.buffer];
 
-                const unsigned char *indexDataPtr = &indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset];
-                std::vector<unsigned int> indices(reinterpret_cast<const unsigned int *>(indexDataPtr),
-                                                  reinterpret_cast<const unsigned int *>(indexDataPtr + indexAccessor.count * sizeof(unsigned int)));
+                std::vector<unsigned int> indices;
+                switch (indexAccessor.componentType)
+                {
+                case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
+                    // Directly cast for 32-bit indices
+                    indices.assign(reinterpret_cast<const unsigned int*>(&indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset]),
+                        reinterpret_cast<const unsigned int*>(&indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset + indexAccessor.count * sizeof(unsigned int)]));
+                    break;
+
+                case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+                {
+                    // Convert 16-bit indices to 32-bit
+                    const unsigned short* shortIndices = reinterpret_cast<const unsigned short*>(&indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset]);
+                    indices.resize(indexAccessor.count);
+                    for (size_t i = 0; i < indexAccessor.count; ++i)
+                    {
+                        indices[i] = static_cast<unsigned int>(shortIndices[i]);
+                    }
+                    break;
+                }
+
+                case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
+                {
+                    // Convert 8-bit indices to 32-bit
+                    const unsigned char* byteIndices = reinterpret_cast<const unsigned char*>(&indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset]);
+                    indices.resize(indexAccessor.count);
+                    for (size_t i = 0; i < indexAccessor.count; ++i)
+                    {
+                        indices[i] = static_cast<unsigned int>(byteIndices[i]);
+                    }
+                    break;
+                }
+
+                default:
+                    TORCH_LOG_ERROR("Unsupported index type. Only unsigned int, unsigned short, and unsigned byte are supported.");
+                    continue;  // Skip this primitive if the index type is unsupported
+                }
 
                 // Process positions
-                const tinygltf::Accessor &posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
-                const tinygltf::BufferView &posBufferView = model.bufferViews[posAccessor.bufferView];
-                const tinygltf::Buffer &posBuffer = model.buffers[posBufferView.buffer];
-                const float *positions = reinterpret_cast<const float *>(&posBuffer.data[posBufferView.byteOffset + posAccessor.byteOffset]);
+                const tinygltf::Accessor& posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
+                const tinygltf::BufferView& posBufferView = model.bufferViews[posAccessor.bufferView];
+                const tinygltf::Buffer& posBuffer = model.buffers[posBufferView.buffer];
+                const float* positions = reinterpret_cast<const float*>(&posBuffer.data[posBufferView.byteOffset + posAccessor.byteOffset]);
 
                 // Process normals (optional)
                 std::vector<float> normals;
                 if (primitive.attributes.find("NORMAL") != primitive.attributes.end())
                 {
-                    const tinygltf::Accessor &normalAccessor = model.accessors[primitive.attributes.find("NORMAL")->second];
-                    const tinygltf::BufferView &normalBufferView = model.bufferViews[normalAccessor.bufferView];
-                    const tinygltf::Buffer &normalBuffer = model.buffers[normalBufferView.buffer];
+                    const tinygltf::Accessor& normalAccessor = model.accessors[primitive.attributes.find("NORMAL")->second];
+                    const tinygltf::BufferView& normalBufferView = model.bufferViews[normalAccessor.bufferView];
+                    const tinygltf::Buffer& normalBuffer = model.buffers[normalBufferView.buffer];
 
-                    const float *normalData = reinterpret_cast<const float *>(&normalBuffer.data[normalBufferView.byteOffset + normalAccessor.byteOffset]);
+                    const float* normalData = reinterpret_cast<const float*>(&normalBuffer.data[normalBufferView.byteOffset + normalAccessor.byteOffset]);
                     normals.assign(normalData, normalData + normalAccessor.count * 3);
                 }
 
@@ -145,11 +193,11 @@ namespace core
                 std::vector<float> texCoords;
                 if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end())
                 {
-                    const tinygltf::Accessor &uvAccessor = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
-                    const tinygltf::BufferView &uvBufferView = model.bufferViews[uvAccessor.bufferView];
-                    const tinygltf::Buffer &uvBuffer = model.buffers[uvBufferView.buffer];
+                    const tinygltf::Accessor& uvAccessor = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
+                    const tinygltf::BufferView& uvBufferView = model.bufferViews[uvAccessor.bufferView];
+                    const tinygltf::Buffer& uvBuffer = model.buffers[uvBufferView.buffer];
 
-                    const float *uvData = reinterpret_cast<const float *>(&uvBuffer.data[uvBufferView.byteOffset + uvAccessor.byteOffset]);
+                    const float* uvData = reinterpret_cast<const float*>(&uvBuffer.data[uvBufferView.byteOffset + uvAccessor.byteOffset]);
                     texCoords.assign(uvData, uvData + uvAccessor.count * 2); // 2 components for UV
                 }
 
@@ -171,10 +219,10 @@ namespace core
                     }
                     else
                     {
-                        // Add default normal if not present
+                        // Add default normal if not present (up direction)
                         interleavedData.push_back(0.0f);
                         interleavedData.push_back(0.0f);
-                        interleavedData.push_back(0.0f);
+                        interleavedData.push_back(1.0f); // Default normal facing up
                     }
 
                     // Add texture coordinate (2 components)
@@ -197,7 +245,7 @@ namespace core
 
                 m_VertexBuffers.push_back(vbo);
                 m_VertexArrays.push_back(vao);
-                m_IndicesCounts.push_back(static_cast<GLuint>(indices.size()));
+                m_IndicesCounts.push_back(static_cast<int>(indices.size()));
             }
         }
     }

@@ -1,79 +1,17 @@
 Scene: unknow
 Entities:
   - UUID Component:
-      Entity UUID: 6ef1c1f0-f405-4bf5-b385-0000c89db2b820f84650
+      Entity UUID: bd79453c-e308-47fb-a0da-0000c2592c02dbf30ead
     Entity Type Component:
       Entity Type: General
     Label Component:
-      Label: new entity
+      Label: sphere
     Transform Component:
-      Translation: [0, -3.8545599, -5.81989098]
-      Rotation: [1.57079637, 0, 0]
-      Scale: [1, 0.999975562, 0.999975562]
-    Model Component:
-      Mesh Path: D:\github\Torch\assets\models\dragon\DragonAttenuation.glb
-    Material Component:
-      Albedo Path: D:\github\Torch\assets\texture\black-white-tile-ue\black-white-tile_albedo.png
-      Normal Path: D:\github\Torch\assets\texture\black-white-tile-ue\black-white-tile_normal-dx.png
-      Metallic Path: D:\github\Torch\assets\texture\black-white-tile-ue\black-white-tile_metallic.png
-      Roughness Path: D:\github\Torch\assets\texture\black-white-tile-ue\black-white-tile_roughness.png
-      AO Path: D:\github\Torch\assets\texture\black-white-tile-ue\black-white-tile_ao.png
-      Metallic: 1
-      Roughness: 0.151999995
-      Use Albedo: false
-      Use Normal: false
-      Use Metallic: false
-      Use Roughness: false
-      Use AO: false
-  - UUID Component:
-      Entity UUID: 2aaed990-bc56-4d74-b107-000008fdb0414af26d6e
-    Entity Type Component:
-      Entity Type: General
-    Label Component:
-      Label: entity
-    Transform Component:
-      Translation: [0, -4.84042406, 0]
-      Rotation: [0, 0, 0]
-      Scale: [11.3629074, 1, 9.47767448]
-    Model Component:
-      Mesh Path: D:\github\Torch\assets\models\cube\cube.glb
-  - UUID Component:
-      Entity UUID: a0b0cc14-ef11-4c30-9aa5-00007f182632c2ba97bd
-    Entity Type Component:
-      Entity Type: General
-    Label Component:
-      Label: new entity
-    Transform Component:
-      Translation: [0, -2.64887094, 0]
+      Translation: [0, 1.12746012, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Model Component:
-      Mesh Path: D:\github\Torch\assets\models\cube\cube.glb
-    Material Component:
-      Albedo Path: D:\github\Torch\assets\texture\plastic\albedo.png
-      Normal Path: D:\github\Torch\assets\texture\plastic\normal.png
-      Metallic Path: D:\github\Torch\assets\texture\plastic\metallic.png
-      Roughness Path: D:\github\Torch\assets\texture\plastic\roughness.png
-      AO Path: D:\github\Torch\assets\texture\plastic\ao.png
-      Metallic: 0
-      Roughness: 0.453000009
-      Use Albedo: true
-      Use Normal: true
-      Use Metallic: true
-      Use Roughness: true
-      Use AO: true
-  - UUID Component:
-      Entity UUID: b6f74b68-842d-4f9e-97b8-000025211fb9fbe8751c
-    Entity Type Component:
-      Entity Type: General
-    Label Component:
-      Label: new entity
-    Transform Component:
-      Translation: [0, 0, 3.03284073]
-      Rotation: [0, 0, 0]
-      Scale: [0.00373000023, 0.00373000023, 0.00373000023]
-    Model Component:
-      Mesh Path: D:\github\Torch\assets\models\cube2\scene.gltf
+      Mesh Path: D:\github\Torch\assets\models\sphere\sphere.glb
     Material Component:
       Albedo Path: D:\github\Torch\assets\texture\bronze\albedo.png
       Normal Path: D:\github\Torch\assets\texture\bronze\normal.png
@@ -81,9 +19,21 @@ Entities:
       Roughness Path: D:\github\Torch\assets\texture\bronze\roughness.png
       AO Path: D:\github\Torch\assets\texture\bronze\ao.png
       Metallic: 1
-      Roughness: 3.84100008
+      Roughness: 3.64899993
       Use Albedo: true
       Use Normal: true
       Use Metallic: true
       Use Roughness: true
       Use AO: true
+  - UUID Component:
+      Entity UUID: 88edd834-5a28-42da-aec8-00005656e6d1a62153ac
+    Entity Type Component:
+      Entity Type: General
+    Label Component:
+      Label: cube
+    Transform Component:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [6.4199996, 0.102170616, 6.4199996]
+    Model Component:
+      Mesh Path: D:\github\Torch\assets\models\cube\cube.glb

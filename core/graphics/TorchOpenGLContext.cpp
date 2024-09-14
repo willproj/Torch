@@ -250,6 +250,7 @@ namespace core
 		lightingPassShader.setVec3("u_SunLightColor", glm::normalize(atmosphereSpcific.finalSunlightColor) * 15.0f);
 		lightingPassShader.setFloat("u_FarPlane", m_EditorCamera->GetFarClip());
 		lightingPassShader.setInt("u_CascadeCount", shadowMapSpcific.shadowCascadeLevels.size());
+		lightingPassShader.setInt("u_TextureSize", shadowMapSpcific.depthMapResolution);
 
 		for (size_t i = 0; i < shadowMapSpcific.shadowCascadeLevels.size(); ++i)
 		{
