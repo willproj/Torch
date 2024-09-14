@@ -6,15 +6,15 @@ out vec4 FragColor; // Final output color
 uniform sampler2D gPosition;  // G-buffer position texture (world positions)
 uniform sampler2D gDepth;     // G-buffer depth texture
 uniform vec3 sunPosition;     // World-space position of the sun
-uniform mat4 viewMatrix;      // View matrix of the camera
-uniform mat4 projectionMatrix;// Projection matrix of the camera
+uniform mat4 view;            // View matrix of the camera
+uniform mat4 projection;      // Projection matrix of the camera
 
 // Parameters for god rays appearance
 uniform float densityFactor;  // Density factor for god rays falloff
 uniform float depthBias;      // Depth bias for occlusion checks
-uniform float maxDistance;    // Maximum distance for ray marching
-uniform float stepSize;       // Step size for ray marching
 uniform vec3 sunColor;        // Color of the sun and god rays
+
+uniform vec3 camPos;          // Camera position
 
 void main() {
     // Fetch the world-space position of the current fragment from the G-buffer
@@ -23,41 +23,41 @@ void main() {
     // Compute the direction of the ray from the fragment towards the sun
     vec3 rayDir = normalize(sunPosition - fragPosition);
 
-    float totalLight = 0.0;
+    // Initialize ray marching parameters
+    vec3 rayColor = vec3(0.0);
+    const float maxDistance = 20.0;  // Maximum distance for ray marching
+    float stepSize = 0.5;            // Step size for ray marching
 
-    // Iterate along the ray in world space
     for (float t = 0.0; t < maxDistance; t += stepSize) {
-        // Sample the position along the ray
-        vec3 samplePosition = fragPosition + rayDir * t;
+        // Step forward along the ray
+        vec3 currentPos = fragPosition + t * rayDir;
 
-        // Project the sample position into screen space
-        vec4 samplePosScreenSpace = projectionMatrix * viewMatrix * vec4(samplePosition, 1.0);
-        vec2 sampleUV = samplePosScreenSpace.xy / samplePosScreenSpace.w; // Convert to NDC
+        // Convert the world-space position to screen-space position
+        vec4 clipSpacePos = projection * view * vec4(currentPos, 1.0);
+        vec3 ndcPos = clipSpacePos.xyz / clipSpacePos.w;
+        vec2 screenPos = (ndcPos.xy + 1.0) * 0.5;  // Convert NDC to screen coordinates
 
-        // Check if sampleUV is within valid screen bounds
-        if (sampleUV.x < 0.0 || sampleUV.x > 1.0 || sampleUV.y < 0.0 || sampleUV.y > 1.0) {
-            continue; // Out of bounds, keep marching
-        }
+        // Fetch the depth at the current position
+        float depthAtCurrentPos = texture(gDepth, TexCoords).r;
+//        FragColor = vec4(vec3(depthAtCurrentPos), 1.0);
 
-        // Sample the depth buffer (G-buffer) at the sample's screen space position
-        float sceneDepth = texture(gDepth, sampleUV).r; // Scene depth at this point
-        float sampleDepth = samplePosScreenSpace.z / samplePosScreenSpace.w; // Depth of sample
+        // Compute light scattering based on distance and occlusion
+        float distance = length(currentPos - fragPosition);
+        float attenuation = exp(-densityFactor * distance);
+        float occlusion = smoothstep(0.0, 1.0, (depthAtCurrentPos - depthBias) / maxDistance);
+//        if(t==6)
+//        {
+//            FragColor = vec4(vec3(occlusion), 1.0);
+//            return;
+//        }
+//
+        vec3 scatteredLight = sunColor * occlusion;
 
-        // Check if the sample is occluded by scene geometry
-        if (sampleDepth > sceneDepth + depthBias) {
-            continue; // Occluded, stop accumulating light
-        }
-
-        // Compute density based on distance
-        float density = exp(-densityFactor * t);
-
-        // Accumulate light based on density
-        totalLight += density;
+        // Accumulate the color
+        rayColor += scatteredLight * stepSize;
     }
 
-    // Calculate the final color of the god rays
-    vec3 godRaysColor = sunColor * totalLight;
-
     // Output the final color
-    FragColor = vec4(rayDir, 1.0);
+        FragColor = vec4(rayColor, 1.0);
+
 }
