@@ -323,11 +323,11 @@ namespace utils
 					}
 					
 
-					bool useAlbedo = materialComp["Use Albedo"].as<bool>();
-					bool useNormal = materialComp["Use Normal"].as<bool>();
-					bool useMetallic = materialComp["Use Metallic"].as<bool>();
-					bool useRoughness = materialComp["Use Roughness"].as<bool>();
-					bool useAO = materialComp["Use AO"].as<bool>();
+					material.useAlbedoTexture = materialComp["Use Albedo"].as<bool>();
+					material.useNormalTexture = materialComp["Use Normal"].as<bool>();
+					material.useMetallicTexture = materialComp["Use Metallic"].as<bool>();
+					material.useRoughnessTexture = materialComp["Use Roughness"].as<bool>();
+					material.useAOTexture = materialComp["Use AO"].as<bool>();
 
 					material.metallic = materialComp["Metallic"].as<float>();
 					material.roughness = materialComp["Roughness"].as<float>();
