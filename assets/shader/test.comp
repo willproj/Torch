@@ -1,6 +1,5 @@
 #version 430 core
-
-layout (local_size_x = 10, local_size_y = 10, local_size_z = 1) in;
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 // ----------------------------------------------------------------------------
 //
@@ -8,7 +7,8 @@ layout (local_size_x = 10, local_size_y = 10, local_size_z = 1) in;
 //
 // ----------------------------------------------------------------------------
 
-layout(rgba32f, binding = 0) uniform image2D imgOutput;
+layout(rgba32f, binding = 1) uniform image2D imgOutput;
+layout(binding = 0) uniform sampler2D tex;
 
 // ----------------------------------------------------------------------------
 //
@@ -19,7 +19,15 @@ layout(rgba32f, binding = 0) uniform image2D imgOutput;
 void main() {
     ivec2 texelCoord = ivec2(gl_GlobalInvocationID.xy);
 
-    // Set color to orange
-    vec4 value = vec4(1.0, 0.5, 0.0, 1.0); // Orange color
-    imageStore(imgOutput, texelCoord, value);
+    // Ensure the texelCoord is within bounds
+    ivec2 texSize = textureSize(tex, 0);
+    if (texelCoord.x >= texSize.x || texelCoord.y >= texSize.y) {
+        return;
+    }
+
+    // Fetch the texel color from the input texture
+    vec4 color = texelFetch(tex, texelCoord, 0);
+
+    // Write the texel color to the output image
+    imageStore(imgOutput, texelCoord, color);
 }

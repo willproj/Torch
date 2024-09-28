@@ -57,7 +57,7 @@ namespace core
 		// Lights Shader
 		m_LightsIDShader = Shader(
 			root + "/assets/shader/lightShader.vert",
-			root + "/assets/shader/lightIDShader.frag"
+			root + "/assets/shader/lightBufferShader.frag"
 		);
 
 		// Shadow Map Depth Shader
@@ -66,6 +66,22 @@ namespace core
 			root + "/assets/shader/shadowMapDepth.frag",
 			root + "/assets/shader/shadowMapDepth.geom"
 		);
+
+		// Bloom Shader
+		m_BloomUpSampleShader = Shader(
+			root + "/assets/shader/upSample.comp"
+		);
+
+		m_BloomDownSampleShader = Shader(
+			root + "/assets/shader/downSample.comp"
+		);
+
+		m_BloomFinalShader = Shader(
+			root + "/assets/shader/lightingPass.vert",
+			root + "/assets/shader/lightBloomFinal.frag"
+		);
+
+
 
 	}
 }

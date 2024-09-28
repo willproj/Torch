@@ -53,6 +53,8 @@ namespace core
 		CreateOffScreenTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
 		CreateLightIDTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
 
+		bloom.Initialize();
+
 	}
 
 	void TorchOpenGLContext::CreateOffScreenTexture(int width, int height)
@@ -81,10 +83,30 @@ namespace core
 
 	void TorchOpenGLContext::CreateLightIDTexture(int width, int height)
 	{
-		// Create the default color texture
+		// Create the light ID texture
 		glGenTextures(1, &m_LightIDTexture);
 		glBindTexture(GL_TEXTURE_2D, m_LightIDTexture);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, width, height, 0, GL_RED_INTEGER, GL_INT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		// Create the source texture
+		glGenTextures(1, &bloom.GetSrcTextureRef());
+		glBindTexture(GL_TEXTURE_2D, bloom.GetSrcTextureRef());
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		// Create the destination texture
+		glGenTextures(1, &bloom.GetDesTextureRef());
+		glBindTexture(GL_TEXTURE_2D, bloom.GetDesTextureRef());
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -93,15 +115,24 @@ namespace core
 		glGenFramebuffers(1, &m_LightFramebuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_LightFramebuffer);
 
-		// Attach the color texture to the framebuffer
+		// Attach the light ID texture
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_LightIDTexture, 0);
+
+		// Attach the source texture (for rendering the scene)
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bloom.GetSrcTextureRef(), 0);
+
+		GLenum drawBuffers[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+		glDrawBuffers(2, drawBuffers);
 
 		// Check if the framebuffer is complete
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		{
 			std::cout << "Framebuffer not complete!" << std::endl;
+		}
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
+
 
 	
 
@@ -260,9 +291,13 @@ namespace core
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		m_SceneManager->RenderLightsToID();
 		UnbindLightIDBuffer();
+		
+		bloom.GetBloom().Create();
+		bloom.Create();
 
 		// 6. Render Lights
 		m_SceneManager->RenderLights();
+
 
 		// 7. skybox (to default framebuffer)
 		if (m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->IsRunning())
@@ -288,18 +323,22 @@ namespace core
 
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render();
 
+
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//auto& shader = ShaderManager::GetInstance()->GetBloomFinalShaderRef();
+		//shader.use();
+		//shader.setInt("lightScene", 0);
+		//shader.setInt("bloomBlur", 1);
+		//Texture::BindTexture(0, GL_TEXTURE_2D, bloom.GetSrcTextureRef());
+		//Texture::BindTexture(1, GL_TEXTURE_2D, bloom.GetBloom().GetMipChain()[5].texture);
+		//RenderQuad::Render();
+		//
 		// 8. Copy final rendered result from default framebuffer to texture for ImGui
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // Read from default framebuffer
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_ScreenFramebuffer); // Draw to texture
 		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind final framebuffer
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		test.use();
-		test.setInt("tex", 0);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, ssaoSpecific.ssaoColorBlurTexture);
-		RenderQuad::Render();
 
 	}
 

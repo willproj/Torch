@@ -6,6 +6,8 @@
 #include "core/renderer/ShaderManager.h"
 #include "core/glcore/Texture.h"
 #include "core/renderer/EnvironmentManager.h"
+#include <utils/ServiceLocator.h>
+
 namespace core
 {
 
@@ -161,7 +163,7 @@ namespace core
 		for (auto entityID : m_Scene.GetLightEntityIDs())
 		{
 			Entity entity = { entityID, &m_Scene };
-
+			//lightsShader.setInt("entity", entity());
 			// Get transform component
 			glm::mat4 transform = glm::mat4(1.0f);
 			if (entity.HasComponent<TransformComponent>())
@@ -245,6 +247,7 @@ namespace core
 			std::string(PROJECT_ROOT) + "/assets/shader/outline.frag"
 		);
 	}
+
 
 	SceneManager::~SceneManager()
 	{

@@ -38,5 +38,6 @@ namespace core
 		std::shared_ptr<EditorCamera> m_EditorCameraPtr;
 
 		Shader m_StencilOutlineShader;
+
 	};
 }
