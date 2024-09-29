@@ -364,9 +364,9 @@ void main()
 
 
     // HDR tonemapping
-    //color = color / (color + vec3(1.0));
-    // gamma correct
-    //color = pow(color, vec3(1.0/2.2)); 
+    //color = color * (color + vec3(1.0));
+     //gamma correct
+    //color = pow(color, vec3(2.0/1.2)); 
 
     FragColor = vec4(color, 1.0f);
     if(albedo.r > 1.0f)

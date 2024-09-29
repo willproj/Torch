@@ -240,12 +240,16 @@ namespace core
 			glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
 			ibl.UnbindFramebuffer();
+			glViewport(0, 0, m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
 
 			ibl.RenderIrradianceCubemap();
 			ibl.UnbindFramebuffer();
+			glViewport(0, 0, m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
 
 			ibl.RenderPrefilterCubemap();
 			ibl.UnbindFramebuffer();
+			glViewport(0, 0, m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
+
 		}
 
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render();
@@ -268,6 +272,8 @@ namespace core
 		Texture::BindTexture(1, GL_TEXTURE_2D, bloom.GetBloom().GetMipChain()[0].texture);
 		RenderQuad::Render();
 		
+
+
 		this->BlitFramebuffer(0, m_ScreenFramebuffer, GL_COLOR_BUFFER_BIT);
 
 	}

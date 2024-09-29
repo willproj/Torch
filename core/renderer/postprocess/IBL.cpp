@@ -315,8 +315,6 @@ namespace core
 
 	void IBL::UnbindFramebuffer() {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		auto windowSpecifc = utils::ServiceLocator::GetWindow()->GetWinSpecification();
-		glViewport(0, 0, windowSpecifc.width, windowSpecifc.height);
 	}
 
 	void IBL::SetFramebufferAndViewport(uint32_t framebuffer, uint32_t width, uint32_t height) {
