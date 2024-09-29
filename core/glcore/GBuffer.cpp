@@ -11,16 +11,16 @@ namespace core
     {
         uint32_t width = utils::ServiceLocator::GetWindow()->GetWinSpecification().width;
         uint32_t height = utils::ServiceLocator::GetWindow()->GetWinSpecification().height;
-        Create();
+        Create(width, height);
     }
 
-    void GBuffer::Create()
+    void GBuffer::Create(int width, int height)
     {
         glGenFramebuffers(1, &m_BufferID);
         glBindFramebuffer(GL_FRAMEBUFFER, m_BufferID);
 
-        uint32_t width = utils::ServiceLocator::GetWindow()->GetWinSpecification().width;
-        uint32_t height = utils::ServiceLocator::GetWindow()->GetWinSpecification().height;
+        //uint32_t width = utils::ServiceLocator::GetWindow()->GetWinSpecification().width;
+        //uint32_t height = utils::ServiceLocator::GetWindow()->GetWinSpecification().height;
 
         // Position buffer
         glGenTextures(1, &m_GPosition);
@@ -111,7 +111,7 @@ namespace core
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    void GBuffer::OnUpdate()
+    void GBuffer::OnUpdate(int width, int height)
     {
         if (m_BufferID)
         {
@@ -153,7 +153,7 @@ namespace core
             glDeleteTextures(1, &m_GDepth);
             m_GDepth = 0;
         }
-        Create();
+        Create(width, height);
     }
 
     GBuffer::~GBuffer()

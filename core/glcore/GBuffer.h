@@ -12,8 +12,8 @@ namespace core
         void Bind() const;
         void Unbind() const;
 
-        void OnUpdate();
-        void Create();
+        void OnUpdate(int width, int height);
+        void Create(int width, int height);
         void Initialize();
 
         uint32_t GetRedIntTexture() const {return m_RedInt;}

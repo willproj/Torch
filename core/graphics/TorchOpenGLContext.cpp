@@ -52,7 +52,6 @@ namespace core
 		SceneManager::GetSceneManager()->GetSceneRef()->CreateEntity();
 		CreateOffScreenTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
 		CreateLightIDTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
-
 		bloom.Initialize();
 
 	}
@@ -114,11 +113,9 @@ namespace core
 	}
 
 
-	
-
-	void TorchOpenGLContext::OnUpdate()
+	void TorchOpenGLContext::OnUpdate(uint32_t width, uint32_t height)
 	{
-		m_GBuffer->OnUpdate();
+		m_GBuffer->OnUpdate(width, height);
 
 		if (m_ScreenFramebuffer)
 		{
@@ -140,9 +137,10 @@ namespace core
 			glDeleteTextures(1, &m_LightIDTexture);
 		}
 
-		CreateOffScreenTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
-		CreateLightIDTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
-		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->OnUpdate();
+		CreateOffScreenTexture(width, height);
+		CreateLightIDTexture(width, height);
+		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->OnUpdate(width, height);
+		bloom.GetBloom().Create(width, height);
 	}
 
 	TorchOpenGLContext::~TorchOpenGLContext()
@@ -190,6 +188,7 @@ namespace core
 
 	void TorchOpenGLContext::DrawFrame()
 	{
+		glViewport(0, 0, m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
 		//------------------------------------------- renderers & spcifications --------------------------------------------
 		auto& atmosphere = m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->GetSpecification();
 		auto& atmosphereSpcific = std::get<AtmosphericScatteringSpecification>(atmosphere.get());
@@ -211,6 +210,9 @@ namespace core
 
 
 		// render ssao
+		glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glViewport(0, 0, m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->BeginRender();
 		Texture::BindTexture(0, GL_TEXTURE_2D, m_GBuffer->GetGViewPositionTexture());
 		Texture::BindTexture(1, GL_TEXTURE_2D, m_GBuffer->GetGNormalTexture());
@@ -220,9 +222,10 @@ namespace core
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->Render();
 		
 
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+		glViewport(0, 0, m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
+
 		// 2. Render cascade shadow map
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::CascadeShadowMap)->BeginRender();
 		SceneManager::GetSceneManager()->RenderScene();
@@ -231,6 +234,7 @@ namespace core
 		// 3. Lighting pass (render to default framebuffer)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+		glViewport(0, 0, m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
 		auto& lightingPassShader = ShaderManager::GetInstance()->GetLightingPassShaderRef();
 		lightingPassShader.use();
 		lightingPassShader.setVec3("u_CamPos", m_EditorCamera->GetPosition());
@@ -272,8 +276,6 @@ namespace core
 		m_SceneManager->RenderLightsToID();
 		UnbindLightIDBuffer();
 
-
-
 		// 6. Render Lights
 		m_SceneManager->RenderLights(); // This should output HDR values
 
@@ -300,9 +302,6 @@ namespace core
 		}
 
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render();
-		
-
-
 
 		// 8. Copy final rendered result from default framebuffer to texture for ImGui
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // Read from default framebuffer
@@ -310,25 +309,21 @@ namespace core
 		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind final framebuffer
 
-		// 6. Render Lights
-
-		
 		bloom.SetSrcTexture(m_GBuffer->GetGColorTexture());
 		//bloom.SetSrcTexture(m_ScreenTexture);
-		bloom.GetBloom().Create();
-		bloom.Create();
-
-
+		bloom.Create(m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
+		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glViewport(0, 0, m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
 		auto& shader = ShaderManager::GetInstance()->GetBloomFinalShaderRef();
 		shader.use();
 		shader.setInt("scene", 0);
 		shader.setInt("bloomBlur", 1);
 		Texture::BindTexture(0, GL_TEXTURE_2D, m_ScreenTexture);
-		//Texture::BindTexture(1, GL_TEXTURE_2D, bloom.GetSrcTextureRef());
+		//Texture::BindTexture(1, GL_TEXTURE_2D, ssaoSpecific.ssaoColorBlurTexture);
 		Texture::BindTexture(1, GL_TEXTURE_2D, bloom.GetBloom().GetMipChain()[0].texture);
 		RenderQuad::Render();
-
+		
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // Read from default framebuffer
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_ScreenFramebuffer); // Draw to texture
 		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_COLOR_BUFFER_BIT, GL_NEAREST);

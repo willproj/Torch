@@ -10,6 +10,7 @@ namespace core
 		m_EditorCameraPtr = camera;
         auto& ssaoShader = ShaderManager::GetInstance()->GetSSAOShaderRef();
         auto& ssaoBlurShader = ShaderManager::GetInstance()->GetSSAOBlurShaderRef();
+        auto& winSpec = utils::ServiceLocator::GetWindow()->GetWinSpecification();
         
         ssaoShader.use();
         ssaoShader.setInt("gPosition", 0);
@@ -19,14 +20,13 @@ namespace core
         ssaoBlurShader.setInt("ssaoInput", 0);
         
         GenerateNoiseTexture();
-        Initialize();
+        Initialize(winSpec.width, winSpec.height);
 	}
 
 
-	void SSAO::Initialize()
+	void SSAO::Initialize(uint32_t width, uint32_t height)
 	{
         auto& specific = std::get<SSAOSpecification>(m_Specification);
-        auto winSpeci = utils::ServiceLocator::GetWindow()->GetWinSpecification();
         glGenFramebuffers(1, &specific.ssaoFramebuffer);  
         glGenFramebuffers(1, &specific.ssaoBlurFramebuffer);
 
@@ -34,7 +34,7 @@ namespace core
         // SSAO color buffer
         glGenTextures(1, &specific.ssaoColorTexture);
         glBindTexture(GL_TEXTURE_2D, specific.ssaoColorTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, winSpeci.width, winSpeci.height, 0, GL_RED, GL_FLOAT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, specific.ssaoColorTexture, 0);
@@ -44,7 +44,7 @@ namespace core
         glBindFramebuffer(GL_FRAMEBUFFER, specific.ssaoBlurFramebuffer);
         glGenTextures(1, &specific.ssaoColorBlurTexture);
         glBindTexture(GL_TEXTURE_2D, specific.ssaoColorBlurTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, winSpeci.width, winSpeci.height, 0, GL_RED, GL_FLOAT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, specific.ssaoColorBlurTexture, 0);
@@ -54,8 +54,8 @@ namespace core
 
         auto& ssaoShader = ShaderManager::GetInstance()->GetSSAOShaderRef();
         
-        ssaoShader.setInt("u_ScreenWidth", winSpeci.width);
-        ssaoShader.setInt("u_ScreenHeight", winSpeci.height);
+        ssaoShader.setInt("u_ScreenWidth", width);
+        ssaoShader.setInt("u_ScreenHeight", height);
 
 	}
 
@@ -95,10 +95,9 @@ namespace core
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    void SSAO::OnUpdate()
+    void SSAO::OnUpdate(uint32_t width, uint32_t height)
     {
         auto& specific = std::get<SSAOSpecification>(m_Specification);
-        auto winSpeci = utils::ServiceLocator::GetWindow()->GetWinSpecification();
         if (specific.ssaoFramebuffer)
         {
             glDeleteFramebuffers(1, &specific.ssaoFramebuffer);
@@ -119,7 +118,7 @@ namespace core
             glDeleteTextures(1, &specific.ssaoColorBlurTexture);
         }
 
-        Initialize();
+        Initialize(width, height);
     }
     void SSAO::GenerateNoiseTexture()
     {

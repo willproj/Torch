@@ -13,16 +13,14 @@ namespace core
 		m_SrcViewportSizeFloat = glm::vec2((float)winSpec.width, (float)winSpec.height);
 
 		m_Bloom.Initialize();
-        Create();
+        Create(winSpec.width, winSpec.height);
 	}
 
-    void BloomRenderer::Create()
+    void BloomRenderer::Create(uint32_t width, uint32_t height)
     {
-        auto winSpec = utils::ServiceLocator::GetWindow()->GetWinSpecification();
+        glViewport(0, 0, width, height);
         RenderDownSample();
         RenderUpSample();
-        glViewport(0, 0, winSpec.width, winSpec.height);
-
     }
 
     void BloomRenderer::RenderDownSample()
@@ -52,7 +50,7 @@ namespace core
             // Ensure the format is consistent with the shader's format
             glBindImageTexture(1, mip.texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R11F_G11F_B10F);
             // Dispatch compute shader
-            glDispatchCompute(glm::ceil(mip.size.x / 8.0), glm::ceil(mip.size.y / 8.0), 1);
+            glDispatchCompute(glm::ceil((mip.size.x) / 8.0), glm::ceil((mip.size.y) / 8.0), 1);
 
             // Ensure all writes are finished before moving on
             glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -61,8 +59,6 @@ namespace core
         // Unbind the shader
         glUseProgram(0);
     }
-
-
 
 
     void BloomRenderer::RenderUpSample()
@@ -85,13 +81,18 @@ namespace core
             Texture::BindTexture(1, GL_TEXTURE_2D, nextMip.texture);
             glBindImageTexture(2, nextMip.texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R11F_G11F_B10F);
 
+            // Calculate the number of workgroups, rounding up the size to avoid issues with non-divisible sizes
+            GLuint numGroupsX = (GLuint)ceil(m_SrcViewportSize.x / 8.0);
+            GLuint numGroupsY = (GLuint)ceil(m_SrcViewportSize.y / 8.0);
+
             // Dispatch the compute shader
-            glDispatchCompute((GLuint)ceil(m_SrcViewportSize.x / 8.0), (GLuint)ceil(m_SrcViewportSize.y / 8.0), 1);
+            glDispatchCompute(numGroupsX, numGroupsY, 1);
             glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
         }
 
         glUseProgram(0); // Reset the shader program
     }
+
 
 
 

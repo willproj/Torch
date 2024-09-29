@@ -16,7 +16,7 @@ namespace core
 		uint32_t& GetSrcTextureRef() { return m_SrcTexture; }
 		uint32_t& GetDesTextureRef() { return m_DesTexture; }
 
-		void Create();
+		void Create(uint32_t width, uint32_t height);
 
 
 		Bloom& GetBloom() { return m_Bloom; }
@@ -36,5 +36,7 @@ namespace core
 
 		float m_Threshold = (1.5);
 		float m_Knee = (0.1);
+
+		glm::vec2 m_Size;
 	};
 }

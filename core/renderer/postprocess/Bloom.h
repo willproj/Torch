@@ -21,7 +21,7 @@ namespace core
 		
 		std::vector<bloomMip>& GetMipChain() { return m_MipChain; }
 
-		void Create();
+		void Create(uint32_t width, uint32_t height);
 
 	private:
 		std::vector<bloomMip> m_MipChain;

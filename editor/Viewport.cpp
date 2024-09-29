@@ -89,6 +89,7 @@ namespace editor
 		{
 			m_ViewportSize = glm::vec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y);
 			context->OnUpdate(m_ViewportSize.x, m_ViewportSize.y);
+			glViewport(0, 0, m_ViewportSize.x, m_ViewportSize.y);
 		}
 
 		// Display RedInt texture
@@ -109,8 +110,6 @@ namespace editor
 		x -= viewportBounds[0].x;
 		y -= viewportBounds[0].y;
 		y = m_ViewportSize.y - y;
-		x *= utils::ServiceLocator::GetWindow()->GetWinSpecification().width * 1.0f / m_ViewportSize.x;
-		y *= utils::ServiceLocator::GetWindow()->GetWinSpecification().height * 1.0f / m_ViewportSize.y;
 
 		auto keyboard = utils::ServiceLocator::GetKeyboard();
 		

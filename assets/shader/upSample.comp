@@ -18,9 +18,16 @@ void main()
     ivec2 destSize = imageSize(destTexture); // Get destination texture size
     ivec2 destCoord = ivec2(gl_GlobalInvocationID.xy); // Current pixel being processed
 
+    if (destCoord.x >= destSize.x || destCoord.y >= destSize.y)
+    {
+        return; // If outside bounds, exit
+    }
+
+    ivec2 srcSize = textureSize(srcTexture, 0); // Get source texture size
+
     // Convert destination coordinate to source coordinate
     vec2 srcTexelSize = 1.0 / textureSize(srcTexture, 0); // Size of a single texel in the source texture
-    vec2 srcCoord = vec2(destCoord + 0.5) / 2.0; // Scale down the destination coordinate to match the source texture
+    vec2 srcCoord = (vec2(destCoord) + 0.5) / 2.0; // Scale down the destination coordinate to match the source texture
 
     // Take 9 samples around the current texel in the source texture
     float x = filterRadius;
@@ -40,18 +47,14 @@ void main()
     vec3 i = texture(srcTexture, (srcCoord) * srcTexelSize + vec2(x, -y)).rgb;
 
     // Apply weighted distribution using a 3x3 tent filter
+    vec3 currentColor = imageLoad(destTexture, destCoord).rgb; // Adjust to match srcTexture size
+    
     vec3 upsample = e * 4.0;
     upsample += (b + d + f + h) * 2.0;
     upsample += (a + c + g + i);
     upsample *= 1.0 / 16.0;
-
-    // Read from the current texture (srcTexture2)
-    vec3 currentColor = texture(srcTexture2, srcCoord * srcTexelSize).rgb; // Adjust to match srcTexture size
-
-    // Blend the upsampled result with the current texture color
-//    vec3 finalColor = clamp(upsample + currentColor, 0.0, 1.0); // Clamp to prevent overflow
+    upsample +=  currentColor;
 
     // Write the final color to the destination texture
-    imageStore(destTexture, destCoord, vec4(upsample + currentColor, 1.0f));
-    //imageStore(destTexture, destCoord, vec4(upsample + currentColor, 1.0f));
+    imageStore(destTexture, destCoord, vec4(upsample, 1.0f));
 }

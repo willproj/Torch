@@ -11,14 +11,14 @@ namespace core
 		SSAO() = default;
 		~SSAO() = default;
 
-		void Initialize() override;
+		void Initialize(uint32_t width, uint32_t height) override;
 		SSAO(std::shared_ptr<EditorCamera> camera);
 
 		void Render() override;
 		void BeginRender() override;
 		void EndRender() override;
 
-		void OnUpdate() override;
+		void OnUpdate(uint32_t width, uint32_t height) override;
 
 		utils::Ref<SpecificationVariant> GetSpecification() override { return m_Specification; }
 		EnvironmentEntityType GetType() const override { return m_Type; }

@@ -27,7 +27,7 @@ namespace core
 		~TorchOpenGLContext();
 
 		void DrawFrame();
-		void OnUpdate();
+		void OnUpdate(uint32_t width, uint32_t height);
 		void CreateOffScreenTexture(int width, int height);
 		void CreateLightIDTexture(int width, int height);
 

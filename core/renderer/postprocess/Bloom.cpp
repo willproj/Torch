@@ -5,10 +5,11 @@ namespace core
 {
 	void Bloom::Initialize()
 	{
-		Create();
+		auto winSpec = utils::ServiceLocator::GetWindow()->GetWinSpecification();
+		Create(winSpec.width, winSpec.height);
 	}
 
-	void Bloom::Create()
+	void Bloom::Create(uint32_t width, uint32_t height)
 	{
 		for (auto& mip : m_MipChain) {
 			if (mip.texture != 0) {
@@ -18,12 +19,11 @@ namespace core
 		}
 		m_MipChain.clear();
 
-		auto winSpec = utils::ServiceLocator::GetWindow()->GetWinSpecification();
 
-		glm::vec2 mipSize((float)winSpec.width, (float)winSpec.height);
-		glm::ivec2 mipIntSize((int)winSpec.width, (int)winSpec.height);
+		glm::vec2 mipSize((float)width, (float)height);
+		glm::ivec2 mipIntSize((int)width, (int)height);
 		// Safety check
-		if (winSpec.width > (unsigned int)INT_MAX || winSpec.height > (unsigned int)INT_MAX) {
+		if (width > (unsigned int)INT_MAX || height > (unsigned int)INT_MAX) {
 			std::cerr << "Window size conversion overflow - cannot build bloom FBO!" << std::endl;
 			return;
 		}
@@ -43,7 +43,7 @@ namespace core
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_R11F_G11F_B10F,
 				(int)mipSize.x, (int)mipSize.y,
 				0, GL_RGB, GL_FLOAT, nullptr);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

@@ -6,7 +6,7 @@ in vec2 TexCoords;
 uniform sampler2D scene;        // HDR scene texture
 uniform sampler2D bloomBlur;    // Blurred bloom texture
 
-uniform float exposure = 1.0f;  // Exposure for tone mapping
+uniform float exposure = 2.0f;  // Exposure for tone mapping
 uniform float bloomStrength = 1.0f; // Strength of bloom blending
 
 vec3 applyBloom()
@@ -35,5 +35,5 @@ void main()
     result = pow(result, vec3(1.0 / gamma)); // Apply gamma correction
 
     FragColor = vec4(result, 1.0);   // Output the final color
-    //FragColor = vec4(texture(bloomBlur, TexCoords).rgb, 1.0);   // Output the final color
+//    FragColor = vec4(texture(scene, TexCoords).rgb, 1.0);   // Output the final color
 }

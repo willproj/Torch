@@ -106,9 +106,11 @@ namespace core
 		virtual void Render(const glm::mat4& view, const glm::mat4& projection) {};
 		virtual void SetShader() {};
 		virtual void Initialize() {};
+		virtual void Initialize(uint32_t width, uint32_t height) {};
 		virtual utils::Ref<SpecificationVariant> GetSpecification() = 0;
 		virtual EnvironmentEntityType GetType() const { return m_Type; }
 		virtual void OnUpdate() {};
+		virtual void OnUpdate(uint32_t width, uint32_t height) {};
 		virtual bool IsRunning() { return false;  };
 		virtual void SetIsRunning(bool isRunning) { };
 	protected:
