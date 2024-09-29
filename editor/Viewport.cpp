@@ -94,7 +94,7 @@ namespace editor
 
 		// Display RedInt texture
 		ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(context->GetScreenTexture())),
-			ImVec2(m_ViewportSize.x, m_ViewportSize.y),   // Adjust size as needed
+			ImVec2(m_ViewportSize.x, m_ViewportSize.y),  
 			ImVec2(0, 1),       // UV top-left
 			ImVec2(1, 0));      // UV bottom-right
 
@@ -200,22 +200,6 @@ namespace editor
 			}
 
 			context->UnbindGBuffer();
-
-
-			context->BindLightIDBuffer();
-			glReadBuffer(GL_COLOR_ATTACHMENT0);
-			glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixel);
-			sceneRef = core::SceneManager::GetSceneManager()->GetSceneRef();
-			if (sceneRef->GetRegisterRef().valid(entt::entity(pixel)))
-			{
-				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !keyboard->IsKeyPressed(core::KeyCode::KEY_LEFT_CONTROL))
-				{
-					std::cout << "selected entity: " << pixel << std::endl;
-					sceneRef->SetSelectedEntityID(entt::entity(pixel));
-				}
-			}
-			
-			context->UnbindLightIDBuffer();
 		}
 
 		ImGui::End();

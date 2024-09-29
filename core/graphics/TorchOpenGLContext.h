@@ -49,6 +49,7 @@ namespace core
 		void RenderGBufferColorTexture();
 		void RenderAllGBufferTextures();
 
+		void BlitFramebuffer(uint32_t src, uint32_t target, int type);
 
 		std::shared_ptr<ShaderManager> m_ShaderManager;
 

@@ -140,6 +140,14 @@ namespace core
 	{
 		RenderQuad::Render();
 	}
+
+	void TorchOpenGLContext::BlitFramebuffer(uint32_t src, uint32_t target, int type)
+	{
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, src);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target); // Blit to default framebuffer
+		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, type, GL_NEAREST);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind framebuffer
+	}
 	
 
 	void TorchOpenGLContext::DrawFrame()
@@ -216,11 +224,7 @@ namespace core
 		
 
 		// 4. Blit depth buffer from GBuffer to default framebuffer
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_GBuffer->GetFramebufferID());
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // Blit to default framebuffer
-		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind framebuffer
-		
+		this->BlitFramebuffer(m_GBuffer->GetFramebufferID(), 0, GL_DEPTH_BUFFER_BIT);
 
 		// 7. skybox (to default framebuffer)
 		if (m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->IsRunning())
@@ -247,10 +251,7 @@ namespace core
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render();
 
 		// 8. Copy final rendered result from default framebuffer to texture for ImGui
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // Read from default framebuffer
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_ScreenFramebuffer); // Draw to texture
-		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind final framebuffer
+		this->BlitFramebuffer(0, m_ScreenFramebuffer, GL_COLOR_BUFFER_BIT);
 
 		bloom.SetSrcTexture(m_GBuffer->GetGColorTexture());
 		//bloom.SetSrcTexture(m_ScreenTexture);
@@ -267,10 +268,7 @@ namespace core
 		Texture::BindTexture(1, GL_TEXTURE_2D, bloom.GetBloom().GetMipChain()[0].texture);
 		RenderQuad::Render();
 		
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0); // Read from default framebuffer
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_ScreenFramebuffer); // Draw to texture
-		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind final framebuffer
+		this->BlitFramebuffer(0, m_ScreenFramebuffer, GL_COLOR_BUFFER_BIT);
 
 	}
 

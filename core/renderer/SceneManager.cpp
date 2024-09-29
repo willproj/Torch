@@ -46,6 +46,18 @@ namespace core
 		{
 			Entity entity = { entityID, &m_Scene };
 
+			// Get component type
+			if (entity.HasComponent<EntityTypeComponent>())
+			{
+				auto& type = entity.GetComponent<EntityTypeComponent>().entityType;
+
+				//if it is lights then ignore the shadow
+				if (type == EntityType::Light)
+				{
+					continue;
+				}
+			}
+
 			// Get transform component
 			glm::mat4 transform = glm::mat4(1.0f);
 			if (entity.HasComponent<TransformComponent>())
@@ -54,12 +66,6 @@ namespace core
 			}
 
 			shadowMapDepthShader.setMat4("model", transform);
-
-			// Get material component
-			if (entity.HasComponent<MaterialComponent>())
-			{
-				auto& materialComponent = entity.GetComponent<MaterialComponent>();
-			}
 
 			// Render model
 			if (entity.HasComponent<ModelComponent>())

@@ -34,9 +34,6 @@ namespace core
         int32_t idx = 0;
         for (auto& attachment : attachments)
         {
-
-
-
             glColorAttachments.emplace_back(GL_COLOR_ATTACHMENT0 + idx);
             idx++;
         }

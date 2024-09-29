@@ -18,9 +18,9 @@ namespace core
 
     void BloomRenderer::Create(uint32_t width, uint32_t height)
     {
-        glViewport(0, 0, width, height);
         RenderDownSample();
         RenderUpSample();
+        glViewport(0, 0, width, height);
     }
 
     void BloomRenderer::RenderDownSample()
@@ -91,10 +91,4 @@ namespace core
 
         glUseProgram(0); // Reset the shader program
     }
-
-
-
-
-
-
 }
