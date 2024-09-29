@@ -252,7 +252,6 @@ namespace utils
 					label = labelComp["Label"].as<std::string>();
 				}
 
-
 				auto typeComp = entity["Entity Type Component"];
 				core::EntityType type = core::EntityType::General;
 				if (typeComp)

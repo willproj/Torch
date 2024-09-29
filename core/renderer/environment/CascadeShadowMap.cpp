@@ -61,8 +61,7 @@ namespace core
     void CascadeShadowMap::Unbind()
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        auto windowSpecifc = utils::ServiceLocator::GetWindow()->GetWinSpecification();
-        glViewport(0, 0, windowSpecifc.width, windowSpecifc.height);
+        glViewport(0, 0, m_EditorCameraPtr->GetViewportWidth(), m_EditorCameraPtr->GetViewportHeight());
     }
 
     void CascadeShadowMap::Render()

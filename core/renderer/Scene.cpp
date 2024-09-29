@@ -19,7 +19,6 @@ namespace core
 
 			m_EnttRegistry = std::move(other.m_EnttRegistry);
 			m_GeneralEntityIDs = std::move(other.m_GeneralEntityIDs);
-			m_LightEntityIDs = std::move(other.m_LightEntityIDs);
 
 			other.m_SelectedEntityID = entt::null;
 		}
@@ -52,15 +51,6 @@ namespace core
 		entity.AddComponent<ModelComponent>();
 		entity.AddComponent<TransformComponent>();
 
-		if (type == EntityType::General)
-		{
-			m_GeneralEntityIDs.emplace_back(entt::entity(entity));
-		}
-		else if (type == EntityType::Light)
-		{
-			m_LightEntityIDs.emplace_back(entt::entity(entity));
-		}
-		
 		return entity;
 	}
 

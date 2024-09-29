@@ -42,7 +42,7 @@ namespace core
 		auto& shadowMapDepthShader = ShaderManager::GetInstance()->GetShadowMapDepthShader();
 		shadowMapDepthShader.use();
 
-		for (auto entityID : m_Scene.GetGeneralEntityIDs())
+		for (auto entityID : m_Scene.GetRegisterRef().view<entt::entity>())
 		{
 			Entity entity = { entityID, &m_Scene };
 
@@ -58,7 +58,6 @@ namespace core
 			// Get material component
 			if (entity.HasComponent<MaterialComponent>())
 			{
-				// Retrieve the material component from the entity
 				auto& materialComponent = entity.GetComponent<MaterialComponent>();
 			}
 
@@ -83,7 +82,7 @@ namespace core
 		gemotryPassShader.setMat4("view", m_EditorCameraPtr->GetViewMatrix());
 		gemotryPassShader.setMat4("projection", m_EditorCameraPtr->GetProjection());
 		// Iterate over entities and render
-		for (auto entityID : m_Scene.GetGeneralEntityIDs())
+		for (auto entityID : m_Scene.GetRegisterRef().view<entt::entity>())
 		{
 			Entity entity = { entityID, &m_Scene };
 
@@ -151,101 +150,8 @@ namespace core
 		}
 	}
 
-	void SceneManager::RenderLights()
-	{
-		// Set up shader once before the loop
-		auto& lightsShader = ShaderManager::GetInstance()->GetLightsShader();
-		lightsShader.use();
-		lightsShader.setMat4("view", m_EditorCameraPtr->GetViewMatrix());
-		lightsShader.setMat4("projection", m_EditorCameraPtr->GetProjection());
-
-		// Iterate over entities and render
-		for (auto entityID : m_Scene.GetLightEntityIDs())
-		{
-			Entity entity = { entityID, &m_Scene };
-			//lightsShader.setInt("entity", entity());
-			// Get transform component
-			glm::mat4 transform = glm::mat4(1.0f);
-			if (entity.HasComponent<TransformComponent>())
-			{
-				transform = entity.GetComponent<TransformComponent>().getTransform();
-			}
-			// Set entity-specific shader uniforms
-			lightsShader.setMat4("model", transform);
-
-			// Render model
-			if (entity.HasComponent<ModelComponent>())
-			{
-				auto model = entity.GetComponent<ModelComponent>().model;
-				if (model)
-				{
-					model->RenderModel();
-				}
-			}
-		}
-	}
-
-
-	void SceneManager::RenderLightsToID()
-	{
-		// Set up shader once before the loop
-		auto& lightsIDShader = ShaderManager::GetInstance()->GetLightsIDShader();
-		lightsIDShader.use();
-		lightsIDShader.setMat4("view", m_EditorCameraPtr->GetViewMatrix());
-		lightsIDShader.setMat4("projection", m_EditorCameraPtr->GetProjection());
-
-		// Iterate over entities and render
-		for (auto entityID : m_Scene.GetLightEntityIDs())
-		{
-			Entity entity = { entityID, &m_Scene };
-
-			// Get transform component
-			glm::mat4 transform = glm::mat4(1.0f);
-			if (entity.HasComponent<TransformComponent>())
-			{
-				transform = entity.GetComponent<TransformComponent>().getTransform();
-			}
-
-			// Set entity-specific shader uniforms
-			lightsIDShader.setInt("entity", entity());
-			lightsIDShader.setMat4("model", transform);
-
-
-			// Get material component
-			if (entity.HasComponent<MaterialComponent>())
-			{
-				auto& materialComponent = entity.GetComponent<MaterialComponent>();
-				
-			}
-
-			// Render model
-			if (entity.HasComponent<ModelComponent>())
-			{
-				auto model = entity.GetComponent<ModelComponent>().model;
-				if (model)
-				{
-					model->RenderModel();
-				}
-			}
-		}
-	}
-
-
-	void SceneManager::StencilOutlinePass()
-	{
-		
-	}
-
-
-
 	SceneManager::SceneManager()
 	{
-
-
-		m_StencilOutlineShader = Shader(
-			std::string(PROJECT_ROOT) + "/assets/shader/outline.vert",
-			std::string(PROJECT_ROOT) + "/assets/shader/outline.frag"
-		);
 	}
 
 

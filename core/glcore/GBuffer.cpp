@@ -19,9 +19,6 @@ namespace core
         glGenFramebuffers(1, &m_BufferID);
         glBindFramebuffer(GL_FRAMEBUFFER, m_BufferID);
 
-        //uint32_t width = utils::ServiceLocator::GetWindow()->GetWinSpecification().width;
-        //uint32_t height = utils::ServiceLocator::GetWindow()->GetWinSpecification().height;
-
         // Position buffer
         glGenTextures(1, &m_GPosition);
         glBindTexture(GL_TEXTURE_2D, m_GPosition);

@@ -18,26 +18,19 @@ namespace core
 		void RemoveEntity(Entity entity);
 
 		void Render();
-		void RenderLights();
-		void RenderLightsToID();
 
 		utils::Ref<Scene> GetSceneRef() { return utils::Ref<Scene>(m_Scene); }
 		void SetCamera(std::shared_ptr<EditorCamera> camera);
 		std::shared_ptr<EditorCamera> GetEditorCameraPtr() const { return m_EditorCameraPtr; }
 
 		void SetScene(Scene&& scene);
-		void StencilOutlinePass();
 
 		void RenderScene();
 
 	private:
 		SceneManager();
 		Scene m_Scene;
-		Scene m_Lights;
 		static std::shared_ptr<SceneManager> m_SceneManager;
 		std::shared_ptr<EditorCamera> m_EditorCameraPtr;
-
-		Shader m_StencilOutlineShader;
-
 	};
 }

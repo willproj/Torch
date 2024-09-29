@@ -1,29 +1,17 @@
 Scene: unknow
 Entities:
   - UUID Component:
-      Entity UUID: 4b028738-9883-4746-805c-000001d6d4ed995beae1
-    Entity Type Component:
-      Entity Type: General
-    Label Component:
-      Label: new entity
-    Transform Component:
-      Translation: [-2.53903079, 2.37393761, -3.49866056]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    Model Component:
-      Mesh Path: D:\github\Torch\assets\models\cube\cube.glb
-  - UUID Component:
-      Entity UUID: bd79453c-e308-47fb-a0da-0000c2592c02dbf30ead
+      Entity UUID: 022d85bc-cb17-4cc2-aa09-00003059d645f06d5b6e
     Entity Type Component:
       Entity Type: General
     Label Component:
       Label: sphere
     Transform Component:
-      Translation: [0, 1.12746012, 0]
+      Translation: [0, 3.12907767, -8.47653103]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Scale: [0.00424000015, 0.00424000015, 0.00424000015]
     Model Component:
-      Mesh Path: D:\github\Torch\assets\models\sphere\sphere.glb
+      Mesh Path: D:\github\Torch\assets\models\cube2\scene.gltf
     Material Component:
       Albedo Path: D:\github\Torch\assets\texture\bronze\albedo.png
       Normal Path: D:\github\Torch\assets\texture\bronze\normal.png
@@ -31,22 +19,34 @@ Entities:
       Roughness Path: D:\github\Torch\assets\texture\bronze\roughness.png
       AO Path: D:\github\Torch\assets\texture\bronze\ao.png
       Metallic: 1
-      Roughness: 3.64899993
+      Roughness: 3.33899999
       Use Albedo: true
       Use Normal: true
       Use Metallic: true
       Use Roughness: true
       Use AO: true
   - UUID Component:
-      Entity UUID: 88edd834-5a28-42da-aec8-00005656e6d1a62153ac
+      Entity UUID: 1a77b138-43d4-4547-9a71-000011f6c0691c900c89
     Entity Type Component:
       Entity Type: General
     Label Component:
-      Label: cube
+      Label: bloom
     Transform Component:
-      Translation: [0, 0, 0]
+      Translation: [0, 1.94637072, 0]
       Rotation: [0, 0, 0]
-      Scale: [6.4199996, 0.102170616, 6.4199996]
+      Scale: [1, 1, 1]
+    Model Component:
+      Mesh Path: D:\github\Torch\assets\models\cube\cube.glb
+  - UUID Component:
+      Entity UUID: 342fb734-dc18-4943-87ac-0000637b3f16935cf93a
+    Entity Type Component:
+      Entity Type: General
+    Label Component:
+      Label: plane
+    Transform Component:
+      Translation: [0, 0, 0.0690526962]
+      Rotation: [0, 0, 0]
+      Scale: [13.6606922, 0.00100000005, 16.6756992]
     Model Component:
       Mesh Path: D:\github\Torch\assets\models\cube\cube.glb
     Material Component:
@@ -56,21 +56,9 @@ Entities:
       Roughness Path: D:\github\Torch\assets\texture\plastic\roughness.png
       AO Path: D:\github\Torch\assets\texture\plastic\ao.png
       Metallic: 0
-      Roughness: 0.36500001
+      Roughness: 0.600000024
       Use Albedo: true
       Use Normal: true
       Use Metallic: true
       Use Roughness: true
       Use AO: true
-  - UUID Component:
-      Entity UUID: 922108d0-6c3c-43a5-9a1b-00000116e7cd942b1a9e
-    Entity Type Component:
-      Entity Type: Light
-    Label Component:
-      Label: light
-    Transform Component:
-      Translation: [3.65173459, 1.3455708, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    Model Component:
-      Mesh Path: D:\github\Torch\assets\models\cube\cube.glb

@@ -78,8 +78,7 @@ namespace core
             Texture::BindTexture(0, GL_TEXTURE_2D, mip.texture);
 
             // Bind the next mip level texture as the destination texture
-            Texture::BindTexture(1, GL_TEXTURE_2D, nextMip.texture);
-            glBindImageTexture(2, nextMip.texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R11F_G11F_B10F);
+            glBindImageTexture(1, nextMip.texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R11F_G11F_B10F);
 
             // Calculate the number of workgroups, rounding up the size to avoid issues with non-divisible sizes
             GLuint numGroupsX = (GLuint)ceil(m_SrcViewportSize.x / 8.0);

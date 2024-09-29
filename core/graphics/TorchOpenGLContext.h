@@ -29,7 +29,6 @@ namespace core
 		void DrawFrame();
 		void OnUpdate(uint32_t width, uint32_t height);
 		void CreateOffScreenTexture(int width, int height);
-		void CreateLightIDTexture(int width, int height);
 
 		GLuint GetScreenFramebuffer() const { return m_ScreenFramebuffer; }
 		APIType GetAPIType() const override { return APIType::OpenGL; }
@@ -42,9 +41,6 @@ namespace core
 
 		void SetUpRenderType(const GBufferRenderType& type) override;
 		GBufferRenderType GetRenderType() override { return m_RenderType; }
-
-		virtual void BindLightIDBuffer() { glBindFramebuffer(GL_FRAMEBUFFER, m_LightFramebuffer); };
-		virtual void UnbindLightIDBuffer() { glBindFramebuffer(GL_FRAMEBUFFER, 0); };
 
 	private:
 		void RenderGBufferPositionTexture();
@@ -63,10 +59,6 @@ namespace core
 		GLuint m_EntityIDTexture;
 		uint32_t m_ScreenIntTexture;
 
-		GLuint m_LightFramebuffer;
-		GLuint m_LightIDTexture;
-		GLuint m_LightHDRTexture;
-
 		Window *m_WindowPtr;
 
 		std::shared_ptr<EditorCamera> m_EditorCamera;
@@ -76,15 +68,6 @@ namespace core
 		GBufferRenderType m_RenderType = GBufferRenderType::All;
 
 		HDR m_HDR;
-
-		// lights
-		// ------
-		std::vector<glm::vec3> lightPositions = {
-			glm::vec3(0.0f, 0.0f, 10.0f),
-		};
-		std::vector<glm::vec3> lightColors = {
-			glm::vec3(150.0f, 150.0f, 150.0f),
-		};
 
 		IBL ibl;
 		Shader test;

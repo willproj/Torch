@@ -51,7 +51,6 @@ namespace core
 
 		SceneManager::GetSceneManager()->GetSceneRef()->CreateEntity();
 		CreateOffScreenTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
-		CreateLightIDTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
 		bloom.Initialize();
 
 	}
@@ -80,39 +79,6 @@ namespace core
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	void TorchOpenGLContext::CreateLightIDTexture(int width, int height)
-	{
-		// Create the light ID texture
-		glGenTextures(1, &m_LightIDTexture);
-		glBindTexture(GL_TEXTURE_2D, m_LightIDTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, width, height, 0, GL_RED_INTEGER, GL_INT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		// Create framebuffer
-		glGenFramebuffers(1, &m_LightFramebuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, m_LightFramebuffer);
-
-		// Attach the light ID texture
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_LightIDTexture, 0);
-
-		// Attach the source texture (for rendering the scene)
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bloom.GetSrcTextureRef(), 0);
-
-		GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-		glDrawBuffers(1, drawBuffers);
-
-		// Check if the framebuffer is complete
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		{
-			std::cout << "Framebuffer not complete!" << std::endl;
-		}
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
-
-
 	void TorchOpenGLContext::OnUpdate(uint32_t width, uint32_t height)
 	{
 		m_GBuffer->OnUpdate(width, height);
@@ -127,18 +93,8 @@ namespace core
 			glDeleteTextures(1, &m_ScreenTexture);
 		}
 
-		if (m_LightFramebuffer)
-		{
-			glDeleteFramebuffers(1, &m_LightFramebuffer);
-		}
-
-		if (m_LightIDTexture)
-		{
-			glDeleteTextures(1, &m_LightIDTexture);
-		}
 
 		CreateOffScreenTexture(width, height);
-		CreateLightIDTexture(width, height);
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->OnUpdate(width, height);
 		bloom.GetBloom().Create(width, height);
 	}
@@ -188,7 +144,6 @@ namespace core
 
 	void TorchOpenGLContext::DrawFrame()
 	{
-		glViewport(0, 0, m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
 		//------------------------------------------- renderers & spcifications --------------------------------------------
 		auto& atmosphere = m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->GetSpecification();
 		auto& atmosphereSpcific = std::get<AtmosphericScatteringSpecification>(atmosphere.get());
@@ -209,6 +164,11 @@ namespace core
 		m_GBuffer->Unbind();
 
 
+		// 2. Render cascade shadow map
+		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::CascadeShadowMap)->BeginRender();
+		SceneManager::GetSceneManager()->RenderScene();
+		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::CascadeShadowMap)->EndRender();
+
 		// render ssao
 		glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -220,16 +180,8 @@ namespace core
 		RenderQuad::Render();
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->EndRender();
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->Render();
+
 		
-
-		glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glViewport(0, 0, m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
-
-		// 2. Render cascade shadow map
-		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::CascadeShadowMap)->BeginRender();
-		SceneManager::GetSceneManager()->RenderScene();
-		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::CascadeShadowMap)->EndRender();
 
 		// 3. Lighting pass (render to default framebuffer)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -269,15 +221,6 @@ namespace core
 		glBlitFramebuffer(0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, 0, 0, m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind framebuffer
 		
-		// 5. Render Lights to Light Framebuffer to get light ID
-		glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-		BindLightIDBuffer();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		m_SceneManager->RenderLightsToID();
-		UnbindLightIDBuffer();
-
-		// 6. Render Lights
-		m_SceneManager->RenderLights(); // This should output HDR values
 
 		// 7. skybox (to default framebuffer)
 		if (m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->IsRunning())
