@@ -250,7 +250,7 @@ void main()
     float exposure = 8.0;
     color *= exposure;
     color = ACESFilm(color);
-    color = pow(color, vec3(1.0 / 2.0));
+    //color = pow(color, vec3(1.0 / 2.0));
 
     // Output to screen
     FragColor = vec4(color, 1.0);

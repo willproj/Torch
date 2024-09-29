@@ -316,6 +316,7 @@ void main()
     vec3 N = normalize(texture(gNormal, TexCoords).rgb);
     vec4 gAlbedoSpecData = texture(gAlbedoSpec, TexCoords);
     vec3 albedo = gAlbedoSpecData.rgb;
+   
     float metallic = gAlbedoSpecData.a;
 
     vec3 gRoughAOData = texture(gRoughAO, TexCoords).rgb;
@@ -363,9 +364,13 @@ void main()
 
 
     // HDR tonemapping
-    color = color / (color + vec3(1.0));
+    //color = color / (color + vec3(1.0));
     // gamma correct
-    color = pow(color, vec3(1.0/2.2)); 
+    //color = pow(color, vec3(1.0/2.2)); 
 
     FragColor = vec4(color, 1.0f);
+    if(albedo.r > 1.0f)
+    {
+        FragColor = vec4(clamp(albedo, 0,1), 1.0f);
+    }
 }

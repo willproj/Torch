@@ -20,7 +20,7 @@ namespace core
     {
         auto winSpec = utils::ServiceLocator::GetWindow()->GetWinSpecification();
         RenderDownSample();
-        //RenderUpSample();
+        RenderUpSample();
         glViewport(0, 0, winSpec.width, winSpec.height);
 
     }
@@ -36,10 +36,8 @@ namespace core
         {
             const bloomMip& mip = mipChain[i];
             // Set source resolution and mip level in the shader
-            if (i == 0)
-            {
-                downSample.setInt("mipLevel", 1);
-            }
+            downSample.setInt("mipLevel", i);
+            downSample.setBool("useThreshold", i == 0);
 
             if (i == 0) {
                 // For the first pass, use the original HDR source texture
@@ -54,7 +52,7 @@ namespace core
             // Ensure the format is consistent with the shader's format
             glBindImageTexture(1, mip.texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R11F_G11F_B10F);
             // Dispatch compute shader
-            glDispatchCompute(glm::ceil(mip.size.x / 16.0), glm::ceil(mip.size.y / 16.0), 1);
+            glDispatchCompute(glm::ceil(mip.size.x / 8.0), glm::ceil(mip.size.y / 8.0), 1);
 
             // Ensure all writes are finished before moving on
             glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -74,20 +72,28 @@ namespace core
         upSample.use();
         upSample.setFloat("filterRadius", bloomFilterRadius);
 
+        // Iterate through mip levels from highest (5) to lowest (0)
         for (int i = (int)mipChain.size() - 1; i > 0; i--)
         {
             const bloomMip& mip = mipChain[i];
             const bloomMip& nextMip = mipChain[i - 1];
-            // Bind viewport and texture from where to read
+
+            // Bind the source texture from the current mip level
             Texture::BindTexture(0, GL_TEXTURE_2D, mip.texture);
+
+            // Bind the next mip level texture as the destination texture
             Texture::BindTexture(1, GL_TEXTURE_2D, nextMip.texture);
             glBindImageTexture(2, nextMip.texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R11F_G11F_B10F);
-            
-            glDispatchCompute((GLuint)ceil(m_SrcViewportSize.x / 16.0), (GLuint)ceil(m_SrcViewportSize.y / 16.0), 1);
+
+            // Dispatch the compute shader
+            glDispatchCompute((GLuint)ceil(m_SrcViewportSize.x / 8.0), (GLuint)ceil(m_SrcViewportSize.y / 8.0), 1);
             glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
         }
-        glUseProgram(0);
+
+        glUseProgram(0); // Reset the shader program
     }
+
+
 
 
 

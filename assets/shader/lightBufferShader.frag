@@ -8,7 +8,7 @@ uniform int entity;
 
 void main()
 {
-    FragColor = vec4(1.0f,1.0f,1.0f, 1.0);
+    FragColor = vec4(1.0f,10.0f,10.0f, 1.0);
     EntityColor = entity;
     ColorAttchment = FragColor;
 }

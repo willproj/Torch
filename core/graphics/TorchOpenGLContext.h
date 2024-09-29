@@ -29,6 +29,8 @@ namespace core
 		void DrawFrame();
 		void OnUpdate();
 		void CreateOffScreenTexture(int width, int height);
+		void CreateLightIDTexture(int width, int height);
+
 		GLuint GetScreenFramebuffer() const { return m_ScreenFramebuffer; }
 		APIType GetAPIType() const override { return APIType::OpenGL; }
 		GBuffer& GetGbuffer() override { return *m_GBuffer; }
@@ -51,7 +53,6 @@ namespace core
 		void RenderGBufferColorTexture();
 		void RenderAllGBufferTextures();
 
-		void CreateLightIDTexture(int width, int height);
 
 		std::shared_ptr<ShaderManager> m_ShaderManager;
 
@@ -64,6 +65,7 @@ namespace core
 
 		GLuint m_LightFramebuffer;
 		GLuint m_LightIDTexture;
+		GLuint m_LightHDRTexture;
 
 		Window *m_WindowPtr;
 

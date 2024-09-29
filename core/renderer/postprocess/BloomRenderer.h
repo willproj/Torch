@@ -18,7 +18,9 @@ namespace core
 
 		void Create();
 
+
 		Bloom& GetBloom() { return m_Bloom; }
+		void SetSrcTexture(uint32_t tex) { m_SrcTexture = tex; }
 
 	private:
 		Bloom m_Bloom;
@@ -31,5 +33,8 @@ namespace core
 		float bloomFilterRadius = 0.005f;
 		void RenderDownSample();
 		void RenderUpSample();
+
+		float m_Threshold = (1.5);
+		float m_Knee = (0.1);
 	};
 }

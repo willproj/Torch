@@ -36,6 +36,7 @@ namespace core
         virtual ~TorchGraphicsContext() = default;
 		virtual void DrawFrame() {};
 		virtual void OnUpdate() {};
+		virtual void OnUpdate(uint32_t width, uint32_t height) {};
 		virtual GBuffer& GetGbuffer() { return GBuffer(); }
 		virtual GLuint GetScreenFramebuffer() const { return 0; }
 		virtual void CreateOffScreenTexture(int width, int height) {};

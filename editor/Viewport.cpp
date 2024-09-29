@@ -84,7 +84,13 @@ namespace editor
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f)); 
 		ImGui::Begin("viewport");
 
-		m_ViewportSize = glm::vec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y); 
+		ImVec2 viewportPanel = ImGui::GetContentRegionAvail();
+		if (m_ViewportSize != *((glm::vec2*)&viewportPanel))
+		{
+			m_ViewportSize = glm::vec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y);
+			context->OnUpdate(m_ViewportSize.x, m_ViewportSize.y);
+		}
+
 		// Display RedInt texture
 		ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(context->GetScreenTexture())),
 			ImVec2(m_ViewportSize.x, m_ViewportSize.y),   // Adjust size as needed
@@ -200,7 +206,6 @@ namespace editor
 			context->BindLightIDBuffer();
 			glReadBuffer(GL_COLOR_ATTACHMENT0);
 			glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixel);
-
 			sceneRef = core::SceneManager::GetSceneManager()->GetSceneRef();
 			if (sceneRef->GetRegisterRef().valid(entt::entity(pixel)))
 			{

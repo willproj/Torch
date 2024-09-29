@@ -48,7 +48,7 @@ namespace core
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-			std::cout << "Created bloom mip " << mipIntSize.x << 'x' << mipIntSize.y << std::endl;
+			//std::cout << "Created bloom mip " << mipIntSize.x << 'x' << mipIntSize.y << std::endl;
 			m_MipChain.emplace_back(mip);
 
 		}
