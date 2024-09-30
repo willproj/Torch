@@ -223,6 +223,9 @@ namespace core
 		RenderQuad::Render();
 		
 
+		
+
+
 		// 4. Blit depth buffer from GBuffer to default framebuffer
 		this->BlitFramebuffer(m_GBuffer->GetFramebufferID(), 0, GL_DEPTH_BUFFER_BIT);
 
@@ -254,13 +257,14 @@ namespace core
 
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render();
 
+
 		// 8. Copy final rendered result from default framebuffer to texture for ImGui
 		this->BlitFramebuffer(0, m_ScreenFramebuffer, GL_COLOR_BUFFER_BIT);
 
 		bloom.SetSrcTexture(m_GBuffer->GetGColorTexture());
 		//bloom.SetSrcTexture(m_ScreenTexture);
 		bloom.Create(m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
-		
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glViewport(0, 0, m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
 		auto& shader = ShaderManager::GetInstance()->GetBloomFinalShaderRef();
@@ -271,7 +275,6 @@ namespace core
 		//Texture::BindTexture(1, GL_TEXTURE_2D, ssaoSpecific.ssaoColorBlurTexture);
 		Texture::BindTexture(1, GL_TEXTURE_2D, bloom.GetBloom().GetMipChain()[0].texture);
 		RenderQuad::Render();
-		
 
 
 		this->BlitFramebuffer(0, m_ScreenFramebuffer, GL_COLOR_BUFFER_BIT);
