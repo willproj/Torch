@@ -7,7 +7,7 @@ uniform sampler2D scene;        // Already tone-mapped and gamma-corrected scene
 uniform sampler2D bloomBlur;    // Blurred bloom texture
 
 uniform float exposure = 6.0f;  // Exposure for tone mapping
-uniform float bloomStrength = 8.4f; // Strength of bloom blending
+uniform float bloomStrength = 2.0f; // Strength of bloom blending
 
 // Function to perform inverse gamma correction
 vec3 gammaCorrectInverse(vec3 color, float gamma) {
@@ -42,4 +42,5 @@ void main()
     result = pow(result, vec3(gamma)); // Apply gamma correction
 
     FragColor = vec4(result, 1.0); // Output the final color
+//    FragColor = vec4(texture(scene, TexCoords).rgb, 1.0); // Output the final color
 }

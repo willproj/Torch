@@ -33,7 +33,7 @@ namespace editor
 			ImGui::SliderFloat(" ", &atmosSpecific.sunIntensity, 0.1f, 10.0f, "%.1f");
 
 			// Define a variable to hold the sun angle in degrees
-			static float sunAngleDegrees = 2.2f; // Default value in degrees
+			static float sunAngleDegrees = 0.0f; // Default value in degrees
 
 			// Create the slider in ImGui
 			ImGui::Text("Sun Angle (Degrees)");

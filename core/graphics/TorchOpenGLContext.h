@@ -49,6 +49,10 @@ namespace core
 		void RenderGBufferColorTexture();
 		void RenderAllGBufferTextures();
 
+		void CreateSkyboxTexture(uint32_t width, uint32_t height);
+
+		void CreatePostprocessTextures(uint32_t width, uint32_t height);
+
 		void BlitFramebuffer(uint32_t src, uint32_t target, int type);
 
 		std::shared_ptr<ShaderManager> m_ShaderManager;
@@ -60,6 +64,13 @@ namespace core
 		GLuint m_EntityIDTexture;
 		uint32_t m_ScreenIntTexture;
 
+		GLuint m_SkyboxTextureFramebuffer;
+		GLuint m_SkyboxTexture;
+
+		GLuint m_PosprocessFramebuffer;
+		GLuint m_OriginalSceneTexture;
+		GLuint m_BrightnessTexture;
+		
 		Window *m_WindowPtr;
 
 		std::shared_ptr<EditorCamera> m_EditorCamera;

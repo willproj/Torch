@@ -38,19 +38,23 @@ namespace core
 
 		auto& lightingPassShader = ShaderManager::GetInstance()->GetLightingPassShaderRef();
 		lightingPassShader.use();
-		lightingPassShader.setInt("gPosition", 0);
-		lightingPassShader.setInt("gNormal", 1);
-		lightingPassShader.setInt("gAlbedoSpec", 2);
-		lightingPassShader.setInt("gRoughAO", 3);
-		lightingPassShader.setInt("u_IrradianceMap", 4);
-		lightingPassShader.setInt("u_PrefilterMap", 5);
-		lightingPassShader.setInt("u_BrdfLUT", 6);
-		lightingPassShader.setInt("u_ShadowMap", 7);
-		lightingPassShader.setInt("gLightSpacePosition", 8);
-		lightingPassShader.setInt("u_SSAO", 9);
+		lightingPassShader.setInt("gPosition", 1);
+		lightingPassShader.setInt("gNormal", 2);
+		lightingPassShader.setInt("gAlbedoSpec", 3);
+		lightingPassShader.setInt("gRoughAO", 4);
+		lightingPassShader.setInt("u_IrradianceMap", 5);
+		lightingPassShader.setInt("u_PrefilterMap", 6);
+		lightingPassShader.setInt("u_BrdfLUT", 7);
+		lightingPassShader.setInt("u_ShadowMap", 8);
+		lightingPassShader.setInt("gLightSpacePosition", 9);
+		lightingPassShader.setInt("u_SSAO", 10);
+		lightingPassShader.setInt("u_SkyboxMap", 11);
+		lightingPassShader.setInt("gDepth", 12);
 
 		SceneManager::GetSceneManager()->GetSceneRef()->CreateEntity();
 		CreateOffScreenTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
+		CreateSkyboxTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
+		CreatePostprocessTextures(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
 		bloom.Initialize();
 
 	}
@@ -93,8 +97,34 @@ namespace core
 			glDeleteTextures(1, &m_ScreenTexture);
 		}
 
+		if (m_SkyboxTextureFramebuffer)
+		{
+			glDeleteFramebuffers(1, &m_SkyboxTextureFramebuffer);
+		}
+
+		if (m_SkyboxTexture)
+		{
+			glDeleteTextures(1, &m_SkyboxTexture);
+		}
+
+		if (m_PosprocessFramebuffer)
+		{
+			glDeleteFramebuffers(1, &m_PosprocessFramebuffer);
+		}
+
+		if (m_OriginalSceneTexture)
+		{
+			glDeleteTextures(1, &m_OriginalSceneTexture);
+		}
+
+		if (m_BrightnessTexture)
+		{
+			glDeleteTextures(1, &m_BrightnessTexture);
+		}
 
 		CreateOffScreenTexture(width, height);
+		CreateSkyboxTexture(width, height);
+		CreatePostprocessTextures(width, height);
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->OnUpdate(width, height);
 		bloom.GetBloom().Create(width, height);
 	}
@@ -141,6 +171,65 @@ namespace core
 		RenderQuad::Render();
 	}
 
+	void TorchOpenGLContext::CreateSkyboxTexture(uint32_t width, uint32_t height)
+	{
+		// Create the default color texture
+		glGenTextures(1, &m_SkyboxTexture);
+		glBindTexture(GL_TEXTURE_2D, m_SkyboxTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		// Create framebuffer
+		glGenFramebuffers(1, &m_SkyboxTextureFramebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_SkyboxTextureFramebuffer);
+
+		// Attach the color texture to the framebuffer
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_SkyboxTexture, 0);
+
+		// Check if the framebuffer is complete
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			std::cout << "Framebuffer not complete!" << std::endl;
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
+	void TorchOpenGLContext::CreatePostprocessTextures(uint32_t width, uint32_t height)
+	{
+		// Create the default color texture
+		glGenTextures(1, &m_OriginalSceneTexture);
+		glBindTexture(GL_TEXTURE_2D, m_OriginalSceneTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glGenTextures(1, &m_BrightnessTexture);
+		glBindTexture(GL_TEXTURE_2D, m_BrightnessTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		// Create framebuffer
+		glGenFramebuffers(1, &m_PosprocessFramebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_PosprocessFramebuffer);
+
+		// Attach the color texture to the framebuffer
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_OriginalSceneTexture, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_BrightnessTexture, 0);
+
+		std::vector<uint32_t> attachments = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+		glDrawBuffers(attachments.size(), attachments.data());
+
+		// Check if the framebuffer is complete
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			std::cout << "Framebuffer not complete!" << std::endl;
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
 	void TorchOpenGLContext::BlitFramebuffer(uint32_t src, uint32_t target, int type)
 	{
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, src);
@@ -172,6 +261,12 @@ namespace core
 		m_GBuffer->Unbind();
 
 
+		// Render Skybox into texture
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_SkyboxTextureFramebuffer);
+		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render();
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 		// 2. Render cascade shadow map
 		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::CascadeShadowMap)->BeginRender();
 		SceneManager::GetSceneManager()->RenderScene();
@@ -192,7 +287,7 @@ namespace core
 		
 
 		// 3. Lighting pass (render to default framebuffer)
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_PosprocessFramebuffer);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 		glViewport(0, 0, m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
 		auto& lightingPassShader = ShaderManager::GetInstance()->GetLightingPassShaderRef();
@@ -210,25 +305,30 @@ namespace core
 			lightingPassShader.setFloat("u_CascadePlaneDistances[" + std::to_string(i) + "]", shadowMapSpcific.shadowCascadeLevels[i]);
 		}
 
-		Texture::BindTexture(0, GL_TEXTURE_2D, m_GBuffer->GetGPositionTexture());
-		Texture::BindTexture(1, GL_TEXTURE_2D, m_GBuffer->GetGNormalTexture());
-		Texture::BindTexture(2, GL_TEXTURE_2D, m_GBuffer->GetGColorTexture());
-		Texture::BindTexture(3, GL_TEXTURE_2D, m_GBuffer->GetGRoughnessAOTexture());
-		Texture::BindTexture(4, GL_TEXTURE_CUBE_MAP, ibl.GetIrradianceTexture());
-		Texture::BindTexture(5, GL_TEXTURE_CUBE_MAP, ibl.GetPrefilterTexture());
-		Texture::BindTexture(6, GL_TEXTURE_2D, ibl.GetBrdfLUTTexture());
-		Texture::BindTexture(7, GL_TEXTURE_2D_ARRAY, shadowMapSpcific.shadowMapTexture);
-		Texture::BindTexture(8, GL_TEXTURE_2D, m_GBuffer->GetGLightSpacePosition());
-		Texture::BindTexture(9, GL_TEXTURE_2D, ssaoSpecific.ssaoColorBlurTexture);
+		glBindImageTexture(0, m_GBuffer->GetRedIntTexture(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_R32I);
+		Texture::BindTexture(1, GL_TEXTURE_2D, m_GBuffer->GetGPositionTexture());
+		Texture::BindTexture(2, GL_TEXTURE_2D, m_GBuffer->GetGNormalTexture());
+		Texture::BindTexture(3, GL_TEXTURE_2D, m_GBuffer->GetGColorTexture());
+		Texture::BindTexture(4, GL_TEXTURE_2D, m_GBuffer->GetGRoughnessAOTexture());
+		Texture::BindTexture(5, GL_TEXTURE_CUBE_MAP, ibl.GetIrradianceTexture());
+		Texture::BindTexture(6, GL_TEXTURE_CUBE_MAP, ibl.GetPrefilterTexture());
+		Texture::BindTexture(7, GL_TEXTURE_2D, ibl.GetBrdfLUTTexture());
+		Texture::BindTexture(8, GL_TEXTURE_2D_ARRAY, shadowMapSpcific.shadowMapTexture);
+		Texture::BindTexture(9, GL_TEXTURE_2D, m_GBuffer->GetGLightSpacePosition());
+		Texture::BindTexture(10, GL_TEXTURE_2D, ssaoSpecific.ssaoColorBlurTexture);
+		Texture::BindTexture(11, GL_TEXTURE_2D, m_SkyboxTexture);
+		Texture::BindTexture(12, GL_TEXTURE_2D, m_GBuffer->GetGDepthTexture());
+
 		RenderQuad::Render();
-		
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
 		
 
 
 		// 4. Blit depth buffer from GBuffer to default framebuffer
-		this->BlitFramebuffer(m_GBuffer->GetFramebufferID(), 0, GL_DEPTH_BUFFER_BIT);
-
+		//this->BlitFramebuffer(m_GBuffer->GetFramebufferID(), 0, GL_DEPTH_BUFFER_BIT);
+		
 		// 7. skybox (to default framebuffer)
 		if (m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->IsRunning())
 		{
@@ -255,13 +355,12 @@ namespace core
 
 		}
 
-		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->Render();
 
 
 		// 8. Copy final rendered result from default framebuffer to texture for ImGui
-		this->BlitFramebuffer(0, m_ScreenFramebuffer, GL_COLOR_BUFFER_BIT);
+		//this->BlitFramebuffer(0, m_ScreenFramebuffer, GL_COLOR_BUFFER_BIT);
 
-		bloom.SetSrcTexture(m_GBuffer->GetGColorTexture());
+		bloom.SetSrcTexture(m_BrightnessTexture);
 		//bloom.SetSrcTexture(m_ScreenTexture);
 		bloom.Create(m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
 
@@ -271,13 +370,15 @@ namespace core
 		shader.use();
 		shader.setInt("scene", 0);
 		shader.setInt("bloomBlur", 1);
-		Texture::BindTexture(0, GL_TEXTURE_2D, m_ScreenTexture);
+		Texture::BindTexture(0, GL_TEXTURE_2D, m_OriginalSceneTexture);
 		//Texture::BindTexture(1, GL_TEXTURE_2D, ssaoSpecific.ssaoColorBlurTexture);
 		Texture::BindTexture(1, GL_TEXTURE_2D, bloom.GetBloom().GetMipChain()[0].texture);
 		RenderQuad::Render();
 
 
 		this->BlitFramebuffer(0, m_ScreenFramebuffer, GL_COLOR_BUFFER_BIT);
+
+		
 
 	}
 

@@ -31,7 +31,7 @@ namespace core
 	{
 		auto& specific = std::get<AtmosphericScatteringSpecification>(m_Specification);
 		specific.sunPosition = glm::normalize(glm::vec3(-1.0f, 1.0f, -1.0f));
-		specific.sunIntensity = 1.5f;
+		specific.sunIntensity = 2.0f;
 		specific.rayTMin = 0.001f;
 		specific.earthRadius= 6371000.0f;
 		specific.atmosphereHeight= 100000.0f;
@@ -43,7 +43,7 @@ namespace core
 		specific.sunColor = glm::vec3(1.0f);
 		specific.gamma = 2.8f;
 		specific.exposure= 8.0f;
-		specific.sunAngle = 2.0f * M_PI / 180.0f;
+		specific.sunAngle = 0.0f * M_PI / 180.0f;
 	}
 
 	void AtmosphericScattering::SetIsRunning(bool isRunning)

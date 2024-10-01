@@ -1,5 +1,8 @@
 #version 430 core
 layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 BrightnessMap;
+
+layout(binding = 0, r32i) uniform readonly iimage2D gRedInt;
 
 in vec2 TexCoords;
 
@@ -9,6 +12,10 @@ uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;  // RGB = Albedo, A = Metallic
 uniform sampler2D gRoughAO;     // R = Roughness, G = AO
 uniform sampler2D gLightSpacePosition;
+uniform sampler2D gDepth;
+
+// Skybox
+uniform sampler2D u_SkyboxMap;
 
 // IBL
 uniform samplerCube u_IrradianceMap;
@@ -44,6 +51,9 @@ uniform sampler2D u_SSAO;
 // Camera position
 uniform vec3 u_CamPos;
 uniform mat4 u_View;
+
+// Debug parameters
+uniform bool u_DebugBrightness = true;
 
 /*******-------------------- PCSS functions --------------------******/
 
@@ -309,6 +319,11 @@ vec3 lightingCalculation(vec3 Lo, float shadow, vec3 lightDir, vec3 V, vec3 N, v
     return Lo;
 }
 
+float sRGBToLuma(vec3 c)
+{
+    return dot(c, vec3(0.2126729, 0.7151522, 0.0721750));
+}
+
 void main()
 {
     // Retrieve data from G-buffer
@@ -316,58 +331,96 @@ void main()
     vec3 N = normalize(texture(gNormal, TexCoords).rgb);
     vec4 gAlbedoSpecData = texture(gAlbedoSpec, TexCoords);
     vec3 albedo = gAlbedoSpecData.rgb;
+
+    ivec2 texCoords = ivec2(gl_FragCoord.xy); 
+    int value = imageLoad(gRedInt, texCoords).r;
+
+    vec3 generalRenderersColor;
+    vec3 skyboxColor;
+    float isBackground;
+    vec3 lightsColor;
+
+
+    // Refactor: find the pure blocks to avoid the pbr lighting calculation entity 0 and 2 correctly is pure color blocks identitied as lights
+    if(value == 2 || value == 0)
+    {
+        lightsColor = albedo;
+        FragColor = vec4(lightsColor, 1.0); 
+    }
+    else
+    {
+        float metallic = gAlbedoSpecData.a;
+
+        vec3 gRoughAOData = texture(gRoughAO, TexCoords).rgb;
+        float roughness = gRoughAOData.r;
+        float ao = gRoughAOData.g;
+
+        // Retrieve SSAO value
+        float ssao = texture(u_SSAO, TexCoords).r;
+
+        // Calculate ambient occlusion factor
+        float ambientOcclusion = ao * ssao;
+
+        // View vector
+        vec3 V = normalize(u_CamPos - WorldPos);
+        vec3 R = reflect(-V, N);
+        vec3 F0 = vec3(0.04); 
+        F0 = mix(F0, albedo, metallic);
+
+        // Lighting calculations
+        vec3 Lo = vec3(0.0);
+        //vec4 fragPosLightSpace = texture(gLightSpacePosition, TexCoords);
+        float shadow = ShadowCalculation(WorldPos, N); 
+        Lo = lightingCalculation(Lo, shadow, u_SunLightDir, V, N, F0,metallic, roughness, albedo);
+
+        // ambient lighting (we now use IBL as the ambient term)
+        vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+        
+        vec3 kS = F;
+        vec3 kD = 1.0 - kS;
+        kD *= 1.0 - metallic;	  
+        
+        vec3 irradiance = texture(u_IrradianceMap, N).rgb;
+        vec3 diffuse      = irradiance * albedo;
+
+        // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
+        const float MAX_REFLECTION_LOD = 4.0;
+        vec3 prefilteredColor = textureLod(u_PrefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;    
+        vec2 brdf  = texture(u_BrdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+        vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+
    
-    float metallic = gAlbedoSpecData.a;
+        
+        vec3 ambient = (kD * diffuse + specular) * ambientOcclusion;
+        generalRenderersColor = ambient + Lo;
 
-    vec3 gRoughAOData = texture(gRoughAO, TexCoords).rgb;
-    float roughness = gRoughAOData.r;
-    float ao = gRoughAOData.g;
+        // HDR tonemapping
+         //gamma correct
+        generalRenderersColor = generalRenderersColor * (generalRenderersColor + vec3(1.0));
+        generalRenderersColor = pow(generalRenderersColor, vec3(1.0/2.2)); 
 
-    // Retrieve SSAO value
-    float ssao = texture(u_SSAO, TexCoords).r;
+        //FragColor = vec4(color, 1.0f);
 
-    // Calculate ambient occlusion factor
-    float ambientOcclusion = ao * ssao;
+         // Sample the 2D skybox texture for the background
+        skyboxColor = texture(u_SkyboxMap, TexCoords).rgb;
 
-    // View vector
-    vec3 V = normalize(u_CamPos - WorldPos);
-    vec3 R = reflect(-V, N);
-    vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
+        // Blend between skybox and lighting based on depth
+        float depthValue = texture(gDepth, TexCoords).r;
+        isBackground = step(0.9999, depthValue);  // 1.0 means far plane (background)
+        // Interpolate between skybox and lighting
+        vec3 finalColor = mix(generalRenderersColor, skyboxColor, isBackground);
 
-    // Lighting calculations
-    vec3 Lo = vec3(0.0);
-    //vec4 fragPosLightSpace = texture(gLightSpacePosition, TexCoords);
-    float shadow = ShadowCalculation(WorldPos, N); 
-    Lo = lightingCalculation(Lo, shadow, u_SunLightDir, V, N, F0,metallic, roughness, albedo);
-
-    // ambient lighting (we now use IBL as the ambient term)
-    vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
-    
-    vec3 kS = F;
-    vec3 kD = 1.0 - kS;
-    kD *= 1.0 - metallic;	  
-    
-    vec3 irradiance = texture(u_IrradianceMap, N).rgb;
-    vec3 diffuse      = irradiance * albedo;
-
-    // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
-    const float MAX_REFLECTION_LOD = 4.0;
-    vec3 prefilteredColor = textureLod(u_PrefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;    
-    vec2 brdf  = texture(u_BrdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
-    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
-
-   
-    
-    vec3 ambient = (kD * diffuse + specular) * ambientOcclusion;
-    vec3 color = ambient + Lo;
-
-//
-    // HDR tonemapping
-     //gamma correct
-    color = color * (color + vec3(1.0));
-    color = pow(color, vec3(1.0/2.2)); 
-
-    FragColor = vec4(color, 1.0f);
-    
+        FragColor = vec4(finalColor, 1.0);
+    }
+    // for some reason that skybox color need to be enhanced to achieve the equalvelent intensity with the lightpass color
+    vec3 brightnessColor = mix(generalRenderersColor + lightsColor, skyboxColor * 1.6, isBackground);
+    //debug for brightness
+    if(u_DebugBrightness)
+    {
+        if(sRGBToLuma(brightnessColor) > 1.5f)
+        {
+            //FragColor = vec4(0.0f,1.0f,1.0f, 1.0f);
+            BrightnessMap = vec4(brightnessColor,1.0f);
+        }
+    }
 }

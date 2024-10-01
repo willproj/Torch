@@ -72,7 +72,7 @@ void main()
     gNormal = getNormalFromMap();
     
     // Set defaults for material properties if no textures are bound
-    vec3 albedo = u_UseAlbedoMap ? pow(texture(u_AlbedoMap, TexCoords).rgb, vec3(2.0)) : vec3(2.0f,2.0,2.0f);
+    vec3 albedo = u_UseAlbedoMap ? pow(texture(u_AlbedoMap, TexCoords).rgb, vec3(2.0)) : vec3(15.0f,15.0,15.0f);
     float metallic = u_UseMetallicMap ? texture(u_MetallicMap, TexCoords).r * u_Metallic: u_Metallic;
     float roughness = u_UseRoughnessMap ? texture(u_RoughnessMap, TexCoords).r * u_Roughness : u_Roughness;
     float ao = u_UseAoMap ? texture(u_AoMap, TexCoords).r : 1.0f;

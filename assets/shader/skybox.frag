@@ -215,7 +215,19 @@ void main()
             float h = c / u_SunAngle;
             color += max(1.0 - h, 0.0) * u_SunColor * u_SunIntensity * transmittance(vec3(0), dir);
         }
+
     }
+
+    // Apply post-processing effects
+    float exposure = 8.0;
+    color *= exposure;
+    color = ACESFilm(color);
+
+    color = pow(color, vec3(1.0 / 2.2));
+
+    // Output to screen
+    FragColor = vec4(color, 1.0);
+
 
     //color blended sun color
     // Step 1: Compute sun color at the position
@@ -244,17 +256,5 @@ void main()
 
 
     finalColor = finalSunColor;
-
-
-    // Apply post-processing effects
-    float exposure = 8.0;
-    color *= exposure;
-    color = ACESFilm(color);
-    color = color * (color + vec3(1.0f));
-    color = pow(color, vec3(1.0 / 2.8));
-
-    // Output to screen
-    FragColor = vec4(color, 1.0);
-
 }
 

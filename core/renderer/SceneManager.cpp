@@ -92,6 +92,13 @@ namespace core
 		{
 			Entity entity = { entityID, &m_Scene };
 
+			// Get Type component
+			EntityType type;
+			if (entity.HasComponent<EntityTypeComponent>())
+			{
+				type = entity.GetComponent<EntityTypeComponent>().entityType;
+			}
+
 			// Get transform component
 			glm::mat4 transform = glm::mat4(1.0f);
 			if (entity.HasComponent<TransformComponent>())
