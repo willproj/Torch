@@ -413,7 +413,7 @@ void main()
         FragColor = vec4(finalColor, 1.0);
     }
     // for some reason that skybox color need to be enhanced to achieve the equalvelent intensity with the lightpass color
-    vec3 brightnessColor = mix(generalRenderersColor + lightsColor, skyboxColor * 1.6, isBackground);
+    vec3 brightnessColor = mix(generalRenderersColor + lightsColor, skyboxColor * 1.55, isBackground);
     //debug for brightness
     if(u_DebugBrightness)
     {

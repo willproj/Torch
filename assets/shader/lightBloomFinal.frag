@@ -42,5 +42,5 @@ void main()
     result = pow(result, vec3(gamma)); // Apply gamma correction
 
     FragColor = vec4(result, 1.0); // Output the final color
-//    FragColor = vec4(texture(scene, TexCoords).rgb, 1.0); // Output the final color
+//    FragColor = vec4(texture(bloomBlur, TexCoords).rgb, 1.0); // Output the final color
 }
