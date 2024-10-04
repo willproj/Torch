@@ -176,6 +176,7 @@ namespace utils
 			out << YAML::Key << "Metallic Path" << YAML::Value << materialComp.metallicPath;
 			out << YAML::Key << "Roughness Path" << YAML::Value << materialComp.roughnessPath;
 			out << YAML::Key << "AO Path" << YAML::Value << materialComp.aoPath;
+			out << YAML::Key << "Displacement Path" << YAML::Value << materialComp.displacementPath;
 
 			out << YAML::Key << "Metallic" << YAML::Value << materialComp.metallic;
 			out << YAML::Key << "Roughness" << YAML::Value << materialComp.roughness;
@@ -185,6 +186,7 @@ namespace utils
 			out << YAML::Key << "Use Metallic" << YAML::Value << materialComp.useMetallicTexture;
 			out << YAML::Key << "Use Roughness" << YAML::Value << materialComp.useRoughnessTexture;
 			out << YAML::Key << "Use AO" << YAML::Value << materialComp.useAOTexture;
+			out << YAML::Key << "Use Displacement" << YAML::Value << materialComp.useDisplacementTexture;
 			out << YAML::EndMap;
 		}
 
@@ -320,6 +322,12 @@ namespace utils
 					{
 						material.aoTexture = core::Texture::LoadTexture(material.aoPath);
 					}
+
+					material.displacementPath = materialComp["Displacement Path"].as<std::string>();
+					if (!material.displacementPath.empty())
+					{
+						material.displacementTexture = core::Texture::LoadTexture(material.displacementPath);
+					}
 					
 
 					material.useAlbedoTexture = materialComp["Use Albedo"].as<bool>();
@@ -327,6 +335,7 @@ namespace utils
 					material.useMetallicTexture = materialComp["Use Metallic"].as<bool>();
 					material.useRoughnessTexture = materialComp["Use Roughness"].as<bool>();
 					material.useAOTexture = materialComp["Use AO"].as<bool>();
+					material.useDisplacementTexture = materialComp["Use Displacement"].as<bool>();
 
 					material.metallic = materialComp["Metallic"].as<float>();
 					material.roughness = materialComp["Roughness"].as<float>();

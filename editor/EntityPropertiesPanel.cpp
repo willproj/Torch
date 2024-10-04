@@ -208,6 +208,20 @@ namespace editor
 					}
 				}
 				ImGui::PopID();
+
+				ImGui::Checkbox("Use Displacement", &material.useDisplacementTexture);
+				ImGui::PushID(6);
+				if (ImGui::ImageButton((void*)(intptr_t)(material.displacementTexture == 0 ? m_DefaultTexture : material.displacementTexture), ImVec2(imageSize, imageSize)))
+				{
+					const std::string path = utils::FileUtils::OpenFile("Image Files (*.jpg;*.png)\0*.jpg;*.png\0");
+					if (!path.empty())
+					{
+						material.displacementPath = path;
+						material.displacementTexture = core::Texture::LoadTexture(path);
+					}
+				}
+				ImGui::PopID();
+
 				ImGui::Separator();
 			}
 		}

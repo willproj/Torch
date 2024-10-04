@@ -342,7 +342,7 @@ void main()
 
 
     // Refactor: find the pure blocks to avoid the pbr lighting calculation entity 0 and 2 correctly is pure color blocks identitied as lights
-    if(value == 2 || value == 0)
+    if(value == 20 || value == 10)
     {
         lightsColor = albedo;
         FragColor = vec4(lightsColor, 1.0); 

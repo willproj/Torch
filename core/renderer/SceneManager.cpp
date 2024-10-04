@@ -113,6 +113,8 @@ namespace core
 			// Get material component
 			if (entity.HasComponent<MaterialComponent>())
 			{
+				std::cout << "has material" << std::endl;
+
 				// Retrieve the material component from the entity
 				auto& materialComponent = entity.GetComponent<MaterialComponent>();
 
@@ -138,14 +140,21 @@ namespace core
 				Texture::BindTexture(4, GL_TEXTURE_2D, materialComponent.aoTexture);
 				gemotryPassShader.setInt("u_AoMap", 4); // Set shader uniform for AO map
 				gemotryPassShader.setBool("u_UseAoMap", materialComponent.useAOTexture); // Set shader uniform for AO map
+
+				Texture::BindTexture(5, GL_TEXTURE_2D, materialComponent.displacementTexture);
+				gemotryPassShader.setInt("u_DisplacementMap", 5); // Set shader uniform for Displacement map
+				gemotryPassShader.setBool("u_UseDisplacementMap", materialComponent.useDisplacementTexture); // Set shader uniform for Displacement map
+
 			}
 			else
 			{
+				std::cout << "no material" << std::endl;
 				gemotryPassShader.setBool("u_UseAlbedoMap", false);
 				gemotryPassShader.setBool("u_UseNormalMap", false);
 				gemotryPassShader.setBool("u_UseMetallicMap", false);
 				gemotryPassShader.setBool("u_UseRoughness", false);
 				gemotryPassShader.setBool("u_UseAoMap", false);
+				gemotryPassShader.setBool("u_UseDisplacementMap", false);
 				
 				gemotryPassShader.setFloat("u_Metallic", 0.0);
 				gemotryPassShader.setFloat("u_Roughness", 1.0);

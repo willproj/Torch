@@ -126,18 +126,21 @@ namespace core
 		uint32_t metallicTexture = 0;
 		uint32_t roughnessTexture = 0;
 		uint32_t aoTexture = 0;
+		uint32_t displacementTexture = 0;
 
 		std::string albedoPath;
 		std::string normalPath;
 		std::string metallicPath;
 		std::string roughnessPath;
 		std::string aoPath;
+		std::string displacementPath;
 
 		bool useAlbedoTexture = true;
 		bool useNormalTexture = true;
 		bool useMetallicTexture = true;
 		bool useRoughnessTexture = true;
 		bool useAOTexture = true;
+		bool useDisplacementTexture = true;
 
 		float roughness = 0.6;
 		float metallic = 0;

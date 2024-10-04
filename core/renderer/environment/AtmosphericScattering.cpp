@@ -10,8 +10,8 @@ namespace core
 		SetDefault();
 
 		m_Type = EnvironmentEntityType::Atmosphere;
-		const std::string filepath = std::string(PROJECT_ROOT) + "/assets/models/essential/sphere/scene.gltf";
-		m_SkyboxSphere = ModelManager::GetInstance()->LoadModel(filepath);
+		//const std::string filepath = std::string(PROJECT_ROOT) + "/assets/models/essential/sphere/scene.gltf";
+		//m_SkyboxSphere = ModelManager::GetInstance()->LoadModel(filepath);
 
 		// Define a buffer ID
 		glGenBuffers(1, &ssbo);

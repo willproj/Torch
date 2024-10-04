@@ -51,7 +51,6 @@ namespace core
 		lightingPassShader.setInt("u_SkyboxMap", 11);
 		lightingPassShader.setInt("gDepth", 12);
 
-		SceneManager::GetSceneManager()->GetSceneRef()->CreateEntity();
 		CreateOffScreenTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
 		CreateSkyboxTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
 		CreatePostprocessTextures(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
