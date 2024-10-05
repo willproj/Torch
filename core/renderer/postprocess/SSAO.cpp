@@ -5,9 +5,8 @@
 
 namespace core
 {
-	SSAO::SSAO(std::shared_ptr<EditorCamera> camera)
+	SSAO::SSAO()
 	{
-		m_EditorCameraPtr = camera;
         auto& ssaoShader = ShaderManager::GetInstance()->GetSSAOShaderRef();
         auto& ssaoBlurShader = ShaderManager::GetInstance()->GetSSAOBlurShaderRef();
         auto& winSpec = utils::ServiceLocator::GetWindow()->GetWinSpecification();
@@ -19,35 +18,33 @@ namespace core
         ssaoBlurShader.use();
         ssaoBlurShader.setInt("ssaoInput", 0);
         
-        GenerateNoiseTexture();
-        Initialize(winSpec.width, winSpec.height);
+        this->GenerateNoiseTexture();
 	}
-
 
 	void SSAO::Initialize(uint32_t width, uint32_t height)
 	{
-        auto& specific = std::get<SSAOSpecification>(m_Specification);
-        glGenFramebuffers(1, &specific.ssaoFramebuffer);  
-        glGenFramebuffers(1, &specific.ssaoBlurFramebuffer);
+        auto& speci = std::get<SSAOSpecification>(m_Specification);
+        glGenFramebuffers(1, &speci.ssaoFramebuffer);
+        glGenFramebuffers(1, &speci.ssaoBlurFramebuffer);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, specific.ssaoFramebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, speci.ssaoFramebuffer);
         // SSAO color buffer
-        glGenTextures(1, &specific.ssaoColorTexture);
-        glBindTexture(GL_TEXTURE_2D, specific.ssaoColorTexture);
+        glGenTextures(1, &speci.ssaoColorTexture);
+        glBindTexture(GL_TEXTURE_2D, speci.ssaoColorTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, specific.ssaoColorTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, speci.ssaoColorTexture, 0);
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
             std::cout << "SSAO Framebuffer not complete!" << std::endl;
         // and blur stage
-        glBindFramebuffer(GL_FRAMEBUFFER, specific.ssaoBlurFramebuffer);
-        glGenTextures(1, &specific.ssaoColorBlurTexture);
-        glBindTexture(GL_TEXTURE_2D, specific.ssaoColorBlurTexture);
+        glBindFramebuffer(GL_FRAMEBUFFER, speci.ssaoBlurFramebuffer);
+        glGenTextures(1, &speci.ssaoColorBlurTexture);
+        glBindTexture(GL_TEXTURE_2D, speci.ssaoColorBlurTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, specific.ssaoColorBlurTexture, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, speci.ssaoColorBlurTexture, 0);
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
             std::cout << "SSAO Blur Framebuffer not complete!" << std::endl;
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -59,71 +56,92 @@ namespace core
 
 	}
 
-	void SSAO::Render()
-	{
-        // 3. blur SSAO texture to remove noise
-        // ------------------------------------
-        auto& ssaoBlurShader = ShaderManager::GetInstance()->GetSSAOBlurShaderRef();
-        auto& specific = std::get<SSAOSpecification>(m_Specification);
-        glBindFramebuffer(GL_FRAMEBUFFER, specific.ssaoBlurFramebuffer);
-        glClear(GL_COLOR_BUFFER_BIT);
-        ssaoBlurShader.use();
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, specific.ssaoColorTexture);
-        RenderQuad::Render();
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        
-	}
+    SSAO::~SSAO()
+    {
+        auto& speci = std::get<SSAOSpecification>(m_Specification);
+
+        if (speci.ssaoFramebuffer)
+        {
+            glDeleteFramebuffers(1, &speci.ssaoFramebuffer);
+        }
+
+        if (speci.ssaoBlurFramebuffer)
+        {
+            glDeleteFramebuffers(1, &speci.ssaoBlurFramebuffer);
+        }
+
+        if (speci.ssaoColorTexture)
+        {
+            glDeleteTextures(1, &speci.ssaoColorTexture);
+        }
+
+        if (speci.ssaoColorBlurTexture)
+        {
+            glDeleteTextures(1, &speci.ssaoColorBlurTexture);
+        }
+    }
 
     void SSAO::BeginRender()
     {
-        auto& specific = std::get<SSAOSpecification>(m_Specification);
+        auto& speci = std::get<SSAOSpecification>(m_Specification);
         auto& ssaoShader = ShaderManager::GetInstance()->GetSSAOShaderRef();
         // 2. generate SSAO texture
         // ------------------------
-        glBindFramebuffer(GL_FRAMEBUFFER, specific.ssaoFramebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, speci.ssaoFramebuffer);
         glClear(GL_COLOR_BUFFER_BIT);
         ssaoShader.use();
         // Send kernel + rotation 
         for (unsigned int i = 0; i < 64; ++i)
-            ssaoShader.setVec3("samples[" + std::to_string(i) + "]", specific.ssaoKernel[i]);
-        ssaoShader.setMat4("projection", m_EditorCameraPtr->GetProjection());
+            ssaoShader.setVec3("samples[" + std::to_string(i) + "]", speci.ssaoKernel[i]);
+        ssaoShader.setMat4("projection", speci.camera->GetProjection());
     }
 
     void SSAO::EndRender()
     {
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        auto& speci = std::get<SSAOSpecification>(m_Specification);
+
+        // 3. blur SSAO texture to remove noise
+       // ------------------------------------
+        auto& ssaoBlurShader = ShaderManager::GetInstance()->GetSSAOBlurShaderRef();
+        glBindFramebuffer(GL_FRAMEBUFFER, speci.ssaoBlurFramebuffer);
+        glClear(GL_COLOR_BUFFER_BIT);
+        ssaoBlurShader.use();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, speci.ssaoColorTexture);
+        RenderQuad::Render();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     void SSAO::OnUpdate(uint32_t width, uint32_t height)
     {
-        auto& specific = std::get<SSAOSpecification>(m_Specification);
-        if (specific.ssaoFramebuffer)
+        auto& speci = std::get<SSAOSpecification>(m_Specification);
+        if (speci.ssaoFramebuffer)
         {
-            glDeleteFramebuffers(1, &specific.ssaoFramebuffer);
+            glDeleteFramebuffers(1, &speci.ssaoFramebuffer);
         }
 
-        if (specific.ssaoBlurFramebuffer)
+        if (speci.ssaoBlurFramebuffer)
         {
-            glDeleteFramebuffers(1, &specific.ssaoBlurFramebuffer);
+            glDeleteFramebuffers(1, &speci.ssaoBlurFramebuffer);
         }
 
-        if (specific.ssaoColorTexture)
+        if (speci.ssaoColorTexture)
         {
-            glDeleteTextures(1, &specific.ssaoColorTexture);
+            glDeleteTextures(1, &speci.ssaoColorTexture);
         }
 
-        if (specific.ssaoColorBlurTexture)
+        if (speci.ssaoColorBlurTexture)
         {
-            glDeleteTextures(1, &specific.ssaoColorBlurTexture);
+            glDeleteTextures(1, &speci.ssaoColorBlurTexture);
         }
 
-        Initialize(width, height);
+        this->Initialize(width, height);
     }
     void SSAO::GenerateNoiseTexture()
     {
-        auto& specific = std::get<SSAOSpecification>(m_Specification);
-
+        auto& speci = std::get<SSAOSpecification>(m_Specification);
         std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
         std::default_random_engine generator;
         for (unsigned int i = 0; i < 64; ++i)
@@ -134,9 +152,9 @@ namespace core
             float scale = float(i) / 64.0f;
 
             // scale samples s.t. they're more aligned to center of kernel
-            scale = ourLerp(0.1f, 1.0f, scale * scale);
+            scale = Lerp(0.1f, 1.0f, scale * scale);
             sample *= scale;
-            specific.ssaoKernel.push_back(sample);
+            speci.ssaoKernel.push_back(sample);
         }
 
         // generate noise texture
@@ -147,8 +165,8 @@ namespace core
             glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f); // rotate around z-axis (in tangent space)
             ssaoNoise.push_back(noise);
         }
-        glGenTextures(1, &specific.noiseTexture);
-        glBindTexture(GL_TEXTURE_2D, specific.noiseTexture);
+        glGenTextures(1, &speci.noiseTexture);
+        glBindTexture(GL_TEXTURE_2D, speci.noiseTexture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

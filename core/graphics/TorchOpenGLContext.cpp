@@ -25,13 +25,11 @@ namespace core
 		m_EnvirManager = EnvironmentManager::GetInstance();
 		auto atmosphere = std::shared_ptr<EnvironmentEntity>(new AtmosphericScattering(m_EditorCamera));
 		auto cascadeShadowMap = std::shared_ptr<EnvironmentEntity>(new CascadeShadowMap(m_EditorCamera));
-		auto ssao = std::shared_ptr<EnvironmentEntity>(new SSAO(m_EditorCamera));
 
 		m_EnvirManager->AddEntity(EnvironmentEntityType::Atmosphere, atmosphere);
 		m_EnvirManager->AddEntity(EnvironmentEntityType::CascadeShadowMap, cascadeShadowMap);
-		m_EnvirManager->AddEntity(EnvironmentEntityType::SSAO, ssao);
-
 		
+
 		test = Shader(
 			std::string(PROJECT_ROOT) + "/assets/shader/test.vert",
 			std::string(PROJECT_ROOT) + "/assets/shader/test.frag");
@@ -55,8 +53,11 @@ namespace core
 		CreateOffScreenTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
 		CreateSkyboxTexture(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
 		CreatePostprocessTextures(m_WindowPtr->GetWinSpecification().width, m_WindowPtr->GetWinSpecification().height);
-		bloom.Initialize();
 
+		auto& factory = singleton<PostProcessFactory>();
+		auto& bloomEffect = factory.GetPostProcessEffect(PostProcessType::Bloom);
+		auto& ssaoEffect = factory.GetPostProcessEffect(PostProcessType::SSAO);
+		std::get<SSAOSpecification>(ssaoEffect.GetSpecification()).camera = m_EditorCamera;
 	}
 
 	void TorchOpenGLContext::CreateOffScreenTexture(int width, int height)
@@ -125,8 +126,9 @@ namespace core
 		CreateOffScreenTexture(width, height);
 		CreateSkyboxTexture(width, height);
 		CreatePostprocessTextures(width, height);
-		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->OnUpdate(width, height);
-		bloom.GetBloom().Create(width, height);
+
+		singleton<PostProcessFactory>().GetPostProcessEffect(PostProcessType::Bloom).OnUpdate(width, height);
+		singleton<PostProcessFactory>().GetPostProcessEffect(PostProcessType::SSAO).OnUpdate(width, height);
 	}
 
 	TorchOpenGLContext::~TorchOpenGLContext()
@@ -246,8 +248,8 @@ namespace core
 		auto& atmosphereSpcific = std::get<AtmosphericScatteringSpecification>(atmosphere.get());
 		auto& cascadeShadowMap = m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::CascadeShadowMap)->GetSpecification();
 		auto& shadowMapSpcific = std::get<CascadeShadowMapSpecification>(cascadeShadowMap.get());
-		auto& ssao = m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->GetSpecification();
-		auto& ssaoSpecific = std::get<SSAOSpecification>(ssao.get());
+		//auto& ssao = m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->GetSpecification();
+		//auto& ssaoSpecific = std::get<SSAOSpecification>(ssao.get());
 		//----------------------------------------------------------------------------------------------------------------------
 
 		this->UpdateCameraViewport();
@@ -276,14 +278,16 @@ namespace core
 		glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glViewport(0, 0, m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
-		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->BeginRender();
-		Texture::BindTexture(0, GL_TEXTURE_2D, m_GBuffer->GetGViewPositionTexture());
-		Texture::BindTexture(1, GL_TEXTURE_2D, m_GBuffer->GetGNormalTexture());
-		Texture::BindTexture(2, GL_TEXTURE_2D, ssaoSpecific.noiseTexture);
-		RenderQuad::Render();
-		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->EndRender();
-		m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::SSAO)->Render();
-
+		auto& ssaoEffect = singleton<PostProcessFactory>().GetPostProcessEffect(PostProcessType::SSAO);
+		auto& ssaoSpeci = std::get<SSAOSpecification>(ssaoEffect.GetSpecification());
+		ssaoEffect.BeginRender();
+		{
+			Texture::BindTexture(0, GL_TEXTURE_2D, m_GBuffer->GetGViewPositionTexture());
+			Texture::BindTexture(1, GL_TEXTURE_2D, m_GBuffer->GetGNormalTexture());
+			Texture::BindTexture(2, GL_TEXTURE_2D, ssaoSpeci.noiseTexture);
+			RenderQuad::Render();
+		}
+		ssaoEffect.EndRender();
 		
 
 		// 3. Lighting pass (render to default framebuffer)
@@ -315,20 +319,15 @@ namespace core
 		Texture::BindTexture(7, GL_TEXTURE_2D, ibl.GetBrdfLUTTexture());
 		Texture::BindTexture(8, GL_TEXTURE_2D_ARRAY, shadowMapSpcific.shadowMapTexture);
 		Texture::BindTexture(9, GL_TEXTURE_2D, m_GBuffer->GetGLightSpacePosition());
-		Texture::BindTexture(10, GL_TEXTURE_2D, ssaoSpecific.ssaoColorBlurTexture);
+		Texture::BindTexture(10, GL_TEXTURE_2D, ssaoSpeci.ssaoColorBlurTexture);
 		Texture::BindTexture(11, GL_TEXTURE_2D, m_SkyboxTexture);
 		Texture::BindTexture(12, GL_TEXTURE_2D, m_GBuffer->GetGDepthTexture());
 
 		RenderQuad::Render();
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-
-		
-
-
 		// 4. Blit depth buffer from GBuffer to default framebuffer
 		//this->BlitFramebuffer(m_GBuffer->GetFramebufferID(), 0, GL_DEPTH_BUFFER_BIT);
-		
 		// 7. skybox (to default framebuffer)
 		if (m_EnvirManager->GetEnvironmentEntityPtr(EnvironmentEntityType::Atmosphere)->IsRunning())
 		{
@@ -352,17 +351,15 @@ namespace core
 			ibl.RenderPrefilterCubemap();
 			ibl.UnbindFramebuffer();
 			glViewport(0, 0, m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
-
 		}
-
-
 
 		// 8. Copy final rendered result from default framebuffer to texture for ImGui
 		//this->BlitFramebuffer(0, m_ScreenFramebuffer, GL_COLOR_BUFFER_BIT);
-
-		bloom.SetSrcTexture(m_BrightnessTexture);
-		//bloom.SetSrcTexture(m_ScreenTexture);
-		bloom.Create(m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
+		auto& bloomEffect = singleton<PostProcessFactory>().GetPostProcessEffect(PostProcessType::Bloom);
+		auto& speci = std::get<BloomSpecification>(bloomEffect.GetSpecification());
+		speci.m_SrcTexture = m_BrightnessTexture;
+		bloomEffect.BeginRender();
+		bloomEffect.EndRender();
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glViewport(0, 0, m_EditorCamera->GetViewportWidth(), m_EditorCamera->GetViewportHeight());
@@ -371,8 +368,8 @@ namespace core
 		shader.setInt("scene", 0);
 		shader.setInt("bloomBlur", 1);
 		Texture::BindTexture(0, GL_TEXTURE_2D, m_OriginalSceneTexture);
-		//Texture::BindTexture(1, GL_TEXTURE_2D, ssaoSpecific.ssaoColorBlurTexture);
-		Texture::BindTexture(1, GL_TEXTURE_2D, bloom.GetBloom().GetMipChain()[0].texture);
+		//Texture::BindTexture(1, GL_TEXTURE_2D, bloom.GetBloom().GetMipChain()[0].texture);
+		Texture::BindTexture(1, GL_TEXTURE_2D, speci.m_MipTextureChain[0].texture);
 		RenderQuad::Render();
 
 

@@ -75,21 +75,10 @@ namespace core
 		std::vector<float> shadowCascadeLevels{ 10.0f, 20.0f, 80.0f, 640.0f, 5000.0f };
 	};
 
-	struct SSAOSpecification
-	{
-		uint32_t ssaoFramebuffer;
-		uint32_t ssaoBlurFramebuffer;
-		uint32_t ssaoColorTexture;
-		uint32_t ssaoColorBlurTexture;
-		std::vector<glm::vec3> ssaoKernel;
-		uint32_t noiseTexture;
-	};
-
 	using SpecificationVariant = std::variant
 	<
 		AtmosphericScatteringSpecification, 
-		CascadeShadowMapSpecification,
-		SSAOSpecification
+		CascadeShadowMapSpecification
 	>;
 	
 	class EnvironmentEntity

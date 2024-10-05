@@ -44,7 +44,7 @@ namespace editor
 
 
 			// Sun Position in spherical coordinates
-			static float azimuthalAngle = 0.02f; // ¦È (rotation around Z-axis)
+			static float azimuthalAngle = 0.25f; // ¦È (rotation around Z-axis)
 			static float polarAngle = 0.0f; // ¦Õ (elevation angle from Z-axis)
 
 			// Convert spherical coordinates to Cartesian coordinates

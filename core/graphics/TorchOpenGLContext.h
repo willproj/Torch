@@ -13,9 +13,9 @@
 #include "core/renderer/environment/HDR.h"
 #include "core/renderer/postprocess/IBL.h"
 #include "core/renderer/environment/CascadeShadowMap.h"
-#include "core/renderer/environment/SSAO.h"
 #include "core/renderer/ShaderManager.h"
-#include "core/renderer/postprocess/BloomRenderer.h"
+#include "core/renderer/postprocess/PostProcessFactory.h"
+
 namespace core
 {
 
@@ -86,7 +86,5 @@ namespace core
 
 		bool iblonce = true;
 		Shader vollight;
-
-		BloomRenderer bloom;
 	};
 }
