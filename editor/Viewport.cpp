@@ -143,19 +143,17 @@ namespace editor
 			auto& tc = entity.GetComponent<core::TransformComponent>();
 			glm::mat4 transform = tc.getTransform();
 		
-			guizmoType = ImGuizmo::OPERATION::TRANSLATE;
-		
 			if (keyboard->IsKeyPressed(core::KeyCode::KEY_1))
-			{
-				guizmoType = ImGuizmo::OPERATION::TRANSLATE;
-			}
-			else if (keyboard->IsKeyPressed(core::KeyCode::KEY_2))
 			{
 				guizmoType = ImGuizmo::OPERATION::ROTATE;
 			}
-			else if (keyboard->IsKeyPressed(core::KeyCode::KEY_3))
+			else if (keyboard->IsKeyPressed(core::KeyCode::KEY_2))
 			{
 				guizmoType = ImGuizmo::OPERATION::SCALE;
+			}
+			else 
+			{
+				guizmoType = ImGuizmo::OPERATION::TRANSLATE;
 			}
 			// Snapping
 			ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
@@ -187,7 +185,6 @@ namespace editor
 			{
 				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !keyboard->IsKeyPressed(core::KeyCode::KEY_LEFT_CONTROL))
 				{
-					std::cout << "selected general: " << pixel << std::endl;
 					sceneRef->SetSelectedEntityID(entt::entity(pixel));
 				}
 			}
